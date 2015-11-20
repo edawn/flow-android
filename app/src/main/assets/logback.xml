@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress XmlUnboundNsPrefix -->
+<configuration>
+
+    <appender
+        name="LOGCAT"
+        class="ch.qos.logback.classic.android.LogcatAppender">
+        <encoder>
+            <pattern>[%method] > %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="TRACE" >
+        <appender-ref ref="LOGCAT" />
+    </root>
+
+</configuration>
