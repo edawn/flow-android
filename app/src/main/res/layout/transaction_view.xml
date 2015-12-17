@@ -4,6 +4,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#1000"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp"
+    android:paddingLeft="5dp"
+    android:paddingStart="5dp"
+    android:paddingRight="5dp"
+    android:paddingEnd="5dp"
     >
 
     <de.bitmacht.workingtitle36.view.TimeView
