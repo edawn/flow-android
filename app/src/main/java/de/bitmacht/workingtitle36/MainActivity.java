@@ -24,8 +24,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             logger.trace(">");
         }
         setContentView(R.layout.activity_main);
+
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.transactions);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        float separatorHeight = getResources().getDimension(R.dimen.recycler_view_separator_height);
+        recyclerView.addItemDecoration(new VerticalSpaceItemDecoration((int) separatorHeight));
+
         transactionsAdapter = new TransactionsAdapter();
         recyclerView.setAdapter(transactionsAdapter);
 
