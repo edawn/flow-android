@@ -5,7 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 
-public class DBOpenHelper extends SQLiteOpenHelper {
+public class DBHelper extends SQLiteOpenHelper {
 
     public static final String DATABASE_NAME = "flow";
     public static final int DATABASE_VERSION = 1;
@@ -99,7 +99,18 @@ public class DBOpenHelper extends SQLiteOpenHelper {
                     TRANSACTIONS_KEY_ISREMOVED + " BOOLEAN" +
                     ");";
 
-    public DBOpenHelper(Context context) {
+    /**
+     * Returns the most current, not pending edit for every transaction
+     * TODO do not return edits from deleted transactions
+     */
+    public static final String LATEST_EDITS_QUERY =
+            "SELECT " + EDITS_TABLE_NAME + ".* FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
+                    "(SELECT " + EDITS_KEY_CREATION_TIME + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
+                    "FROM " + EDITS_TABLE_NAME + " WHERE " + EDITS_KEY_ISPENDING + " IS 'false' GROUP BY " +
+                    EDITS_KEY_SEQUENCE + ") editsmax ON " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME +
+                    " = editsmax." + EDITS_KEY_CREATION_TIME;
+
+    public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
