@@ -17,6 +17,7 @@ import de.bitmacht.workingtitle36.BuildConfig;
 public class ValueView extends TextView {
 
     private static final Logger logger = LoggerFactory.getLogger(ValueView.class);
+
     private char decimalSeparator;
 
     public ValueView(Context context) {
@@ -48,8 +49,9 @@ public class ValueView extends TextView {
      * Sets the value that will be displayed
      * @param cents The value in minor currency units
      * @param currencyCode The ISO 4217 currency code
+     * @return The text that will be displayed
      */
-    public void setValue(long cents, String currencyCode) {
+    public String setValue(long cents, String currencyCode) {
         int fractionDigits = 0;
         String symbol = "?";
         try {
@@ -71,9 +73,10 @@ public class ValueView extends TextView {
             minor = Math.abs(cents % div);
         }
 
-        String text = showFraction ? String.format("%d%s%d %s", major, decimalSeparator, minor, symbol) :
-                String.format("%d %s", major, symbol);
+        String text = showFraction ? String.format("%d%s%02d%s", major, decimalSeparator, minor, symbol) :
+                String.format("%d%s", major, symbol);
 
         setText(text);
+        return text;
     }
 }

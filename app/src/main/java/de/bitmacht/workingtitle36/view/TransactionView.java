@@ -14,6 +14,8 @@ public class TransactionView extends FrameLayout {
     private final TimeView timeView;
     private final ValueView valueView;
     private final DescriptionView descriptionView;
+    private String valueText;
+    private int valueTextLength;
 
     public TransactionView(Context context) {
         super(context);
@@ -22,6 +24,8 @@ public class TransactionView extends FrameLayout {
         timeView = (TimeView) findViewById(R.id.time);
         valueView = (ValueView) findViewById(R.id.value);
         descriptionView = (DescriptionView) findViewById(R.id.description);
+
+        valueTextLength = valueView.getText().length();
     }
 
     /**
@@ -30,7 +34,28 @@ public class TransactionView extends FrameLayout {
      */
     public void setData(Edit edit) {
         timeView.setTime(edit.getTtime());
-        valueView.setValue(edit.getTvalue(), edit.getTcurrency());
+        valueText = valueView.setValue(edit.getTvalue(), edit.getTcurrency());
+        valueTextLength = valueText.length();
         descriptionView.setDescription(edit.getTdesc());
+    }
+
+    /**
+     * Return the length of the text in the ValueView
+     */
+    public int getValueTextLength() {
+        return valueTextLength;
+    }
+
+    /**
+     * Calculates the width of the value text
+     * @return The width of the value text in pixels
+     */
+    public int getValueTextWidth() {
+        valueView.measure(0, 0);
+        return valueView.getMeasuredWidth();
+    }
+
+    public void setValueViewWidth(int width) {
+        valueView.setWidth(width);
     }
 }
