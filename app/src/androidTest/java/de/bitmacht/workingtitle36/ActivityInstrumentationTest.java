@@ -95,9 +95,10 @@ public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase
 
         for (int i = 1; i <= expenseCount; i++) {
             long expenseTime = now - (expenseCount - i) * 13 * 60 * 1000;
+            long value = (i - (expenseCount/2)) * 23;
             db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_TABLE_NAME + " VALUES (" + expenseTime + ", 'false')");
             db.execSQL("INSERT INTO " + DBHelper.EDITS_TABLE_NAME + " VALUES " +
-                    "(" + expenseTime + ", " + expenseTime + ", " + expenseTime + ", 0, 'false', " + expenseTime + ", 'expense no. " + i + "', 'geo:52.518611,13.408333', 'EUR', -235)");
+                    "(" + expenseTime + ", " + expenseTime + ", " + expenseTime + ", 0, 'false', " + expenseTime + ", 'expense no. " + i + "', 'geo:52.518611,13.408333', 'EUR', " + value + ")");
         }
 
     }
