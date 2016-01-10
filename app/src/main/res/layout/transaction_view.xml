@@ -34,7 +34,6 @@
         android:layout_marginRight="5dp"
         android:layout_marginEnd="5dp"
         android:typeface="monospace"
-        android:singleLine="true"
         android:gravity="end"
         />
     
