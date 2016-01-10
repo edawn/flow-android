@@ -68,7 +68,7 @@ public class ValueView extends TextView {
         long minor = 0;
         boolean showFraction = fractionDigits > 0;
         if (showFraction) {
-            long div = 10^fractionDigits;
+            long div = (long) Math.pow(10, fractionDigits);
             major = cents / div;
             minor = Math.abs(cents % div);
         }
