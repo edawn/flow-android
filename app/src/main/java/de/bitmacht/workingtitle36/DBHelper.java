@@ -107,7 +107,7 @@ public class DBHelper extends SQLiteOpenHelper {
             "SELECT " + EDITS_TABLE_NAME + ".* FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
                     "(SELECT " + EDITS_KEY_CREATION_TIME + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
                     "FROM " + EDITS_TABLE_NAME + " WHERE " + EDITS_KEY_ISPENDING + " IS 'false' GROUP BY " +
-                    EDITS_KEY_SEQUENCE + ") editsmax ON " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME +
+                    EDITS_KEY_TRANSACTION + ") editsmax ON " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME +
                     " = editsmax." + EDITS_KEY_CREATION_TIME;
 
     public DBHelper(Context context) {
