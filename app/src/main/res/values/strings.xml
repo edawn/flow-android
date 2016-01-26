@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Working Title 36</string>
+    <string name="transaction_edit_description_hint">Description</string>
 </resources>

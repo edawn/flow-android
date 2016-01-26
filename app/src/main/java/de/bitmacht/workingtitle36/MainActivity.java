@@ -1,12 +1,15 @@
 package de.bitmacht.workingtitle36;
 
 import android.app.LoaderManager;
+import android.content.Intent;
 import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +40,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         dbHelper = new DBHelper(this);
 
         getLoaderManager().initLoader(0, null, this);
+
+        FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
+        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(v.getContext(), TransactionEditActivity.class));
+            }
+        });
     }
 
     @Override

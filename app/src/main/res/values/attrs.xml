@@ -3,4 +3,11 @@
     <declare-styleable name="DescriptionView">
         <attr name="isConcise" format="boolean" />
     </declare-styleable>
+    <declare-styleable name="TimeView">
+        <attr name="timeFormat" format="enum">
+            <enum name="time" value="0" />
+            <enum name="date" value="1" />
+            <enum name="timedate" value="2" />
+        </attr>
+    </declare-styleable>
 </resources>
