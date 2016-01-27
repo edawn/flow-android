@@ -82,17 +82,19 @@ public class ValueView extends TextView {
         String symbol = currency.getSymbol();
         char decimalSeparator = DecimalFormatSymbols.getInstance(locale).getMonetaryDecimalSeparator();
 
+        String sign = cents < 0 ? "-" : "";
+        cents = Math.abs(cents);
         long major = cents;
         long minor = 0;
         boolean showFraction = fractionDigits > 0;
         if (showFraction) {
             long div = (long) Math.pow(10, fractionDigits);
             major = cents / div;
-            minor = Math.abs(cents % div);
+            minor = cents % div;
         }
 
-        String valueString = showFraction ? String.format("%d%s%02d%s", major, decimalSeparator, minor, symbol) :
-                String.format("%d%s", major, symbol);
+        String valueString = showFraction ? String.format("%s%d%s%02d%s", sign, major, decimalSeparator, minor, symbol) :
+                String.format("%s%d%s", sign, major, symbol);
 
         return valueString;
     }
