@@ -43,16 +43,22 @@ public class ValueView extends TextView {
      * @return The text that will be displayed
      */
     public String setValue(String currencyCode, long cents) {
-        String valueText = "?";
+        Currency currency;
         try {
-            Currency currency = Currency.getInstance(currencyCode);
-            valueText = getValueString(currency, cents);
+            currency = Currency.getInstance(currencyCode);
         } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 logger.warn("oops", e);
             }
+            String valueText = "???";
+            setText(valueText);
+            return valueText;
         }
+        return setValue(currency, cents);
+    }
 
+    public String setValue(Currency currency, long cents) {
+        String valueText = getValueString(currency, cents);
         setText(valueText);
         return valueText;
     }
