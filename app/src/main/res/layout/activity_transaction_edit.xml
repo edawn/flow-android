@@ -32,9 +32,15 @@
 
         <de.bitmacht.workingtitle36.view.ValueView
             android:id="@+id/value"
-            style="@style/TextAppearance.AppCompat.Medium"
+            style="@style/TextAppearance.AppCompat.Large"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:minWidth="120sp"
+            android:paddingEnd="10dp"
+            android:paddingLeft="5dp"
+            android:paddingRight="10dp"
+            android:paddingStart="5dp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
