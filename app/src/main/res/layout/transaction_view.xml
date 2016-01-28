@@ -4,49 +4,45 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="#1000"
-    android:paddingTop="2dp"
     android:paddingBottom="2dp"
-    android:paddingLeft="5dp"
-    android:paddingStart="5dp"
-    android:paddingRight="5dp"
     android:paddingEnd="5dp"
-    >
+    android:paddingLeft="5dp"
+    android:paddingRight="5dp"
+    android:paddingStart="5dp"
+    android:paddingTop="2dp">
 
     <de.bitmacht.workingtitle36.view.TimeView
         android:id="@+id/time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
-        android:typeface="monospace"
-        android:layout_marginRight="5dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
         android:layout_marginEnd="5dp"
-        />
+        android:layout_marginRight="5dp"
+        android:typeface="monospace" />
 
     <de.bitmacht.workingtitle36.view.ValueView
         android:id="@+id/value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
+        android:layout_marginEnd="5dp"
+        android:layout_marginRight="5dp"
         android:layout_toEndOf="@id/time"
         android:layout_toRightOf="@id/time"
-        android:layout_marginRight="5dp"
-        android:layout_marginEnd="5dp"
-        android:typeface="monospace"
         android:gravity="end"
-        />
-    
+        android:typeface="monospace" />
+
     <de.bitmacht.workingtitle36.view.DescriptionView
         android:id="@+id/description"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"
         android:layout_toEndOf="@id/value"
         android:layout_toRightOf="@id/value"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        custom:isConcise="true"
-        />
+        custom:isConcise="true" />
 
 </RelativeLayout>
