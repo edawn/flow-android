@@ -96,6 +96,10 @@ public class TimeView extends TextView {
         update();
     }
 
+    public long getTime() {
+        return time;
+    }
+
     private void update() {
         setText(timeFormat.format(new Date(time)));
     }
