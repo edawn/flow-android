@@ -6,6 +6,7 @@ import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.TimePicker;
@@ -93,6 +94,9 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
             frag.setArguments(bundle);
             frag.show(getFragmentManager(), "datePicker");
         }
+
+        ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).
+                hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
     }
 
     @Override
