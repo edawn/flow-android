@@ -5,6 +5,7 @@ import android.app.DialogFragment;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
@@ -31,6 +32,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private Currency currency;
     private long value;
 
+    private Toolbar toolbar;
     private TimeView timeView;
     private TimeView dateView;
     private ValueView valueView;
@@ -48,6 +50,10 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         value = 0;
 
         setContentView(R.layout.activity_transaction_edit);
+
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         timeView = (TimeView) findViewById(R.id.time);
         dateView = (TimeView) findViewById(R.id.date);
