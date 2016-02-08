@@ -2,6 +2,9 @@ package de.bitmacht.workingtitle36;
 
 import android.database.Cursor;
 
+import java.util.Calendar;
+import java.util.TimeZone;
+
 /**
  * This describes an edit.
  * It relates to one row in the edits table.
@@ -71,5 +74,15 @@ public class Edit {
 
     public long getTvalue() {
         return tvalue;
+    }
+
+    @Override
+    public String toString() {
+        Calendar ccal = Calendar.getInstance(TimeZone.getTimeZone("Z"));
+        ccal.setTimeInMillis(ctime);
+        Calendar tcal = Calendar.getInstance(TimeZone.getTimeZone("Z"));
+        tcal.setTimeInMillis(ttime);
+        return String.format("ctime: %tFT%<tTZ, ttime: %tFT%<tTZ, tdesc: %s, tloc: %s, tcurrency: %s, tvalue: %d",
+                ccal, tcal, tdesc, tloc, tcurrency, tvalue);
     }
 }
