@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivity(new Intent(v.getContext(), TransactionEditActivity.class));
+                startActivityForResult(new Intent(v.getContext(), TransactionEditActivity.class), 0);
             }
         });
     }
@@ -74,6 +74,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onLoaderReset(Loader<Cursor> loader) {
         if (BuildConfig.DEBUG) {
             logger.trace(">");
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            getLoaderManager().restartLoader(0, null, this);
         }
     }
 }

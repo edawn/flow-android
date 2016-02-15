@@ -10,7 +10,9 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.DatePicker;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +27,7 @@ import de.bitmacht.workingtitle36.view.ValueModifyView;
 import de.bitmacht.workingtitle36.view.ValueView;
 
 public class TransactionEditActivity extends AppCompatActivity implements View.OnClickListener,
-        ValueModifyView.OnValueChangeListener, TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener {
+        ValueModifyView.OnValueChangeListener, TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener, TransactionsUpdateTask.UpdateFinishedCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionEditActivity.class);
 
@@ -33,6 +35,8 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private long value;
 
     private Toolbar toolbar;
+    private ImageButton cancelButton;
+    private ImageButton acceptButton;
     private TimeView timeView;
     private TimeView dateView;
     private ValueView valueView;
@@ -54,6 +58,12 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
+
+        cancelButton = (ImageButton) findViewById(R.id.cancel_button);
+        acceptButton = (ImageButton) findViewById(R.id.accept_button);
+
+        cancelButton.setOnClickListener(this);
+        acceptButton.setOnClickListener(this);
 
         timeView = (TimeView) findViewById(R.id.time);
         dateView = (TimeView) findViewById(R.id.date);
@@ -87,22 +97,30 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        DialogFragment frag;
-        Bundle bundle = new Bundle();
-        bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, calendar.getTimeInMillis());
+        if (id == R.id.accept_button || id == R.id.cancel_button) {
+            if (id == R.id.accept_button) {
+                if (BuildConfig.DEBUG) {
+                    logger.trace("edit: {}", getEdit());
+                }
+                TransactionsUpdateTask tut = new TransactionsUpdateTask(this, this);
+                setUpdatingState(true);
+                tut.execute(getEdit());
+            } else {
+                //TODO if there was any data entered, show confirmation dialog
+                // or: save the data, finish and show a snackbar
+                finish();
+            }
 
-        if (id == R.id.time) {
-            frag = new TimePickerFragment();
+        } else if (id == R.id.time || id == R.id.date) {
+            DialogFragment frag = id == R.id.time ? new TimePickerFragment() : new DatePickerFragment();
+            Bundle bundle = new Bundle();
+            bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, calendar.getTimeInMillis());
             frag.setArguments(bundle);
-            frag.show(getFragmentManager(), "timePicker");
-        } else if (id == R.id.date) {
-            frag = new DatePickerFragment();
-            frag.setArguments(bundle);
-            frag.show(getFragmentManager(), "datePicker");
+            frag.show(getFragmentManager(), id == R.id.time ? "timePicker" : "datePicker");
+
+            ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).
+                    hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
         }
-
-        ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).
-                hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
     }
 
     @Override
@@ -135,5 +153,34 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         long time = calendar.getTimeInMillis();
         timeView.setTime(time);
         dateView.setTime(time);
+    }
+
+    /**
+     * Returns an Edit matching the currently set data
+     */
+    private Edit getEdit() {
+        Edit edit = new Edit(System.currentTimeMillis(), calendar.getTimeInMillis(),
+                descriptionView.getText().toString(), "", currency.getCurrencyCode(), value);
+        return edit;
+    }
+
+    @Override
+    public void onUpdateFinished(boolean success) {
+        setUpdatingState(false);
+        if (success) {
+            setResult(RESULT_OK);
+            finish();
+        } else {
+            Toast.makeText(this, "update failed", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Modifies the UI to express that a database update is in progress.
+     * @param isUpdating true if the update is about to start; false if it has ended
+     */
+    private void setUpdatingState(boolean isUpdating) {
+        acceptButton.setEnabled(!isUpdating);
+        acceptButton.setClickable(!isUpdating);
     }
 }
