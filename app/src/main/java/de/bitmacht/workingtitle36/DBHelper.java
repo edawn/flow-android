@@ -108,7 +108,7 @@ public class DBHelper extends SQLiteOpenHelper {
                     "(SELECT " + EDITS_KEY_CREATION_TIME + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
                     "FROM " + EDITS_TABLE_NAME + " WHERE NOT " + EDITS_KEY_ISPENDING + " GROUP BY " +
                     EDITS_KEY_TRANSACTION + ") editsmax ON " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME +
-                    " = editsmax." + EDITS_KEY_CREATION_TIME;
+                    " = editsmax." + EDITS_KEY_CREATION_TIME + " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
 
     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
