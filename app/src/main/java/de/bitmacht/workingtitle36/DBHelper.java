@@ -100,6 +100,90 @@ public class DBHelper extends SQLiteOpenHelper {
                     ");";
 
     /**
+     * This table contains the regular transactions
+     */
+    public static final String REGULARS_TABLE_NAME = "regulars";
+
+    /**
+     * The creation time of this transaction; also serving as the primary key of this table;
+     * in ms since the epoch; if an entry with this key should already exist, increment by one and retry
+     */
+    public static final String REGULARS_KEY_CREATION_TIME = "creation_time";
+    /**
+     * The time this transaction will be executed for the first time;
+     * in ms since the epoch
+     */
+    public static final String REGULARS_KEY_TIME_FIRST = "time_first";
+    /**
+     * Defines the way this transaction is supposed to repeat;
+     * 0: daily 1: monthly
+     */
+    public static final String REGULARS_KEY_PERIOD_TYPE = "period_type";
+    /**
+     * A multiplier for the period; useful to create weekly, quarterly or yearly expenses for instance
+     */
+    public static final String REGULARS_KEY_PERIOD_MULTIPLIER = "period_multiplier";
+    /**
+     * Spread this transaction across multiple accounting periods (this makes only sense
+     * if it overlays multiple accounting periods)
+     */
+    public static final String REGULARS_KEY_IS_SPREAD = "is_spread";
+    /**
+     * Do not use this transaction when a new accounting period starts
+     */
+    public static final String REGULARS_KEY_IS_DISABLED = "is_disabled";
+    /**
+     * This regular transaction is virtually removed; should be used if this transaction is (still)
+     * referenced in transactions_regular
+     */
+    public static final String REGULARS_KEY_IS_DELETED = "is_deleted";
+    /**
+     * The user-set transaction value; in minor currency units (usually cents); negative values indicate spending
+     */
+    public static final String REGULARS_KEY_VALUE = "value";
+    /**
+     * The user-set currency for this transaction; a ISO 4217 currency code
+     */
+    public static final String REGULARS_KEY_CURRENCY = "currency";
+    /**
+     * The user-set description for this transaction
+     */
+    public static final String REGULARS_KEY_DESCRIPTION = "description";
+
+    public static final String REGULARS_TABLE_CREATE =
+            "CREATE TABLE " + REGULARS_TABLE_NAME + "(" +
+                    REGULARS_KEY_CREATION_TIME + " INTEGER PRIMARY KEY, " +
+                    REGULARS_KEY_TIME_FIRST + " INTEGER, " +
+                    REGULARS_KEY_PERIOD_TYPE + " INTEGER, " +
+                    REGULARS_KEY_PERIOD_MULTIPLIER + " INTEGER, " +
+                    REGULARS_KEY_IS_SPREAD + " BOOLEAN, " +
+                    REGULARS_KEY_IS_DISABLED + " BOOLEAN, " +
+                    REGULARS_KEY_IS_DELETED + " BOOLEAN, " +
+                    REGULARS_KEY_DESCRIPTION + " TEXT, " +
+                    REGULARS_KEY_CURRENCY + " TEXT, " +
+                    REGULARS_KEY_VALUE + " INTEGER);";
+
+    /**
+     * Holds the already-executed regular transactions
+     */
+    public static final String TRANSACTIONS_REGULAR_TABLE_NAME = "transactions_regular";
+
+    /**
+     * The time at which the referenced regular transaction has been executed;
+     * in ms since the epoch
+     */
+    public static final String TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME = "execution_time";
+    /**
+     * The creation time (i.e. id) of the referenced regular transaction
+     */
+    public static final String TRANSACTIONS_REGULAR_KEY_REGULAR_ID = "regular_id";
+
+    public static final String TRANSACTIONS_REGULAR_TABLE_CREATE =
+            "CREATE TABLE " + TRANSACTIONS_REGULAR_TABLE_NAME + "(" +
+                    TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " INTEGER REFERENCES " + REGULARS_TABLE_NAME + " (" + REGULARS_KEY_CREATION_TIME + "), " +
+                    TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " INTEGER);";
+
+    /**
      * Returns the most current, not pending edit for every transaction
      * TODO do not return edits from deleted transactions
      */
@@ -125,6 +209,8 @@ public class DBHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TRANSACTIONS_TABLE_CREATE);
         db.execSQL(EDITS_TABLE_CREATE);
+        db.execSQL(REGULARS_TABLE_CREATE);
+        db.execSQL(TRANSACTIONS_REGULAR_TABLE_CREATE);
     }
 
     @Override
