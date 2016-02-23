@@ -3,6 +3,8 @@ package de.bitmacht.workingtitle36.view;
 import android.content.Context;
 import android.widget.FrameLayout;
 
+import java.util.Currency;
+
 import de.bitmacht.workingtitle36.Edit;
 import de.bitmacht.workingtitle36.R;
 
@@ -12,7 +14,7 @@ import de.bitmacht.workingtitle36.R;
 public class TransactionView extends FrameLayout {
 
     private final TimeView timeView;
-    private final ValueView valueView;
+    private final ValueTextView valueView;
     private final DescriptionView descriptionView;
     private String valueText;
     private int valueTextLength;
@@ -22,7 +24,7 @@ public class TransactionView extends FrameLayout {
 
         inflate(getContext(), R.layout.transaction_view, this);
         timeView = (TimeView) findViewById(R.id.time);
-        valueView = (ValueView) findViewById(R.id.value);
+        valueView = (ValueTextView) findViewById(R.id.value);
         descriptionView = (DescriptionView) findViewById(R.id.description);
 
         valueTextLength = valueView.getText().length();
@@ -34,7 +36,8 @@ public class TransactionView extends FrameLayout {
      */
     public void setData(Edit edit) {
         timeView.setTime(edit.getTtime());
-        valueText = valueView.setValue(edit.getTcurrency(), edit.getTvalue());
+        Currency currency = Currency.getInstance(edit.getTcurrency());
+        valueText = valueView.setValue(currency, edit.getTvalue());
         valueTextLength = valueText.length();
         descriptionView.setDescription(edit.getTdesc());
     }

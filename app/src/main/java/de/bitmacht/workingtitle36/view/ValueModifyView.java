@@ -68,7 +68,7 @@ public class ValueModifyView extends LinearLayout implements View.OnTouchListene
     public void setValue(Currency currency, int cents) {
         this.currency = currency;
         this.value = cents;
-        String valueString = ValueView.getValueString(currency, value);
+        String valueString = ValueWidgetCommon.getValueString(currency, value);
         if (BuildConfig.DEBUG) {
             logger.trace("Setting step: {}, {} -> {}", currency, cents, valueString);
         }

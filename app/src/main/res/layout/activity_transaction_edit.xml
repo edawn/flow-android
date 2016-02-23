@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical">
 
-        <de.bitmacht.workingtitle36.view.ValueView
+        <de.bitmacht.workingtitle36.view.ValueTextView
             android:id="@+id/value"
             style="@style/TextAppearance.AppCompat.Large"
             android:layout_width="wrap_content"

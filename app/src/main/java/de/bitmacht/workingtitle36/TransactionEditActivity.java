@@ -24,7 +24,7 @@ import java.util.Locale;
 
 import de.bitmacht.workingtitle36.view.TimeView;
 import de.bitmacht.workingtitle36.view.ValueModifyView;
-import de.bitmacht.workingtitle36.view.ValueView;
+import de.bitmacht.workingtitle36.view.ValueWidget;
 
 public class TransactionEditActivity extends AppCompatActivity implements View.OnClickListener,
         ValueModifyView.OnValueChangeListener, TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener, TransactionsUpdateTask.UpdateFinishedCallback {
@@ -39,7 +39,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private ImageButton acceptButton;
     private TimeView timeView;
     private TimeView dateView;
-    private ValueView valueView;
+    private ValueWidget valueWidget;
     private ValueModifyView valueModMoreView;
     private ValueModifyView valueModLessView;
     private EditText descriptionView;
@@ -67,7 +67,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
 
         timeView = (TimeView) findViewById(R.id.time);
         dateView = (TimeView) findViewById(R.id.date);
-        valueView = (ValueView) findViewById(R.id.value);
+        valueWidget = (ValueWidget) findViewById(R.id.value);
         valueModMoreView = (ValueModifyView) findViewById(R.id.value_modify_more);
         valueModLessView = (ValueModifyView) findViewById(R.id.value_modify_less);
         descriptionView = (EditText) findViewById(R.id.description);
@@ -79,7 +79,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         timeView.setOnClickListener(this);
         dateView.setOnClickListener(this);
 
-        valueView.setValue(currency, value);
+        valueWidget.setValue(currency, value);
 
         valueModLessView.setValue(currency, 10);
         valueModMoreView.setOnValueChangeListener(this);
@@ -131,7 +131,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
 
         //TODO make sure that this.currency.equals(currency)
         value += cents;
-        valueView.setValue(currency, value);
+        valueWidget.setValue(currency, value);
     }
 
     @Override

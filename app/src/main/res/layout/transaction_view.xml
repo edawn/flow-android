@@ -22,7 +22,7 @@
         android:layout_marginRight="5dp"
         android:typeface="monospace" />
 
-    <de.bitmacht.workingtitle36.view.ValueView
+    <de.bitmacht.workingtitle36.view.ValueTextView
         android:id="@+id/value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
