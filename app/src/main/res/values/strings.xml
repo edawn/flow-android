@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Working Title 36</string>
     <string name="transaction_edit_description_hint">Description</string>
+    <string name="enabled">Enabled</string>
+    <string name="regular_first_time">Start</string>
+    <string name="regular_repetition">Repetition</string>
 </resources>

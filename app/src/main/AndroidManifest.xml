@@ -18,6 +18,9 @@
         <activity
             android:name=".TransactionEditActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".RegularEditActivity"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>
