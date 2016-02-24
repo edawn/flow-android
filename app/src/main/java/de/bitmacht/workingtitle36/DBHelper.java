@@ -138,17 +138,17 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String REGULARS_KEY_IS_DELETED = "is_deleted";
     /**
-     * The user-set transaction value; in minor currency units (usually cents); negative values indicate spending
+     * The user-set description for this transaction
      */
-    public static final String REGULARS_KEY_VALUE = "value";
+    public static final String REGULARS_KEY_DESCRIPTION = "description";
     /**
      * The user-set currency for this transaction; a ISO 4217 currency code
      */
     public static final String REGULARS_KEY_CURRENCY = "currency";
     /**
-     * The user-set description for this transaction
+     * The user-set transaction value; in minor currency units (usually cents); negative values indicate spending
      */
-    public static final String REGULARS_KEY_DESCRIPTION = "description";
+    public static final String REGULARS_KEY_VALUE = "value";
 
     public static final String REGULARS_TABLE_CREATE =
             "CREATE TABLE " + REGULARS_TABLE_NAME + "(" +
