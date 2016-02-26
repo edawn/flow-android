@@ -194,7 +194,20 @@ public class DBHelper extends SQLiteOpenHelper {
                     EDITS_KEY_TRANSACTION + ") editsmax ON " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME +
                     " = editsmax." + EDITS_KEY_CREATION_TIME + " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
 
-    public DBHelper(Context context) {
+    /**
+     * Returns all active regular transactions
+     */
+    public static final String ACTIVE_REGULARS_QUERY =
+            "SELECT * FROM " + REGULARS_TABLE_NAME + " WHERE NOT " + REGULARS_KEY_IS_DISABLED + " AND NOT " + REGULARS_KEY_IS_DELETED;
+
+    /**
+     * Returns all executed regular transactions in a defined time span
+     */
+    public static final String EXECUTED_REGULARS_TIME_SPAN_QUERY =
+            "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " >= ? AND " +
+                    TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " < ?";
+
+     public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
