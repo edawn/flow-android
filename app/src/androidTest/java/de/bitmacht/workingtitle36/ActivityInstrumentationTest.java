@@ -30,6 +30,18 @@ public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase
         assertEquals(res.getCount(), 0);
         res.close();
 
+        db.execSQL("DELETE FROM " + DBHelper.REGULARS_TABLE_NAME);
+        res = db.rawQuery("SELECT * FROM " + DBHelper.REGULARS_TABLE_NAME, null);
+        // The table should be empty
+        assertEquals(res.getCount(), 0);
+        res.close();
+
+        db.execSQL("DELETE FROM " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME);
+        res = db.rawQuery("SELECT * FROM " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME, null);
+        // The table should be empty
+        assertEquals(res.getCount(), 0);
+        res.close();
+
         // transactions (ctime, isremoved)
         // edits (ctime, parent, transact, sequence, ispending, ttime, tdesc, tloc, tcurrency, tvalue)
 
@@ -128,5 +140,19 @@ public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase
         db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142916, 1107212400000, 1, 1, 0, 0, 1, 'rent', 'EUR', -22500)");
         // disabled
         db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142917, 1451602800000, 1, 1, 0, 1, 0, 'car', 'EUR', -2300)");
+
+        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142913, 1455490800000)");
+        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142914, 1448924400000)");
+        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142914, 1451602800000)");
+        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142914, 1454281200000)");
+        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142915, 1451602800000)");
+
+        Cursor cursor = db.rawQuery(DBHelper.ACTIVE_REGULARS_QUERY, null);
+        assertEquals(cursor.getCount(), 4);
+        cursor.close();
+
+        cursor = db.rawQuery(DBHelper.EXECUTED_REGULARS_TIME_SPAN_QUERY, new String[]{"1454281200000", "1456786800000"});
+        assertEquals(cursor.getCount(), 2);
+        cursor.close();
     }
 }
