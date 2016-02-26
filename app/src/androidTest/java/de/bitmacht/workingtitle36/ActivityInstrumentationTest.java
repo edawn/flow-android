@@ -101,5 +101,32 @@ public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase
                     "(" + expenseTime + ", " + expenseTime + ", " + expenseTime + ", 0, 0, " + expenseTime + ", 'expense no. " + i + "', 'geo:52.518611,13.408333', 'EUR', " + value + ")");
         }
 
+        //1107212400000: 2005-02-01T00:00:00.000+01:00
+        //1448924400000: 2015-12-01T00:00:00.000+01:00
+        //1451606400000: 2016-01-01T00:00:00.000+00:00
+        //1451602800000: 2016-01-01T00:00:00.000+01:00
+        //1456334142912: 2016-02-24T18:15:42.912+01:00
+        //1454281200000: 2016-02-01T00:00:00.000+01:00
+        //1456786800000: 2016-03-01T00:00:00.000+01:00
+        //1455490800000: 2016-02-15T00:00:00.000+01:00
+
+        // every week
+        db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142912, 1454281200000, 0, 1, 0, 0, 0, 'extortion', 'EUR', 23456)");
+        db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142913, 1455490800000, 1, 1, 0, 0, 0, 'regular job stuff', 'EUR', 12345)");
+
+        try {
+            db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142913, 1455490800000, 1, 1, 0, 0, 0, 'regular job stuff', 'EUR', 12345)");
+            fail("INSERT should have failed due to the primary key constraint");
+        } catch (SQLException e) {
+            // expected
+        }
+
+        db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142914, 1448924400000, 1, 1, 0, 0, 0, 'rent', 'EUR', -11111)");
+        // once a year
+        db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142915, 1451602800000, 1, 12, 0, 0, 0, 'other rent', 'EUR', 20000)");
+        // removed
+        db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142916, 1107212400000, 1, 1, 0, 0, 1, 'rent', 'EUR', -22500)");
+        // disabled
+        db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142917, 1451602800000, 1, 1, 0, 1, 0, 'car', 'EUR', -2300)");
     }
 }
