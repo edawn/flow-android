@@ -217,6 +217,26 @@ public class DBHelper extends SQLiteOpenHelper {
             "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " >= ? AND " +
                     TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " < ?";
 
+    /**
+     * Returns all realized executions of a regular transaction
+     */
+    public static final String EXECUTED_REGULARS_BY_ID_QUERY =
+            "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " = ?";
+
+    /**
+     * Returns all realized executions of a regular transaction in a defined time span
+     */
+    public static final String EXECUTED_REGULARS_BY_ID_TIME_SPAN_QUERY =
+            "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " = ? AND "
+                    + TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " >= ? AND " + TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " < ?";
+
+    /**
+     * Returns all realized executions of a regular transaction in a defined period span
+     */
+    public static final String EXECUTED_REGULARS_BY_ID_PERIOD_RANGE_QUERY =
+            "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " = ? AND "
+                    + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " >= ? AND " + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " < ?";
+
      public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
