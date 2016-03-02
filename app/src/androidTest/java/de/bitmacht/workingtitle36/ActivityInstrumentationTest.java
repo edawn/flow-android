@@ -6,8 +6,15 @@ import android.database.sqlite.SQLiteConstraintException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
 import android.test.ActivityInstrumentationTestCase2;
+import android.util.Log;
+import android.util.Pair;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase2<MainActivity> {
+
+    private static final String TAG = "ActInsTst";
 
     public ActivityInstrumentationTest() {
         super(MainActivity.class);
@@ -123,7 +130,8 @@ public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase
         //1455490800000: 2016-02-15T00:00:00.000+01:00
 
         // every week
-        db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142912, 1454281200000, 0, 1, 0, 0, 0, 'extortion', 'EUR', 23456)");
+        db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142912, 1454281200000, 0, 7, 0, 0, 0, 'extortion', 'EUR', 23456)");
+        // every month
         db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142913, 1455490800000, 1, 1, 0, 0, 0, 'regular job stuff', 'EUR', 12345)");
 
         try {
@@ -133,26 +141,56 @@ public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase
             // expected
         }
 
+        // every month
         db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142914, 1448924400000, 1, 1, 0, 0, 0, 'rent', 'EUR', -11111)");
         // once a year
         db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142915, 1451602800000, 1, 12, 0, 0, 0, 'other rent', 'EUR', 20000)");
-        // removed
+        // every month; removed
         db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142916, 1107212400000, 1, 1, 0, 0, 1, 'rent', 'EUR', -22500)");
-        // disabled
+        // every month; disabled
         db.execSQL("INSERT INTO " + DBHelper.REGULARS_TABLE_NAME + " VALUES (1456334142917, 1451602800000, 1, 1, 0, 1, 0, 'car', 'EUR', -2300)");
 
-        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142913, 1455490800000)");
-        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142914, 1448924400000)");
-        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142914, 1451602800000)");
-        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142914, 1454281200000)");
-        db.execSQL("INSERT INTO " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME + " VALUES (1456334142915, 1451602800000)");
+        DateTimeZone dtz = DateTimeZone.forID("Europe/Berlin");
+        DateTime dt1 = new DateTime(2016, 2, 1, 0, 0, dtz);
+        DateTime dt2 = new DateTime(2016, 3, 1, 0, 0, dtz);
 
-        Cursor cursor = db.rawQuery(DBHelper.ACTIVE_REGULARS_QUERY, null);
-        assertEquals(cursor.getCount(), 4);
-        cursor.close();
+        Log.i(TAG, "testDatabaseInserts: dt1: " + dt1);
+        Log.i(TAG, "testDatabaseInserts: dt2: " + dt2);
 
-        cursor = db.rawQuery(DBHelper.EXECUTED_REGULARS_TIME_SPAN_QUERY, new String[]{"1454281200000", "1456786800000"});
-        assertEquals(cursor.getCount(), 2);
-        cursor.close();
+        Cursor regularsCursor = db.rawQuery("SELECT * FROM " + DBHelper.REGULARS_TABLE_NAME, null);
+        try {
+            assertEquals(regularsCursor.getCount(), 6);
+
+            while (regularsCursor.moveToNext()) {
+                RegularModel regular = new RegularModel(regularsCursor);
+                Log.i(TAG, "testDatabaseInserts: regular id: " + regular.creationTime + " first: " + new DateTime(regular.timeFirst));
+                Pair<Integer, Integer> range = regular.getPeriodNumberRange(dt1.getMillis(), dt2.getMillis());
+                if (regular.creationTime == 1456334142912L) {
+                    assertEquals((int)range.first, 0);
+                    assertEquals((int)range.second, 5);
+                } else if (regular.creationTime == 1456334142913L) {
+                    assertEquals((int)range.first, 0);
+                    assertEquals((int)range.second, 1);
+                } else if (regular.creationTime == 1456334142914L) {
+                    assertEquals((int)range.first, 3);
+                    assertEquals((int)range.second, 4);
+                } else if (regular.creationTime == 1456334142915L) {
+                    assertEquals((int)range.first, 1);
+                    assertEquals((int)range.second, 1);
+                } else if (regular.creationTime == 1456334142916L) {
+                    assertEquals((int)range.first, 133);
+                    assertEquals((int)range.second, 134);
+                } else if (regular.creationTime == 1456334142917L) {
+                    assertEquals((int)range.first, 2);
+                    assertEquals((int)range.second, 3);
+                }
+                for (int i = range.first; i < range.second; i++) {
+                    long t = regular.getTimeForPeriodNumber(i);
+                    Log.i(TAG, "testDatabaseInserts: period number: " + i + " t: " + t + " dt: " + new DateTime(t));
+                }
+            }
+        } finally {
+            regularsCursor.close();
+        }
     }
 }
