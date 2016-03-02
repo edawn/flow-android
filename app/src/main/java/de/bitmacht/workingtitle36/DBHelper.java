@@ -177,11 +177,21 @@ public class DBHelper extends SQLiteOpenHelper {
      * The creation time (i.e. id) of the referenced regular transaction
      */
     public static final String TRANSACTIONS_REGULAR_KEY_REGULAR_ID = "regular_id";
+    /**
+     * The period in which the referenced regular transactions is due;
+     * example: a transaction is due at the following unix time:
+     *          regulars.time_first + regulars.period * transactions_regular.period_number,
+     *          where regulars.period is the period that results from regulars.period_type and
+     *          regulars.period_multiplier
+     */
+    public static final String TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER = "period_number";
 
     public static final String TRANSACTIONS_REGULAR_TABLE_CREATE =
             "CREATE TABLE " + TRANSACTIONS_REGULAR_TABLE_NAME + "(" +
                     TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " INTEGER REFERENCES " + REGULARS_TABLE_NAME + " (" + REGULARS_KEY_CREATION_TIME + "), " +
-                    TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " INTEGER);";
+                    TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " INTEGER, " +
+                    TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " INTEGER," +
+                    "UNIQUE(" + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + ", " + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + "));";
 
     /**
      * Returns the most current, not pending edit for every transaction
