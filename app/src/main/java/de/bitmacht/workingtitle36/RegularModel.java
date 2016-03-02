@@ -1,13 +1,25 @@
 package de.bitmacht.workingtitle36;
 
+import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.IntDef;
+import android.util.Pair;
+
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+import org.joda.time.Months;
+import org.joda.time.Period;
+import org.joda.time.base.BaseSingleFieldPeriod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 public class RegularModel implements Parcelable {
+
+    private static final Logger logger = LoggerFactory.getLogger(RegularModel.class);
 
     @IntDef({PERIOD_TYPE_DAILY, PERIOD_TYPE_MONTHLY})
     @Retention(RetentionPolicy.SOURCE)
@@ -27,6 +39,83 @@ public class RegularModel implements Parcelable {
     public long value;
     public String currency;
     public String description;
+
+    public RegularModel(Cursor cursor) {
+        creationTime = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_CREATION_TIME));
+        timeFirst = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_TIME_FIRST));
+        //noinspection ResourceType
+        periodType = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_PERIOD_TYPE));
+        periodMultiplier = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_PERIOD_MULTIPLIER));
+        isSpread = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_SPREAD)) != 0;
+        isDisabled = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_DISABLED)) != 0;
+        isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_DELETED)) != 0;
+        value = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_VALUE));
+        currency = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_CURRENCY));
+        description = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_DESCRIPTION));
+    }
+
+    /**
+     * Calculates the period number range. ({@link DBHelper#TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER} and
+     * {@link TransactionsRegularModel#periodNumber})
+     * @param start The start of the time span
+     * @param end The end of the time span. Must be greater than start
+     * @return A Pair that denotes the first (including) and the last (excluding) period number of the
+     * periods that start in the given time span
+     */
+    //TODO check time zone
+    public Pair<Integer, Integer> getPeriodNumberRange(long start, long end) {
+        if (start >= end) {
+            throw new IllegalArgumentException("start must be before end");
+        }
+        DateTime dtFirst = new DateTime(timeFirst);
+        DateTime dtStart = new DateTime(start);
+        DateTime dtEnd = new DateTime(end);
+
+        int periodsBetweenFirstStart;
+        int periodsBetweenFirstEnd;
+
+        BaseSingleFieldPeriod period = getPeriod();
+
+        if (period instanceof Days) {
+            Days periodDays = (Days) period;
+            periodsBetweenFirstStart = Days.daysBetween(dtFirst, dtStart).getDays() / periodDays.getDays();
+            periodsBetweenFirstEnd = Days.daysBetween(dtFirst, dtEnd).getDays() / periodDays.getDays();
+        } else if (period instanceof Months) {
+            Months periodMonths = (Months) period;
+            periodsBetweenFirstStart = Months.monthsBetween(dtFirst, dtStart).getMonths() / periodMonths.getMonths();
+            periodsBetweenFirstEnd = Months.monthsBetween(dtFirst, dtEnd).getMonths() / periodMonths.getMonths();
+        } else {
+            throw new IllegalArgumentException("Unsupported period type");
+        }
+        if (dtEnd.isAfter(dtFirst)) {
+            periodsBetweenFirstEnd++;
+        }
+        if (dtStart.isAfter(dtFirst)) {
+            periodsBetweenFirstStart++;
+        }
+        if (BuildConfig.DEBUG) {
+            logger.trace("first: {} start: {} end: {} periods: {}/{}", dtFirst, dtStart, dtEnd, periodsBetweenFirstStart, periodsBetweenFirstEnd);
+        }
+        return new Pair<>(periodsBetweenFirstStart, periodsBetweenFirstEnd);
+    }
+
+    /**
+     * Calculates an unix time for a period number.
+     * @param periodNumber The period number
+     * @return The unix time (in ms) represented by the period number
+     */
+    //TODO check time zone
+    public long getTimeForPeriodNumber(int periodNumber) {
+        DateTime dtFirst = new DateTime(timeFirst);
+        Period period = new Period(getPeriod());
+        DateTime dt = dtFirst.plus(period.multipliedBy(periodNumber));
+        return dt.getMillis();
+    }
+
+    public org.joda.time.base.BaseSingleFieldPeriod getPeriod() {
+        return periodType == PERIOD_TYPE_DAILY ?
+                org.joda.time.Days.days(periodMultiplier) : org.joda.time.Months.months(periodMultiplier);
+    }
 
     @Override
     public int describeContents() {
