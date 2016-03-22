@@ -235,7 +235,8 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String EXECUTED_REGULARS_BY_ID_PERIOD_RANGE_QUERY =
             "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " = ? AND "
-                    + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " >= ? AND " + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " < ?";
+                    + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " >= ? AND " + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " < ?"
+            + " ORDER BY " + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " ASC";
 
      public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
