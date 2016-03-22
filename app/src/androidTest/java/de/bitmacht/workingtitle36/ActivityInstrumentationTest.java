@@ -28,25 +28,25 @@ public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase
         db.execSQL("DELETE FROM " + DBHelper.EDITS_TABLE_NAME);
         res = db.rawQuery("SELECT * FROM " + DBHelper.EDITS_TABLE_NAME, null);
         // The table should be empty
-        assertEquals(res.getCount(), 0);
+        assertEquals(0, res.getCount());
         res.close();
 
         db.execSQL("DELETE FROM " + DBHelper.TRANSACTIONS_TABLE_NAME);
         res = db.rawQuery("SELECT * FROM " + DBHelper.TRANSACTIONS_TABLE_NAME, null);
         // The table should be empty
-        assertEquals(res.getCount(), 0);
+        assertEquals(0, res.getCount());
         res.close();
 
         db.execSQL("DELETE FROM " + DBHelper.REGULARS_TABLE_NAME);
         res = db.rawQuery("SELECT * FROM " + DBHelper.REGULARS_TABLE_NAME, null);
         // The table should be empty
-        assertEquals(res.getCount(), 0);
+        assertEquals(0, res.getCount());
         res.close();
 
         db.execSQL("DELETE FROM " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME);
         res = db.rawQuery("SELECT * FROM " + DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME, null);
         // The table should be empty
-        assertEquals(res.getCount(), 0);
+        assertEquals(0, res.getCount());
         res.close();
 
         // transactions (ctime, isremoved)
@@ -154,39 +154,39 @@ public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase
         DateTime dt1 = new DateTime(2016, 2, 1, 0, 0, dtz);
         DateTime dt2 = new DateTime(2016, 3, 1, 0, 0, dtz);
 
-        Log.i(TAG, "testDatabaseInserts: dt1: " + dt1);
-        Log.i(TAG, "testDatabaseInserts: dt2: " + dt2);
+        Log.i(TAG, "testDatabaseInserts: dt1: " + dt1 + " - " + dt1.getMillis());
+        Log.i(TAG, "testDatabaseInserts: dt2: " + dt2 + " - " + dt2.getMillis());
 
         Cursor regularsCursor = db.rawQuery("SELECT * FROM " + DBHelper.REGULARS_TABLE_NAME, null);
         try {
-            assertEquals(regularsCursor.getCount(), 6);
+            assertEquals(6, regularsCursor.getCount());
 
             while (regularsCursor.moveToNext()) {
                 RegularModel regular = new RegularModel(regularsCursor);
-                Log.i(TAG, "testDatabaseInserts: regular id: " + regular.creationTime + " first: " + new DateTime(regular.timeFirst));
+                Log.i(TAG, "testDatabaseInserts: regular id: " + regular.creationTime + " description: " + regular.description + " first: " + new DateTime(regular.timeFirst));
                 Pair<Integer, Integer> range = regular.getPeriodNumberRange(dt1.getMillis(), dt2.getMillis());
-                if (regular.creationTime == 1456334142912L) {
-                    assertEquals((int)range.first, 0);
-                    assertEquals((int)range.second, 5);
-                } else if (regular.creationTime == 1456334142913L) {
-                    assertEquals((int)range.first, 0);
-                    assertEquals((int)range.second, 1);
-                } else if (regular.creationTime == 1456334142914L) {
-                    assertEquals((int)range.first, 3);
-                    assertEquals((int)range.second, 4);
-                } else if (regular.creationTime == 1456334142915L) {
-                    assertEquals((int)range.first, 1);
-                    assertEquals((int)range.second, 1);
-                } else if (regular.creationTime == 1456334142916L) {
-                    assertEquals((int)range.first, 133);
-                    assertEquals((int)range.second, 134);
-                } else if (regular.creationTime == 1456334142917L) {
-                    assertEquals((int)range.first, 2);
-                    assertEquals((int)range.second, 3);
-                }
                 for (int i = range.first; i < range.second; i++) {
                     long t = regular.getTimeForPeriodNumber(i);
                     Log.i(TAG, "testDatabaseInserts: period number: " + i + " t: " + t + " dt: " + new DateTime(t));
+                }
+                if (regular.creationTime == 1456334142912L) {
+                    assertEquals(0, (int)range.first);
+                    assertEquals(5, (int)range.second);
+                } else if (regular.creationTime == 1456334142913L) {
+                    assertEquals(0, (int)range.first);
+                    assertEquals(1, (int)range.second);
+                } else if (regular.creationTime == 1456334142914L) {
+                    assertEquals(2, (int)range.first);
+                    assertEquals(3, (int)range.second);
+                } else if (regular.creationTime == 1456334142915L) {
+                    assertEquals(1, (int)range.first);
+                    assertEquals(1, (int)range.second);
+                } else if (regular.creationTime == 1456334142916L) {
+                    assertEquals(132, (int)range.first);
+                    assertEquals(133, (int)range.second);
+                } else if (regular.creationTime == 1456334142917L) {
+                    assertEquals(1, (int)range.first);
+                    assertEquals(2, (int)range.second);
                 }
             }
         } finally {
