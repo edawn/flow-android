@@ -4,6 +4,7 @@ import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import android.util.Pair;
 
 import org.joda.time.DateTime;
@@ -16,8 +17,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.List;
 
-public class RegularModel implements Parcelable {
+public class RegularModel implements Parcelable, Comparable<RegularModel> {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularModel.class);
 
@@ -39,6 +41,8 @@ public class RegularModel implements Parcelable {
     public long value;
     public String currency;
     public String description;
+
+    public List<TransactionsRegularModel> executed = null;
 
     public RegularModel(Cursor cursor) {
         creationTime = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_CREATION_TIME));
@@ -67,36 +71,69 @@ public class RegularModel implements Parcelable {
         if (start >= end) {
             throw new IllegalArgumentException("start must be before end");
         }
+
+        Pair<Integer, Integer> range = new Pair<>(getPeriodNumberForStart(start), getPeriodNumberForEnd(end));
+
+        return range;
+    }
+
+    //TODO merge getPeriodNumberForStart and getPeriodNumberForEnd into getPeriodNumberRange
+    private int getPeriodNumberForStart(long start) {
+        if (start == timeFirst) {
+            return 0;
+        }
+
         DateTime dtFirst = new DateTime(timeFirst);
         DateTime dtStart = new DateTime(start);
-        DateTime dtEnd = new DateTime(end);
-
-        int periodsBetweenFirstStart;
-        int periodsBetweenFirstEnd;
-
+        int periodsBetween;
         BaseSingleFieldPeriod period = getPeriod();
 
         if (period instanceof Days) {
             Days periodDays = (Days) period;
-            periodsBetweenFirstStart = Days.daysBetween(dtFirst, dtStart).getDays() / periodDays.getDays();
-            periodsBetweenFirstEnd = Days.daysBetween(dtFirst, dtEnd).getDays() / periodDays.getDays();
+            periodsBetween = Days.daysBetween(dtFirst, dtStart).getDays() / periodDays.getDays();
         } else if (period instanceof Months) {
             Months periodMonths = (Months) period;
-            periodsBetweenFirstStart = Months.monthsBetween(dtFirst, dtStart).getMonths() / periodMonths.getMonths();
-            periodsBetweenFirstEnd = Months.monthsBetween(dtFirst, dtEnd).getMonths() / periodMonths.getMonths();
+            periodsBetween = Months.monthsBetween(dtFirst, dtStart).getMonths() / periodMonths.getMonths();
         } else {
             throw new IllegalArgumentException("Unsupported period type");
         }
-        if (dtEnd.isAfter(dtFirst)) {
-            periodsBetweenFirstEnd++;
+
+        Period periodPeriod = new Period(period);
+        DateTime discreteToStart = dtFirst.plus(periodPeriod.multipliedBy(periodsBetween));
+        if (dtStart.isBefore(dtFirst)) {
+            return periodsBetween;
+        } else {
+            return discreteToStart.isEqual(dtStart) ? periodsBetween : periodsBetween + 1;
         }
-        if (dtStart.isAfter(dtFirst)) {
-            periodsBetweenFirstStart++;
+    }
+
+    private int getPeriodNumberForEnd(long end) {
+        if (end == timeFirst) {
+            return 0;
         }
-        if (BuildConfig.DEBUG) {
-            logger.trace("first: {} start: {} end: {} periods: {}/{}", dtFirst, dtStart, dtEnd, periodsBetweenFirstStart, periodsBetweenFirstEnd);
+
+        DateTime dtFirst = new DateTime(timeFirst);
+        DateTime dtEnd = new DateTime(end);
+        int periodsBetween;
+        BaseSingleFieldPeriod period = getPeriod();
+
+        if (period instanceof Days) {
+            Days periodDays = (Days) period;
+            periodsBetween = Days.daysBetween(dtFirst, dtEnd).getDays() / periodDays.getDays();
+        } else if (period instanceof Months) {
+            Months periodMonths = (Months) period;
+            periodsBetween = Months.monthsBetween(dtFirst, dtEnd).getMonths() / periodMonths.getMonths();
+        } else {
+            throw new IllegalArgumentException("Unsupported period type");
         }
-        return new Pair<>(periodsBetweenFirstStart, periodsBetweenFirstEnd);
+
+        Period periodPeriod = new Period(period);
+        DateTime discreteToEnd = dtFirst.plus(periodPeriod.multipliedBy(periodsBetween));
+        if (dtEnd.isBefore(dtFirst)) {
+            return periodsBetween;
+        } else {
+            return discreteToEnd.isEqual(dtEnd) ? periodsBetween : periodsBetween + 1;
+        }
     }
 
     /**
@@ -159,5 +196,16 @@ public class RegularModel implements Parcelable {
         value = in.readLong();
         currency = in.readString();
         description = in.readString();
+    }
+
+    @Override
+    public int compareTo(@NonNull RegularModel another) {
+        return timeFirst < another.timeFirst ? -1 : timeFirst > another.timeFirst ? 1 :
+                creationTime < another.creationTime ? -1 : creationTime > another.creationTime ? 1 : 0;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof RegularModel && creationTime == ((RegularModel) o).creationTime;
     }
 }
