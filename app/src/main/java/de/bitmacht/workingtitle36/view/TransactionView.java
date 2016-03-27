@@ -37,7 +37,7 @@ public class TransactionView extends FrameLayout {
     public void setData(Edit edit) {
         timeView.setTime(edit.getTtime());
         Currency currency = Currency.getInstance(edit.getTcurrency());
-        valueText = valueView.setValue(currency, edit.getTvalue());
+        valueText = valueView.setValue(currency, edit.getTamount());
         valueTextLength = valueText.length();
         descriptionView.setDescription(edit.getTdesc());
     }

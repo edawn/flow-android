@@ -32,7 +32,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private static final Logger logger = LoggerFactory.getLogger(TransactionEditActivity.class);
 
     private Currency currency;
-    private long value;
+    private long amount;
 
     private Toolbar toolbar;
     private ImageButton cancelButton;
@@ -51,7 +51,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
 
         //TODO the currency should be user-settable
         currency = Currency.getInstance(Locale.getDefault());
-        value = 0;
+        amount = 0;
 
         setContentView(R.layout.activity_transaction_edit);
 
@@ -79,7 +79,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         timeView.setOnClickListener(this);
         dateView.setOnClickListener(this);
 
-        valueWidget.setValue(currency, value);
+        valueWidget.setValue(currency, amount);
 
         valueModLessView.setValue(currency, 10);
         valueModMoreView.setOnValueChangeListener(this);
@@ -124,14 +124,14 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     }
 
     @Override
-    public void onValueChange(Currency currency, int cents) {
+    public void onValueChange(Currency currency, int amount) {
         if (BuildConfig.DEBUG) {
-            logger.trace("value change: {},{}", currency, cents);
+            logger.trace("value change: {},{}", currency, amount);
         }
 
         //TODO make sure that this.currency.equals(currency)
-        value += cents;
-        valueWidget.setValue(currency, value);
+        this.amount += amount;
+        valueWidget.setValue(currency, this.amount);
     }
 
     @Override
@@ -160,7 +160,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
      */
     private Edit getEdit() {
         Edit edit = new Edit(System.currentTimeMillis(), calendar.getTimeInMillis(),
-                descriptionView.getText().toString(), "", currency.getCurrencyCode(), value);
+                descriptionView.getText().toString(), "", currency.getCurrencyCode(), amount);
         return edit;
     }
 

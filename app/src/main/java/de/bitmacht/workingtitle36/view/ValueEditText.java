@@ -56,8 +56,8 @@ public class ValueEditText extends EditText implements ValueWidget {
         setFilters(new InputFilter[]{inf});
     }
 
-    public String setValue(Currency currency, long cents) {
-        Pair<String, String> vs = ValueWidgetCommon.getValueAndSymbolStrings(Locale.getDefault(), currency, cents);
+    public String setValue(Currency currency, long amount) {
+        Pair<String, String> vs = ValueWidgetCommon.getValueAndSymbolStrings(Locale.getDefault(), currency, amount);
         String valueText = vs.first + vs.second;
         currencySymbol = vs.second;
         inf.setPaused(true);

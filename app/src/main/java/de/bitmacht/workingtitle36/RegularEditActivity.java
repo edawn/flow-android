@@ -32,7 +32,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     private static final Logger logger = LoggerFactory.getLogger(RegularEditActivity.class);
 
     private Currency currency;
-    private long value;
+    private long amount;
 
     private Toolbar toolbar;
     private ImageButton cancelButton;
@@ -49,7 +49,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         super.onCreate(savedInstanceState);
 
         currency = Currency.getInstance(Locale.getDefault());
-        value = 0;
+        amount = 0;
 
         setContentView(R.layout.activity_regular_edit);
 
@@ -75,7 +75,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         updateTimeViews();
         dateView.setOnClickListener(this);
 
-        valueWidget.setValue(currency, value);
+        valueWidget.setValue(currency, amount);
 
         ArrayAdapter<CharSequence> intervalAdapter = ArrayAdapter.createFromResource(this, R.array.interval_names, android.R.layout.simple_spinner_item);
         intervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -110,13 +110,13 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     }
 
     @Override
-    public void onValueChange(Currency currency, int cents) {
+    public void onValueChange(Currency currency, int amount) {
         if (BuildConfig.DEBUG) {
-            logger.trace("value change: {},{}", currency, cents);
+            logger.trace("value change: {},{}", currency, amount);
         }
 
-        value += cents;
-        valueWidget.setValue(currency, value);
+        this.amount += amount;
+        valueWidget.setValue(currency, this.amount);
     }
 
     @Override

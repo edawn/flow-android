@@ -29,7 +29,7 @@ public class ValueModifyView extends LinearLayout implements View.OnTouchListene
 
     private OnValueChangeListener valueChangeListener;
     private Currency currency;
-    private int value;
+    private int amount;
 
     public ValueModifyView(Context context) {
         super(context);
@@ -62,24 +62,24 @@ public class ValueModifyView extends LinearLayout implements View.OnTouchListene
     /**
      * Sets the stepping amount for this View
      * @param currency The currency
-     * @param cents The amount in minor currency units or in major currency units if the
+     * @param amount The amount in minor currency units or in major currency units if the
      *              currency does not have minor units
      */
-    public void setValue(Currency currency, int cents) {
+    public void setValue(Currency currency, int amount) {
         this.currency = currency;
-        this.value = cents;
-        String valueString = ValueWidgetCommon.getValueString(currency, value);
+        this.amount = amount;
+        String valueString = ValueWidgetCommon.getValueString(currency, this.amount);
         if (BuildConfig.DEBUG) {
-            logger.trace("Setting step: {}, {} -> {}", currency, cents, valueString);
+            logger.trace("Setting step: {}, {} -> {}", currency, amount, valueString);
         }
         textView.setText(valueString);
     }
 
-    private void changeValue(int value) {
-        if (currency == null || value == 0 || valueChangeListener == null) {
+    private void changeAmount(int amount) {
+        if (currency == null || amount == 0 || valueChangeListener == null) {
             return;
         }
-        valueChangeListener.onValueChange(currency, value);
+        valueChangeListener.onValueChange(currency, amount);
     }
 
     public void setOnValueChangeListener(OnValueChangeListener listener) {
@@ -102,20 +102,20 @@ public class ValueModifyView extends LinearLayout implements View.OnTouchListene
 
     public interface OnValueChangeListener {
         /**
-         * This will be called when the value changes
-         * @param currency The currency of the value change
-         * @param cents The value change in the minor currency units
+         * This will be called when the amount changes
+         * @param currency The currency of the amount change
+         * @param amount The amount change in the minor currency units
          */
-        void onValueChange(Currency currency, int cents);
+        void onValueChange(Currency currency, int amount);
     }
 
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             if (msg.what == R.id.add) {
-                changeValue(value);
+                changeAmount(amount);
             } else if (msg.what == R.id.subtract) {
-                changeValue(-value);
+                changeAmount(-amount);
             } else {
                 // this should never happen
                 return;

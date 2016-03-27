@@ -17,7 +17,7 @@ public class Edit {
             DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION,
             DBHelper.EDITS_KEY_TRANSACTION_LOCATION,
             DBHelper.EDITS_KEY_TRANSACTION_CURRENCY,
-            DBHelper.EDITS_KEY_TRANSACTION_VALUE
+            DBHelper.EDITS_KEY_TRANSACTION_AMOUNT
     };
 
     private long ctime;
@@ -25,7 +25,7 @@ public class Edit {
     private String tdesc;
     private String tloc;
     private String tcurrency;
-    private long tvalue;
+    private long tamount;
 
     /**
      * Create a new Edit from a cursor
@@ -37,19 +37,19 @@ public class Edit {
                 cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION)),
                 cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_LOCATION)),
                 cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY)),
-                cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_VALUE)));
+                cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT)));
     }
 
     /**
      * Create a new Edit from arguments
      */
-    public Edit(long ctime, long ttime, String tdesc, String tloc, String tcurrency, long tvalue) {
+    public Edit(long ctime, long ttime, String tdesc, String tloc, String tcurrency, long tamount) {
         this.ctime = ctime;
         this.ttime = ttime;
         this.tdesc = tdesc;
         this.tloc = tloc;
         this.tcurrency = tcurrency;
-        this.tvalue = tvalue;
+        this.tamount = tamount;
     }
 
     public long getCtime() {
@@ -72,8 +72,8 @@ public class Edit {
         return tcurrency;
     }
 
-    public long getTvalue() {
-        return tvalue;
+    public long getTamount() {
+        return tamount;
     }
 
     @Override
@@ -82,7 +82,7 @@ public class Edit {
         ccal.setTimeInMillis(ctime);
         Calendar tcal = Calendar.getInstance(TimeZone.getTimeZone("Z"));
         tcal.setTimeInMillis(ttime);
-        return String.format("ctime: %tFT%<tTZ, ttime: %tFT%<tTZ, tdesc: %s, tloc: %s, tcurrency: %s, tvalue: %d",
-                ccal, tcal, tdesc, tloc, tcurrency, tvalue);
+        return String.format("ctime: %tFT%<tTZ, ttime: %tFT%<tTZ, tdesc: %s, tloc: %s, tcurrency: %s, tamount: %d",
+                ccal, tcal, tdesc, tloc, tcurrency, tamount);
     }
 }

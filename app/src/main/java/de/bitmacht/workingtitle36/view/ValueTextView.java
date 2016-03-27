@@ -27,8 +27,8 @@ public class ValueTextView extends TextView implements ValueWidget {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public String setValue(Currency currency, long cents) {
-        String valueText = ValueWidgetCommon.getValueString(currency, cents);
+    public String setValue(Currency currency, long amount) {
+        String valueText = ValueWidgetCommon.getValueString(currency, amount);
         setText(valueText);
         return valueText;
     }

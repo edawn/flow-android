@@ -38,7 +38,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
     public boolean isSpread = false;
     public boolean isDisabled = false;
     public boolean isDeleted = false;
-    public long value;
+    public long amount;
     public String currency;
     public String description;
 
@@ -53,7 +53,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
         isSpread = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_SPREAD)) != 0;
         isDisabled = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_DISABLED)) != 0;
         isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_DELETED)) != 0;
-        value = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_VALUE));
+        amount = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_AMOUNT));
         currency = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_CURRENCY));
         description = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_DESCRIPTION));
     }
@@ -166,7 +166,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
         dest.writeInt(periodType);
         dest.writeInt(periodMultiplier);
         dest.writeBooleanArray(new boolean[]{isSpread, isDisabled, isDeleted});
-        dest.writeLong(value);
+        dest.writeLong(amount);
         dest.writeString(currency);
         dest.writeString(description);
     }
@@ -193,7 +193,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
         isSpread = bools[0];
         isDisabled = bools[1];
         isDeleted = bools[2];
-        value = in.readLong();
+        amount = in.readLong();
         currency = in.readString();
         description = in.readString();
     }

@@ -65,7 +65,7 @@ public class TransactionsUpdateTask extends AsyncTask<Edit, Void, Boolean> {
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, edit.getTdesc());
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION_LOCATION, edit.getTloc());
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY, edit.getTcurrency());
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_VALUE, edit.getTvalue());
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT, edit.getTamount());
                 res = db.insertOrThrow(DBHelper.EDITS_TABLE_NAME, null, cv);
 
                 db.setTransactionSuccessful();

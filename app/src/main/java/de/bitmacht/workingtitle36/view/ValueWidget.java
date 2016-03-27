@@ -6,8 +6,8 @@ public interface ValueWidget {
     /**
      * Sets the value that will be displayed
      * @param currency The currency
-     * @param cents The value in minor currency units
+     * @param amount The amount in minor currency units
      * @return The text that will be displayed
      */
-    String setValue(Currency currency, long cents);
+    String setValue(Currency currency, long amount);
 }

@@ -59,9 +59,9 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String EDITS_KEY_TRANSACTION_CURRENCY = "tcurrency";
     /**
-     * The user-set transaction value; in minor currency units (usually cents); negative values indicate spending
+     * The user-set transaction amount in minor currency units (usually cents); negative values indicate spending
      */
-    public static final String EDITS_KEY_TRANSACTION_VALUE = "tvalue";
+    public static final String EDITS_KEY_TRANSACTION_AMOUNT = "tamount";
 
     /**
      * This table contains all transactions.
@@ -88,7 +88,7 @@ public class DBHelper extends SQLiteOpenHelper {
                     EDITS_KEY_TRANSACTION_DESCRIPTION + " TEXT, " +
                     EDITS_KEY_TRANSACTION_LOCATION + " TEXT, " +
                     EDITS_KEY_TRANSACTION_CURRENCY + " TEXT, " +
-                    EDITS_KEY_TRANSACTION_VALUE + " INTEGER, " +
+                    EDITS_KEY_TRANSACTION_AMOUNT + " INTEGER, " +
                     "FOREIGN KEY(" + EDITS_KEY_TRANSACTION + ") REFERENCES " + TRANSACTIONS_TABLE_NAME + "(" + TRANSACTIONS_KEY_CREATION_TIME + "), " +
                     "UNIQUE(" + EDITS_KEY_TRANSACTION + ", " + EDITS_KEY_SEQUENCE + ")" +
                     ");";
@@ -146,9 +146,9 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String REGULARS_KEY_CURRENCY = "currency";
     /**
-     * The user-set transaction value; in minor currency units (usually cents); negative values indicate spending
+     * The user-set transaction amount; in minor currency units (usually cents); negative values indicate spending
      */
-    public static final String REGULARS_KEY_VALUE = "value";
+    public static final String REGULARS_KEY_AMOUNT = "amount";
 
     public static final String REGULARS_TABLE_CREATE =
             "CREATE TABLE " + REGULARS_TABLE_NAME + "(" +
@@ -161,7 +161,7 @@ public class DBHelper extends SQLiteOpenHelper {
                     REGULARS_KEY_IS_DELETED + " BOOLEAN, " +
                     REGULARS_KEY_DESCRIPTION + " TEXT, " +
                     REGULARS_KEY_CURRENCY + " TEXT, " +
-                    REGULARS_KEY_VALUE + " INTEGER);";
+                    REGULARS_KEY_AMOUNT + " INTEGER);";
 
     /**
      * Holds the already-executed regular transactions
