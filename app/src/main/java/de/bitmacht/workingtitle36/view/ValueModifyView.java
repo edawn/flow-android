@@ -14,10 +14,9 @@ import android.widget.TextView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Currency;
-
 import de.bitmacht.workingtitle36.BuildConfig;
 import de.bitmacht.workingtitle36.R;
+import de.bitmacht.workingtitle36.Value;
 
 public class ValueModifyView extends LinearLayout implements View.OnTouchListener {
 
@@ -28,8 +27,9 @@ public class ValueModifyView extends LinearLayout implements View.OnTouchListene
     private TextView textView;
 
     private OnValueChangeListener valueChangeListener;
-    private Currency currency;
-    private int amount;
+
+    private Value valuePlus;
+    private Value valueMinus;
 
     public ValueModifyView(Context context) {
         super(context);
@@ -60,26 +60,12 @@ public class ValueModifyView extends LinearLayout implements View.OnTouchListene
     }
 
     /**
-     * Sets the stepping amount for this View
-     * @param currency The currency
-     * @param amount The amount in minor currency units or in major currency units if the
-     *              currency does not have minor units
+     * Sets the stepping values for this View
      */
-    public void setValue(Currency currency, int amount) {
-        this.currency = currency;
-        this.amount = amount;
-        String valueString = ValueWidgetCommon.getValueString(currency, this.amount);
-        if (BuildConfig.DEBUG) {
-            logger.trace("Setting step: {}, {} -> {}", currency, amount, valueString);
-        }
-        textView.setText(valueString);
-    }
-
-    private void changeAmount(int amount) {
-        if (currency == null || amount == 0 || valueChangeListener == null) {
-            return;
-        }
-        valueChangeListener.onValueChange(currency, amount);
+    public void setValue(Value value) {
+        valuePlus = value;
+        valueMinus = value.withAmount(-value.amount);
+        textView.setText(value.getString());
     }
 
     public void setOnValueChangeListener(OnValueChangeListener listener) {
@@ -103,22 +89,16 @@ public class ValueModifyView extends LinearLayout implements View.OnTouchListene
     public interface OnValueChangeListener {
         /**
          * This will be called when the amount changes
-         * @param currency The currency of the amount change
-         * @param amount The amount change in the minor currency units
+         * @param value The amount change
          */
-        void onValueChange(Currency currency, int amount);
+        void onValueChange(Value value);
     }
 
     private Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            if (msg.what == R.id.add) {
-                changeAmount(amount);
-            } else if (msg.what == R.id.subtract) {
-                changeAmount(-amount);
-            } else {
-                // this should never happen
-                return;
+            if (valueChangeListener != null) {
+                valueChangeListener.onValueChange(msg.what == R.id.add ? valuePlus : valueMinus);
             }
             int di = Math.min(msg.arg1, DELAYS.length - 1);
             sendMessageDelayed(obtainMessage(msg.what, di + 1, 0, null), DELAYS[di]);

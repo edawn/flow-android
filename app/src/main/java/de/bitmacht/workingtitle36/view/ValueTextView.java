@@ -6,7 +6,7 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.widget.TextView;
 
-import java.util.Currency;
+import de.bitmacht.workingtitle36.Value;
 
 public class ValueTextView extends TextView implements ValueWidget {
 
@@ -27,8 +27,8 @@ public class ValueTextView extends TextView implements ValueWidget {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    public String setValue(Currency currency, long amount) {
-        String valueText = ValueWidgetCommon.getValueString(currency, amount);
+    public String setValue(Value value) {
+        String valueText = value.getString();
         setText(valueText);
         return valueText;
     }

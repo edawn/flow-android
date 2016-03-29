@@ -40,6 +40,10 @@ public class Edit {
                 cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT)));
     }
 
+    public Edit(long ctime, long ttime, String tdesc, String tloc, Value value) {
+        this(ctime, ttime, tdesc, tloc, value.currencyCode, value.amount);
+    }
+
     /**
      * Create a new Edit from arguments
      */
@@ -74,6 +78,13 @@ public class Edit {
 
     public long getTamount() {
         return tamount;
+    }
+
+    /**
+     * Return the Value that this Edit represents
+     */
+    public Value getValue() {
+        return new Value(tcurrency, tamount);
     }
 
     @Override

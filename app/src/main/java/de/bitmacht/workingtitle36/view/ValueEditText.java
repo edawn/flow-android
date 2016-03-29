@@ -16,10 +16,10 @@ import android.widget.EditText;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Currency;
 import java.util.Locale;
 
 import de.bitmacht.workingtitle36.BuildConfig;
+import de.bitmacht.workingtitle36.Value;
 
 public class ValueEditText extends EditText implements ValueWidget {
 
@@ -56,8 +56,9 @@ public class ValueEditText extends EditText implements ValueWidget {
         setFilters(new InputFilter[]{inf});
     }
 
-    public String setValue(Currency currency, long amount) {
-        Pair<String, String> vs = ValueWidgetCommon.getValueAndSymbolStrings(Locale.getDefault(), currency, amount);
+    @Override
+    public String setValue(Value value) {
+        Pair<String, String> vs = value.getValueAndSymbolStrings(Locale.getDefault());
         String valueText = vs.first + vs.second;
         currencySymbol = vs.second;
         inf.setPaused(true);

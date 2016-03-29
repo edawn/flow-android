@@ -18,9 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
-import java.util.Currency;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 
 import de.bitmacht.workingtitle36.view.TimeView;
 import de.bitmacht.workingtitle36.view.ValueModifyView;
@@ -31,8 +29,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
 
     private static final Logger logger = LoggerFactory.getLogger(RegularEditActivity.class);
 
-    private Currency currency;
-    private long amount;
+    private Value value;
 
     private Toolbar toolbar;
     private ImageButton cancelButton;
@@ -48,8 +45,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        currency = Currency.getInstance(Locale.getDefault());
-        amount = 0;
+        value = new Value(0);
 
         setContentView(R.layout.activity_regular_edit);
 
@@ -75,7 +71,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         updateTimeViews();
         dateView.setOnClickListener(this);
 
-        valueWidget.setValue(currency, amount);
+        valueWidget.setValue(value);
 
         ArrayAdapter<CharSequence> intervalAdapter = ArrayAdapter.createFromResource(this, R.array.interval_names, android.R.layout.simple_spinner_item);
         intervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -110,13 +106,19 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     }
 
     @Override
-    public void onValueChange(Currency currency, int amount) {
+    public void onValueChange(Value value) {
         if (BuildConfig.DEBUG) {
-            logger.trace("value change: {},{}", currency, amount);
+            logger.trace("value change: {}", value);
         }
 
-        this.amount += amount;
-        valueWidget.setValue(currency, this.amount);
+        try {
+            this.value = this.value.add(value);
+            valueWidget.setValue(this.value);
+        } catch (Value.CurrencyMismatchException e) {
+            if (BuildConfig.DEBUG) {
+                logger.warn("Unable to change amount", e);
+            }
+        }
     }
 
     @Override

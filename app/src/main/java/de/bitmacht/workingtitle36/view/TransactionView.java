@@ -3,8 +3,6 @@ package de.bitmacht.workingtitle36.view;
 import android.content.Context;
 import android.widget.FrameLayout;
 
-import java.util.Currency;
-
 import de.bitmacht.workingtitle36.Edit;
 import de.bitmacht.workingtitle36.R;
 
@@ -36,8 +34,7 @@ public class TransactionView extends FrameLayout {
      */
     public void setData(Edit edit) {
         timeView.setTime(edit.getTtime());
-        Currency currency = Currency.getInstance(edit.getTcurrency());
-        valueText = valueView.setValue(currency, edit.getTamount());
+        valueText = valueView.setValue(edit.getValue());
         valueTextLength = valueText.length();
         descriptionView.setDescription(edit.getTdesc());
     }
@@ -50,8 +47,8 @@ public class TransactionView extends FrameLayout {
     }
 
     /**
-     * Calculates the width of the value text
-     * @return The width of the value text in pixels
+     * Calculates the width of the amount text
+     * @return The width of the amount text in pixels
      */
     public int getValueTextWidth() {
         valueView.measure(0, 0);

@@ -18,9 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
-import java.util.Currency;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 
 import de.bitmacht.workingtitle36.view.TimeView;
 import de.bitmacht.workingtitle36.view.ValueModifyView;
@@ -31,8 +29,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionEditActivity.class);
 
-    private Currency currency;
-    private long amount;
+    private Value value;
 
     private Toolbar toolbar;
     private ImageButton cancelButton;
@@ -50,8 +47,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         super.onCreate(savedInstanceState);
 
         //TODO the currency should be user-settable
-        currency = Currency.getInstance(Locale.getDefault());
-        amount = 0;
+        value = new Value(0);
 
         setContentView(R.layout.activity_transaction_edit);
 
@@ -79,12 +75,12 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         timeView.setOnClickListener(this);
         dateView.setOnClickListener(this);
 
-        valueWidget.setValue(currency, amount);
+        valueWidget.setValue(value);
 
-        valueModLessView.setValue(currency, 10);
+        valueModLessView.setValue(value.withAmount(10));
         valueModMoreView.setOnValueChangeListener(this);
 
-        valueModMoreView.setValue(currency, 100);
+        valueModMoreView.setValue(value.withAmount(100));
         valueModLessView.setOnValueChangeListener(this);
     }
 
@@ -124,14 +120,20 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     }
 
     @Override
-    public void onValueChange(Currency currency, int amount) {
+    public void onValueChange(Value value) {
         if (BuildConfig.DEBUG) {
-            logger.trace("value change: {},{}", currency, amount);
+            logger.trace("value change: {}", value);
         }
 
         //TODO make sure that this.currency.equals(currency)
-        this.amount += amount;
-        valueWidget.setValue(currency, this.amount);
+        try {
+            this.value = this.value.add(value);
+        } catch (Value.CurrencyMismatchException e) {
+            if (BuildConfig.DEBUG) {
+                logger.trace("unable to change amount", e);
+            }
+        }
+        valueWidget.setValue(this.value);
     }
 
     @Override
@@ -160,7 +162,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
      */
     private Edit getEdit() {
         Edit edit = new Edit(System.currentTimeMillis(), calendar.getTimeInMillis(),
-                descriptionView.getText().toString(), "", currency.getCurrencyCode(), amount);
+                descriptionView.getText().toString(), "", value);
         return edit;
     }
 

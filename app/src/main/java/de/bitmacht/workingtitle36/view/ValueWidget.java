@@ -1,13 +1,12 @@
 package de.bitmacht.workingtitle36.view;
 
-import java.util.Currency;
+import de.bitmacht.workingtitle36.Value;
 
 public interface ValueWidget {
     /**
-     * Sets the value that will be displayed
-     * @param currency The currency
-     * @param amount The amount in minor currency units
+     * Sets the amount that will be displayed
+     * @param value The amount
      * @return The text that will be displayed
      */
-    String setValue(Currency currency, long amount);
+    String setValue(Value value);
 }
