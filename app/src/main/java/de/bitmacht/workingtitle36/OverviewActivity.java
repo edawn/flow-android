@@ -56,8 +56,8 @@ public class OverviewActivity extends AppCompatActivity {
         dbHelper = new DBHelper(this);
 
         Bundle args = new Bundle();
-        args.putLong(RegularsCursorLoader.ARG_START, periodStart.getMillis());
-        args.putLong(RegularsCursorLoader.ARG_END, periodEnd.getMillis());
+        args.putLong(RegularsLoader.ARG_START, periodStart.getMillis());
+        args.putLong(RegularsLoader.ARG_END, periodEnd.getMillis());
         getLoaderManager().initLoader(LOADER_ID_REGULARS, args, regularsLoaderListener);
 
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
@@ -96,7 +96,7 @@ public class OverviewActivity extends AppCompatActivity {
                     if (BuildConfig.DEBUG) {
                         logger.trace("-");
                     }
-                    return new RegularsCursorLoader(OverviewActivity.this, dbHelper, args);
+                    return new RegularsLoader(OverviewActivity.this, dbHelper, args);
                 }
 
                 @Override
@@ -124,7 +124,7 @@ public class OverviewActivity extends AppCompatActivity {
                 }
             };
 
-    private static class RegularsCursorLoader extends AsyncTaskLoader<ArrayList<RegularModel>> {
+    private static class RegularsLoader extends AsyncTaskLoader<ArrayList<RegularModel>> {
         /**
          * The start of the balancing period (including; in ms since the epoch; default: java.lang.Long.MIN_VALUE)
          */
@@ -142,7 +142,7 @@ public class OverviewActivity extends AppCompatActivity {
         private final Bundle args;
         private ArrayList<RegularModel> result;
 
-        RegularsCursorLoader(Context context, DBHelper dbHelper, Bundle args) {
+        RegularsLoader(Context context, DBHelper dbHelper, Bundle args) {
             super(context);
             this.dbHelper = dbHelper;
             this.args = args;
