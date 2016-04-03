@@ -1,9 +1,12 @@
 package de.bitmacht.workingtitle36;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
+
+import java.util.ArrayList;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -260,5 +263,21 @@ public class DBHelper extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         throw new UnsupportedOperationException("I don't like change.");
+    }
+
+    /**
+     * Query the database for active regular transactions
+     * @see DBHelper#ACTIVE_REGULARS_QUERY
+     */
+    public static ArrayList<RegularModel> queryRegulars(DBHelper dbHelper) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery(DBHelper.ACTIVE_REGULARS_QUERY, null);
+
+        ArrayList<RegularModel> regulars = new ArrayList<>(cursor.getCount());
+        while (cursor.moveToNext()) {
+            regulars.add(new RegularModel(cursor));
+        }
+        cursor.close();
+        return regulars;
     }
 }
