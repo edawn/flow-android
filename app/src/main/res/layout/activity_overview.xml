@@ -7,11 +7,37 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin">
 
-    <android.support.v7.widget.RecyclerView xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/transactions"
+    <GridLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context="de.bitmacht.workingtitle36.MainActivity" />
+        android:layout_height="wrap_content"
+        android:useDefaultMargins="true"
+        android:alignmentMode="alignBounds"
+        android:columnOrderPreserved="false"
+        android:columnCount="2"
+        >
+
+        <TextView
+            android:layout_columnSpan="2"
+            android:layout_gravity="center_horizontal"
+            android:text="@string/overview_title_budget"
+            />
+
+        <TextView
+            android:text="@string/overview_month"
+            />
+
+        <TextView
+            android:id="@+id/month"/>
+
+        <TextView
+            android:text="@string/overview_day"
+            />
+
+        <TextView
+            android:id="@+id/day"
+            />
+
+    </GridLayout>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -22,3 +48,4 @@
         android:src="@drawable/ic_add_white_24dp" />
 
 </android.support.design.widget.CoordinatorLayout>
+

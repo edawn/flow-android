@@ -154,6 +154,13 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
                 org.joda.time.Days.days(periodMultiplier) : org.joda.time.Months.months(periodMultiplier);
     }
 
+    /**
+     * Returns the cumulative amount of the executed transactions associated with this instance
+     */
+    public Value getExecutedValue() {
+        return new Value(currency, amount * (executed == null ? 0 : executed.size()));
+    }
+
     @Override
     public int describeContents() {
         return 0;

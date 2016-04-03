@@ -14,9 +14,9 @@ import android.view.View;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class TransactionsOverviewActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private static final Logger logger = LoggerFactory.getLogger(MainActivity.class);
+    private static final Logger logger = LoggerFactory.getLogger(TransactionsOverviewActivity.class);
     private TransactionsAdapter transactionsAdapter = null;
     private DBHelper dbHelper = null;
 
@@ -26,7 +26,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         if (BuildConfig.DEBUG) {
             logger.trace(">");
         }
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_transactions_overview);
 
         RecyclerView recyclerView = (RecyclerView) findViewById(R.id.transactions);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));

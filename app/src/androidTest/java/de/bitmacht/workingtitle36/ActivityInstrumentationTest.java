@@ -12,12 +12,12 @@ import android.util.Pair;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase2<MainActivity> {
+public class ActivityInstrumentationTest extends ActivityInstrumentationTestCase2<TransactionsOverviewActivity> {
 
     private static final String TAG = "ActInsTst";
 
     public ActivityInstrumentationTest() {
-        super(MainActivity.class);
+        super(TransactionsOverviewActivity.class);
     }
 
     public void testDatabaseInserts() {

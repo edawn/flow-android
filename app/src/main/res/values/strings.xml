@@ -4,4 +4,8 @@
     <string name="enabled">Enabled</string>
     <string name="regular_first_time">Start</string>
     <string name="regular_repetition">Repetition</string>
+    <string name="overview_title_budget">Budget</string>
+    <string name="overview_month">Month</string>
+    <string name="overview_day">Day</string>
+    <string name="overview_budget_template">%1$s / %2$s</string>
 </resources>

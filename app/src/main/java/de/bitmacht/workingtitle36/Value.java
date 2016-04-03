@@ -4,6 +4,7 @@ import android.support.annotation.NonNull;
 import android.util.Pair;
 
 import java.text.DecimalFormatSymbols;
+import java.util.Collection;
 import java.util.Currency;
 import java.util.Locale;
 
@@ -62,6 +63,36 @@ public class Value {
             throw new CurrencyMismatchException("Unable to add " + other.currencyCode + " to " + currencyCode);
         }
         return new Value(currencyCode, amount + other.amount);
+    }
+
+    /**
+     * Return a new Value with the sum of this and all Values from others
+     * @throws CurrencyMismatchException If any currency code differs from this
+     */
+    public Value addAll(Value[] others) throws CurrencyMismatchException {
+        long sumount = amount;
+        for (Value other : others) {
+            if (!currencyCode.equals(other.currencyCode)) {
+                throw new CurrencyMismatchException("Unable to add " + other.currencyCode + " to " + currencyCode);
+            }
+            sumount += other.amount;
+        }
+        return new Value(currencyCode, sumount);
+    }
+
+    /**
+     * Return a new Value with the sum of this and all Values from others
+     * @throws CurrencyMismatchException If any currency code differs from this
+     */
+    public Value addAll(Collection<Value> others) throws CurrencyMismatchException {
+        long sumount = amount;
+        for (Value other : others) {
+            if (!currencyCode.equals(other.currencyCode)) {
+                throw new CurrencyMismatchException("Unable to add " + other.currencyCode + " to " + currencyCode);
+            }
+            sumount += other.amount;
+        }
+        return new Value(currencyCode, sumount);
     }
 
     /**
