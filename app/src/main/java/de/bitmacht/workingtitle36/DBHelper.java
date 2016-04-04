@@ -14,6 +14,26 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 1;
 
     /**
+     * This table contains all transactions.
+     */
+    public static final String TRANSACTIONS_TABLE_NAME = "transactions";
+    /**
+     * The creation time of this transaction; also serving as the primary key of this table;
+     * in ms since the epoch; if an entry with this key should already exist, increment by one and retry
+     */
+    public static final String TRANSACTIONS_KEY_CREATION_TIME = "ctime";
+    /**
+     * Indicates that this transaction has been removed and should not be processed any further
+     */
+    public static final String TRANSACTIONS_KEY_ISREMOVED = "isremoved";
+
+    public static final String TRANSACTIONS_TABLE_CREATE =
+            "CREATE TABLE " + TRANSACTIONS_TABLE_NAME + "(" +
+                    TRANSACTIONS_KEY_CREATION_TIME + " INTEGER PRIMARY KEY, " +
+                    TRANSACTIONS_KEY_ISREMOVED + " BOOLEAN" +
+                    ");";
+
+    /**
      * This table contains all edits. Once created, an edit is never modified.
      * Additionally an edit is never removed, unless the transaction and all edits belonging to it are removed as well.
      */
@@ -66,20 +86,6 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String EDITS_KEY_TRANSACTION_AMOUNT = "tamount";
 
-    /**
-     * This table contains all transactions.
-     */
-    public static final String TRANSACTIONS_TABLE_NAME = "transactions";
-    /**
-     * The creation time of this transaction; also serving as the primary key of this table;
-     * in ms since the epoch; if an entry with this key should already exist, increment by one and retry
-     */
-    public static final String TRANSACTIONS_KEY_CREATION_TIME = "ctime";
-    /**
-     * Indicates that this transaction has been removed and should not be processed any further
-     */
-    public static final String TRANSACTIONS_KEY_ISREMOVED = "isremoved";
-
     public static final String EDITS_TABLE_CREATE =
             "CREATE TABLE " + EDITS_TABLE_NAME + "(" +
                     EDITS_KEY_CREATION_TIME + " INTEGER PRIMARY KEY, " +
@@ -94,12 +100,6 @@ public class DBHelper extends SQLiteOpenHelper {
                     EDITS_KEY_TRANSACTION_AMOUNT + " INTEGER, " +
                     "FOREIGN KEY(" + EDITS_KEY_TRANSACTION + ") REFERENCES " + TRANSACTIONS_TABLE_NAME + "(" + TRANSACTIONS_KEY_CREATION_TIME + "), " +
                     "UNIQUE(" + EDITS_KEY_TRANSACTION + ", " + EDITS_KEY_SEQUENCE + ")" +
-                    ");";
-
-    public static final String TRANSACTIONS_TABLE_CREATE =
-            "CREATE TABLE " + TRANSACTIONS_TABLE_NAME + "(" +
-                    TRANSACTIONS_KEY_CREATION_TIME + " INTEGER PRIMARY KEY, " +
-                    TRANSACTIONS_KEY_ISREMOVED + " BOOLEAN" +
                     ");";
 
     /**
