@@ -130,7 +130,7 @@ public class OverviewActivity extends AppCompatActivity {
          */
         public static final String ARG_START = "period_start";
         /**
-         * The start of the balancing period (including; in ms since the epoch; default: java.lang.Long.MAX_VALUE)
+         * The end of the balancing period (excluding; in ms since the epoch; default: java.lang.Long.MAX_VALUE)
          */
         public static final String ARG_END = "period_end";
         /**
