@@ -18,7 +18,7 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String TRANSACTIONS_TABLE_NAME = "transactions";
     /**
-     * The creation time of this transaction; also serving as the primary key of this table;
+     * The id of this transaction; should be its creation time;
      * in ms since the epoch; if an entry with this key should already exist, increment by one and retry
      */
     public static final String TRANSACTIONS_KEY_CREATION_TIME = "ctime";
@@ -49,7 +49,7 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String EDITS_KEY_PARENT = "parent";
     /**
-     * The ctime of the transaction this edit belongs to;
+     * The id of the transaction that this edit belongs to;
      * the referenced transaction must exist
      */
     public static final String EDITS_KEY_TRANSACTION = "transact";
