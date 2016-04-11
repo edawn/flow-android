@@ -58,4 +58,8 @@ public class TransactionView extends FrameLayout {
     public void setValueViewWidth(int width) {
         valueView.setWidth(width);
     }
+
+    public void setTimeFormat(@TimeView.TimeFormat int timeFormatStyle) {
+        timeView.setTimeFormat(timeFormatStyle);
+    }
 }

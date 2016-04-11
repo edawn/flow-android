@@ -208,6 +208,32 @@ public class DBHelper extends SQLiteOpenHelper {
                     " = editsmax." + EDITS_KEY_CREATION_TIME + " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
 
     /**
+     * Returns the most current, not removed transaction/edit join for every transaction
+     */
+    public static final String TRANSACTIONS_EDITS_QUERY =
+            "SELECT " + EDITS_TABLE_NAME + ".*, " + TRANSACTIONS_KEY_ISREMOVED + " FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
+                    "(SELECT " + TRANSACTIONS_KEY_ISREMOVED +
+                    ", " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
+                    "FROM " + TRANSACTIONS_TABLE_NAME + ", " + EDITS_TABLE_NAME + " WHERE " + TRANSACTIONS_TABLE_NAME + "." + TRANSACTIONS_KEY_CREATION_TIME +
+                    " = " + EDITS_KEY_TRANSACTION + " AND NOT " + TRANSACTIONS_KEY_ISREMOVED + " GROUP BY " + EDITS_KEY_TRANSACTION + ") editsmax ON " +
+                    EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME + " = editsmax." + EDITS_KEY_CREATION_TIME +
+                    " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
+
+    /**
+     * Returns the most current, not removed transaction/edit join for every transaction in a defined time span
+     */
+    public static final String TRANSACTIONS_EDITS_TIME_SPAN_QUERY =
+            "SELECT " + EDITS_TABLE_NAME + ".*, " + TRANSACTIONS_KEY_ISREMOVED + " FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
+                    "(SELECT " + TRANSACTIONS_KEY_ISREMOVED +
+                    ", " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
+                    "FROM " + TRANSACTIONS_TABLE_NAME + ", " + EDITS_TABLE_NAME + " WHERE " + TRANSACTIONS_TABLE_NAME + "." + TRANSACTIONS_KEY_CREATION_TIME +
+                    " = " + EDITS_KEY_TRANSACTION + " AND NOT " + TRANSACTIONS_KEY_ISREMOVED +
+                    " AND " + EDITS_KEY_TRANSACTION_TIME + " >= ? AND " + EDITS_KEY_TRANSACTION_TIME + " < ? " +
+                    " GROUP BY " + EDITS_KEY_TRANSACTION + ") editsmax ON " +
+                    EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME + " = editsmax." + EDITS_KEY_CREATION_TIME +
+                    " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
+
+    /**
      * Returns all active regular transactions
      */
     public static final String ACTIVE_REGULARS_QUERY =

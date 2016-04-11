@@ -21,15 +21,16 @@ import de.bitmacht.workingtitle36.R;
 public class TimeView extends TextView {
 
 
-    @IntDef({TIME_FORMAT_TIME, TIME_FORMAT_DATE, TIME_FORMAT_TIMEDATE})
+    @IntDef({TIME_FORMAT_TIME, TIME_FORMAT_DATE, TIME_FORMAT_TIMEDATE, TIME_FORMAT_TIMEDATE_SHORT})
     @Retention(RetentionPolicy.SOURCE)
     public @interface TimeFormat {}
 
     public static final int TIME_FORMAT_TIME = 0;
     public static final int TIME_FORMAT_DATE = 1;
     public static final int TIME_FORMAT_TIMEDATE = 2;
+    public static final int TIME_FORMAT_TIMEDATE_SHORT = 3;
 
-    private static final String[] TIME_FORMATS = {"HH:mm", "yyyy-MM-dd", "yyyy-MM-dd HH:mm"};
+    private static final String[] TIME_FORMATS = {"HH:mm", "yyyy-MM-dd", "yyyy-MM-dd HH:mm", "MM-dd HH:mm"};
 
     private int timeFormatStyle = TIME_FORMAT_TIME;
     private SimpleDateFormat timeFormat;
@@ -101,6 +102,8 @@ public class TimeView extends TextView {
     }
 
     private void update() {
-        setText(timeFormat.format(new Date(time)));
+        if (time != 0) {
+            setText(timeFormat.format(new Date(time)));
+        }
     }
 }

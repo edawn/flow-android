@@ -7,37 +7,50 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin">
 
-    <GridLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:useDefaultMargins="true"
-        android:alignmentMode="alignBounds"
-        android:columnOrderPreserved="false"
-        android:columnCount="2"
+        android:fillViewport="true"
         >
 
-        <TextView
-            android:layout_columnSpan="2"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/overview_title_budget"
-            />
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:useDefaultMargins="true"
+            android:alignmentMode="alignBounds"
+            android:columnOrderPreserved="false"
+            android:columnCount="2">
 
-        <TextView
-            android:text="@string/overview_month"
-            />
+            <TextView
+                android:layout_columnSpan="2"
+                android:layout_gravity="center_horizontal"
+                android:text="@string/overview_title_budget" />
 
-        <TextView
-            android:id="@+id/month"/>
+            <TextView android:text="@string/overview_month" />
 
-        <TextView
-            android:text="@string/overview_day"
-            />
+            <TextView android:id="@+id/month" />
 
-        <TextView
-            android:id="@+id/day"
-            />
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/transactions_month"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:layout_columnSpan="2" />
 
-    </GridLayout>
+            <TextView android:text="@string/overview_day" />
+
+            <TextView android:id="@+id/day" />
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/transactions_day"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"
+                android:layout_columnSpan="2" />
+
+        </GridLayout>
+    </ScrollView>
+
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"

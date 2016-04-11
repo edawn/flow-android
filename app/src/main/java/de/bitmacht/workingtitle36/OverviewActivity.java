@@ -11,8 +11,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Pair;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
@@ -24,11 +27,14 @@ import java.util.Currency;
 import java.util.Locale;
 import java.util.TreeMap;
 
-public class OverviewActivity extends AppCompatActivity {
+public class OverviewActivity extends AppCompatActivity implements View.OnClickListener {
     
     private static final Logger logger = LoggerFactory.getLogger(OverviewActivity.class);
 
     private static final int LOADER_ID_REGULARS = 0;
+    private static final int LOADER_ID_TRANSACTIONS = 1;
+
+    public static final int REQUEST_TRANSACTION_EDIT = 0;
 
     private DBHelper dbHelper;
     private TextView monthView;
@@ -39,6 +45,9 @@ public class OverviewActivity extends AppCompatActivity {
     DateTime periodEnd = null;
 
     private ArrayList<RegularModel> regulars = null;
+    private ArrayList<TransactionsModel> transactions = null;
+    private RecyclerView monthTransactions;
+    private TransactionsArrayAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +55,14 @@ public class OverviewActivity extends AppCompatActivity {
         setContentView(R.layout.activity_overview);
 
         monthView = (TextView) findViewById(R.id.month);
+        monthView.setOnClickListener(this);
         dayView = (TextView) findViewById(R.id.day);
+        dayView.setOnClickListener(this);
+
+        monthTransactions = (RecyclerView) findViewById(R.id.transactions_month);
+        monthTransactions.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new TransactionsArrayAdapter();
+        monthTransactions.setAdapter(adapter);
 
         // TODO this should be user-settable
         DateTime now = DateTime.now();
@@ -60,31 +76,101 @@ public class OverviewActivity extends AppCompatActivity {
         args.putLong(RegularsLoader.ARG_END, periodEnd.getMillis());
         getLoaderManager().initLoader(LOADER_ID_REGULARS, args, regularsLoaderListener);
 
+        args = new Bundle();
+        args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
+        args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+        getLoaderManager().initLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
+
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(new Intent(v.getContext(), TransactionEditActivity.class), 0);
+                startActivityForResult(new Intent(v.getContext(), TransactionEditActivity.class), REQUEST_TRANSACTION_EDIT);
             }
         });
     }
 
-    private void populate(ArrayList<RegularModel> regulars) {
-        this.regulars = regulars;
-        ArrayList<Value> values = new ArrayList<>(regulars.size());
-        for (RegularModel regular : regulars) {
-            values.add(regular.getExecutedValue());
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_TRANSACTION_EDIT && monthTransactions.getVisibility() == View.VISIBLE) {
+            Bundle args = new Bundle();
+            args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
+            args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+            getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
         }
-        try {
-            Value sum = new Value(Currency.getInstance(Locale.getDefault()).getCurrencyCode(), 0).addAll(values);
-            monthView.setText(getString(R.string.overview_budget_template, "?", sum.getString()));
-            dayView.setText(getString(R.string.overview_budget_template, "?", "?"));
+    }
+
+    private void updateOverview() {
+        if (regulars == null) {
             if (BuildConfig.DEBUG) {
-                logger.trace("sum: {}", sum);
+                logger.warn("regulars is null");
             }
+            return;
+        }
+
+        Value transactionsSum = new Value(Currency.getInstance(Locale.getDefault()).getCurrencyCode(), 0);
+        if (transactions != null) {
+            for (TransactionsModel transaction : transactions) {
+                if (transaction.mostRecentEdit == null) {
+                    if (BuildConfig.DEBUG) {
+                        logger.warn("mostRecentEdit is null: transaction: {}", transaction);
+                    }
+                    continue;
+                }
+                try {
+                    transactionsSum = transactionsSum.add(transaction.mostRecentEdit.getValue());
+                } catch (Value.CurrencyMismatchException e) {
+                    if (BuildConfig.DEBUG) {
+                        logger.warn("adding value failed");
+                    }
+                }
+            }
+        }
+
+        ArrayList<Value> regularsValues = new ArrayList<>(regulars.size());
+        for (RegularModel regular : regulars) {
+            regularsValues.add(regular.getExecutedValue());
+        }
+
+        Value regularsSum = new Value(Currency.getInstance(Locale.getDefault()).getCurrencyCode(), 0);
+        try {
+            regularsSum = regularsSum.addAll(regularsValues);
         } catch (Value.CurrencyMismatchException e) {
             if (BuildConfig.DEBUG) {
                 logger.warn("adding values failed", e);
+            }
+        }
+
+        Value remaining = new Value(Currency.getInstance(Locale.getDefault()).getCurrencyCode(), 0);
+        try {
+            remaining = regularsSum.add(transactionsSum.withAmount(-transactionsSum.amount));
+        } catch (Value.CurrencyMismatchException e) {
+            if (BuildConfig.DEBUG) {
+                logger.warn("subtraction failed", e);
+            }
+        }
+
+        if (BuildConfig.DEBUG) {
+            logger.trace("regsum: {} trsum: {} rem: {}", regularsSum, transactionsSum, regularsSum);
+        }
+        monthView.setText(getString(R.string.overview_budget_template, regularsSum.getString(), transactionsSum.getString(), remaining.getString()));
+    }
+
+    private void updateTransactions() {
+    }
+
+    @Override
+    public void onClick(View v) {
+        if (v.getId() == R.id.month) {
+            int newVisibility = monthTransactions.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
+            monthTransactions.setVisibility(newVisibility);
+
+            if (newVisibility == View.VISIBLE) {
+                Bundle args = new Bundle();
+                args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
+                args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+                getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
             }
         }
     }
@@ -113,7 +199,8 @@ public class OverviewActivity extends AppCompatActivity {
                             logger.debug("transact: {}/{}", transact.periodNumber, new DateTime(regular.getTimeForPeriodNumber(transact.periodNumber)));
                         }
                     }
-                    populate(data);
+                    regulars = data;
+                    updateOverview();
                 }
 
                 @Override
@@ -227,6 +314,82 @@ public class OverviewActivity extends AppCompatActivity {
         }
     }
 
+    LoaderManager.LoaderCallbacks<ArrayList<TransactionsModel>> transactionsListener =
+            new LoaderManager.LoaderCallbacks<ArrayList<TransactionsModel>>() {
+                @Override
+                public Loader<ArrayList<TransactionsModel>> onCreateLoader(int id, Bundle args) {
+                    return new TransactionsLoader(OverviewActivity.this, dbHelper, args);
+                }
 
+                @Override
+                public void onLoadFinished(Loader<ArrayList<TransactionsModel>> loader, ArrayList<TransactionsModel> data) {
+                    transactions = data;
+                    adapter.setData(transactions);
+                    updateOverview();
+                    updateTransactions();
+                }
 
+                @Override
+                public void onLoaderReset(Loader<ArrayList<TransactionsModel>> loader) {}
+            };
+
+    private static class TransactionsLoader extends AsyncTaskLoader<ArrayList<TransactionsModel>> {
+        /**
+         * The start of the interval for which the transactions shall be queried (including; in ms since the epoch; default: java.lang.Long.MIN_VALUE)
+         */
+        public static final String ARG_START = "interval_start";
+        /**
+         * The end of the interval for which the transactions shall be queried (excluding; in ms since the epoch; default: java.lang.Long.MAX_VALUE)
+         */
+        public static final String ARG_END = "interval_end";
+
+        private final DBHelper dbHelper;
+        private final Bundle args;
+        private ArrayList<TransactionsModel> result;
+
+        public TransactionsLoader(Context context, DBHelper dbHelper, Bundle args) {
+            super(context);
+            this.dbHelper = dbHelper;
+            this.args = args;
+        }
+
+        @Override
+        public ArrayList<TransactionsModel> loadInBackground() {
+            long start = args.getLong(ARG_START, Long.MIN_VALUE);
+            long end = args.getLong(ARG_END, Long.MAX_VALUE);
+
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
+            Cursor cursor = db.rawQuery(DBHelper.TRANSACTIONS_EDITS_TIME_SPAN_QUERY, new String[]{String.valueOf(start), String.valueOf(end)});
+
+            ArrayList<TransactionsModel> result = new ArrayList<>(cursor.getCount());
+
+            while (cursor.moveToNext()) {
+                result.add(TransactionsModel.getInstanceWithEdit(cursor));
+            }
+
+            return result;
+        }
+
+        @Override
+        public void deliverResult(ArrayList<TransactionsModel> result) {
+            this.result = result;
+            super.deliverResult(result);
+        }
+
+        @Override
+        protected void onStartLoading() {
+            if (result != null) {
+                deliverResult(result);
+            }
+            if (takeContentChanged() || result == null) {
+                forceLoad();
+            }
+        }
+
+        @Override
+        protected void onReset() {
+            super.onReset();
+            result = null;
+        }
+    }
 }
