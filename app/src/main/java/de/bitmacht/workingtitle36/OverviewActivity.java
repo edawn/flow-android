@@ -144,7 +144,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
         Value remaining = new Value(Currency.getInstance(Locale.getDefault()).getCurrencyCode(), 0);
         try {
-            remaining = regularsSum.add(transactionsSum.withAmount(-transactionsSum.amount));
+            remaining = regularsSum.add(transactionsSum);
         } catch (Value.CurrencyMismatchException e) {
             if (BuildConfig.DEBUG) {
                 logger.warn("subtraction failed", e);
@@ -154,7 +154,14 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         if (BuildConfig.DEBUG) {
             logger.trace("regsum: {} trsum: {} rem: {}", regularsSum, transactionsSum, regularsSum);
         }
-        monthView.setText(getString(R.string.overview_budget_template, regularsSum.getString(), transactionsSum.getString(), remaining.getString()));
+
+        int templateRes = R.string.overview_budget_plus_template;
+        if (transactionsSum.amount < 0) {
+            templateRes = R.string.overview_budget_minus_template;
+            transactionsSum = transactionsSum.withAmount(Math.abs(transactionsSum.amount));
+        }
+
+        monthView.setText(getString(templateRes, regularsSum.getString(), transactionsSum.getString(), remaining.getString()));
     }
 
     private void updateTransactions() {

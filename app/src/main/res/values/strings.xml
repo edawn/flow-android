@@ -7,5 +7,6 @@
     <string name="overview_title_budget">Budget</string>
     <string name="overview_month">Month</string>
     <string name="overview_day">Day</string>
-    <string name="overview_budget_template">%1$s - %2$s = %3$s</string>
+    <string name="overview_budget_minus_template">%1$s - %2$s = %3$s</string>
+    <string name="overview_budget_plus_template">%1$s + %2$s = %3$s</string>
 </resources>
