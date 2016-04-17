@@ -15,10 +15,10 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Pair;
 import android.view.View;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
+import org.joda.time.Days;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,14 +40,29 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private TextView monthView;
     private TextView dayView;
 
-    // this defines the current balancing period
+    /** this defines the current balancing period */
     DateTime periodStart = null;
     DateTime periodEnd = null;
 
+    /** this defines the start of the start of the day for which more/detailed information will be shown */
+    private DateTime startOfDay = null;
+
     private ArrayList<RegularModel> regulars = null;
     private ArrayList<TransactionsModel> transactions = null;
-    private RecyclerView monthTransactions;
-    private TransactionsArrayAdapter adapter;
+    private ArrayList<TransactionsModel> transactionsDay = null;
+
+    private RecyclerView monthRecycler;
+    private TransactionsArrayAdapter monthAdapter;
+
+    private RecyclerView dayRecycler;
+    private TransactionsArrayAdapter dayAdapter;
+
+    /**
+     * Value of the transactions between the start of the accounting period (including) and
+     * the selected day (excluding; relates to {@link OverviewActivity#startOfDay})
+     */
+    private Value spentBeforeDay = null;
+    private Value spentDay = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,15 +74,21 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         dayView = (TextView) findViewById(R.id.day);
         dayView.setOnClickListener(this);
 
-        monthTransactions = (RecyclerView) findViewById(R.id.transactions_month);
-        monthTransactions.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new TransactionsArrayAdapter();
-        monthTransactions.setAdapter(adapter);
+        monthRecycler = (RecyclerView) findViewById(R.id.transactions_month);
+        monthRecycler.setLayoutManager(new LinearLayoutManager(this));
+        monthAdapter = new TransactionsArrayAdapter();
+        monthRecycler.setAdapter(monthAdapter);
+
+        dayRecycler = (RecyclerView) findViewById(R.id.transactions_day);
+        dayRecycler.setLayoutManager(new LinearLayoutManager(this));
+        dayAdapter = new TransactionsArrayAdapter();
+        dayRecycler.setAdapter(dayAdapter);
 
         // TODO this should be user-settable
         DateTime now = DateTime.now();
         periodStart = now.withDayOfMonth(1).withTimeAtStartOfDay();
         periodEnd = now.plusMonths(1).withDayOfMonth(1).withTimeAtStartOfDay();
+        startOfDay = DateTime.now().withTimeAtStartOfDay();
 
         dbHelper = new DBHelper(this);
 
@@ -93,7 +114,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_TRANSACTION_EDIT && monthTransactions.getVisibility() == View.VISIBLE) {
+        if (requestCode == REQUEST_TRANSACTION_EDIT && resultCode == RESULT_OK) {
             Bundle args = new Bundle();
             args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
             args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
@@ -162,6 +183,22 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         }
 
         monthView.setText(getString(templateRes, regularsSum.getString(), transactionsSum.getString(), remaining.getString()));
+
+        int daysTotal = Days.daysBetween(periodStart, periodEnd).getDays();
+        int daysBefore = Days.daysBetween(periodStart, startOfDay).getDays();
+
+        try {
+            Value remainingFromDay = regularsSum.add(spentBeforeDay);
+            Value remFromDayPerDay = remainingFromDay.withAmount(remainingFromDay.amount / (daysTotal - daysBefore));
+            Value remainingDay = remFromDayPerDay.add(spentDay);
+            templateRes = spentDay.amount < 0 ? R.string.overview_budget_minus_template : R.string.overview_budget_plus_template;
+            dayView.setText(getString(templateRes, remFromDayPerDay.getString(),
+                    spentDay.withAmount(Math.abs(spentDay.amount)).getString(), remainingDay.getString()));
+        } catch (Value.CurrencyMismatchException e) {
+            if (BuildConfig.DEBUG) {
+                logger.warn("unable to add", e);
+            }
+        }
     }
 
     private void updateTransactions() {
@@ -169,10 +206,11 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.month) {
-            int newVisibility = monthTransactions.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
-            monthTransactions.setVisibility(newVisibility);
-
+        final int id = v.getId();
+        if (id == R.id.month || id == R.id.day) {
+            RecyclerView recyclerView = id == R.id.month ? monthRecycler : dayRecycler;
+            int newVisibility = recyclerView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
+            recyclerView.setVisibility(newVisibility);
             if (newVisibility == View.VISIBLE) {
                 Bundle args = new Bundle();
                 args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
@@ -331,7 +369,43 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 @Override
                 public void onLoadFinished(Loader<ArrayList<TransactionsModel>> loader, ArrayList<TransactionsModel> data) {
                     transactions = data;
-                    adapter.setData(transactions);
+                    monthAdapter.setData(transactions);
+
+                    // filter the transactions so we get only the transactions performed today
+                    //TODO respect timezone
+                    //TODO applying to a result that does not include the current day makes only little sense
+                    //TODO add a check for end of day (when using with past days)
+                    //TODO enable user to set the day to show
+                    long startOfDayMillis = startOfDay.getMillis();
+                    ArrayList<TransactionsModel> trDay = new ArrayList<>(5);
+                    Value valueBeforeDay = new Value(0);
+                    Value valueDay = new Value(0);
+                    for (TransactionsModel transact : transactions) {
+                        long ttime = transact.mostRecentEdit.getTtime();
+                        if (ttime >= startOfDayMillis) {
+                            trDay.add(transact);
+                            try {
+                                valueDay = valueDay.add(transact.mostRecentEdit.getValue());
+                            } catch (Value.CurrencyMismatchException e) {
+                                if (BuildConfig.DEBUG) {
+                                    logger.warn("unable to add: {}", transact.mostRecentEdit);
+                                }
+                            }
+                        } else { // if (ttime < startOfDayMillis)
+                            try {
+                                valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit.getValue());
+                            } catch (Value.CurrencyMismatchException e) {
+                                if (BuildConfig.DEBUG) {
+                                    logger.warn("unable to add: {}", transact.mostRecentEdit);
+                                }
+                            }
+                        }
+                    }
+                    transactionsDay = trDay;
+                    dayAdapter.setData(transactionsDay);
+                    spentDay = valueDay;
+                    spentBeforeDay = valueBeforeDay;
+
                     updateOverview();
                     updateTransactions();
                 }
