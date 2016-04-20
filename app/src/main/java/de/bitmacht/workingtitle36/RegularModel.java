@@ -161,6 +161,10 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
         return new Value(currency, amount * (executed == null ? 0 : executed.size()));
     }
 
+    public Value getValue() {
+        return new Value(currency, amount);
+    }
+
     @Override
     public int describeContents() {
         return 0;
