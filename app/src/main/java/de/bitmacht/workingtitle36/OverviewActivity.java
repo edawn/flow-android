@@ -10,10 +10,12 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Pair;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
@@ -68,6 +70,22 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_overview);
+
+        NavigationView navBar = (NavigationView) findViewById(R.id.navigation);
+        navBar.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item) {
+                int id = item.getItemId();
+                if (id == R.id.menu_regular_transactions) {
+                    startActivity(new Intent(OverviewActivity.this, OverviewRegularsActivity.class));
+                    return true;
+                } else if (id == R.id.menu_settings) {
+                } else if (id == R.id.menu_about) {
+                    return true;
+                }
+                return false;
+            }
+        });
 
         monthView = (TextView) findViewById(R.id.month);
         monthView.setOnClickListener(this);

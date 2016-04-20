@@ -17,6 +17,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".TransactionsOverviewActivity" />
+        <activity android:name=".OverviewRegularsActivity" />
         <activity
             android:name=".TransactionEditActivity"
             android:theme="@style/AppTheme.NoActionBar" />
