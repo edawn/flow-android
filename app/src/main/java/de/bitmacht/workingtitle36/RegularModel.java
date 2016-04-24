@@ -23,12 +23,9 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularModel.class);
 
-    @IntDef({PERIOD_TYPE_DAILY, PERIOD_TYPE_MONTHLY})
+    @IntDef({DBHelper.REGULARS_PERIOD_TYPE_DAILY, DBHelper.REGULARS_PERIOD_TYPE_MONTHLY})
     @Retention(RetentionPolicy.SOURCE)
     public @interface PeriodType {}
-
-    public static final int PERIOD_TYPE_DAILY = 0;
-    public static final int PERIOD_TYPE_MONTHLY = 1;
 
     public long creationTime;
     public long timeFirst;
@@ -150,7 +147,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
     }
 
     public org.joda.time.base.BaseSingleFieldPeriod getPeriod() {
-        return periodType == PERIOD_TYPE_DAILY ?
+        return periodType == DBHelper.REGULARS_PERIOD_TYPE_DAILY ?
                 org.joda.time.Days.days(periodMultiplier) : org.joda.time.Months.months(periodMultiplier);
     }
 

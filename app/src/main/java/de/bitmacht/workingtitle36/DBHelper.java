@@ -153,6 +153,15 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String REGULARS_KEY_AMOUNT = "amount";
 
+    /**
+     * Relates to {@link DBHelper#REGULARS_KEY_PERIOD_TYPE}; this transactions will be executed every day
+     */
+    public static final int REGULARS_PERIOD_TYPE_DAILY = 0;
+    /**
+     * Relates to {@link DBHelper#REGULARS_KEY_PERIOD_TYPE}; this transactions will be executed every month
+     */
+    public static final int REGULARS_PERIOD_TYPE_MONTHLY = 1;
+
     public static final String REGULARS_TABLE_CREATE =
             "CREATE TABLE " + REGULARS_TABLE_NAME + "(" +
                     REGULARS_KEY_CREATION_TIME + " INTEGER PRIMARY KEY, " +
