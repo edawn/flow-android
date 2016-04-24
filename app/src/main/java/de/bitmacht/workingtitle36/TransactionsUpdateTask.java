@@ -19,7 +19,7 @@ public class TransactionsUpdateTask extends AsyncTask<Edit, Void, Boolean> {
 
     public TransactionsUpdateTask(Context context, UpdateFinishedCallback callback) {
         dbHelper = new DBHelper(context);
-        callbackRef = new WeakReference<UpdateFinishedCallback>(callback);
+        callbackRef = new WeakReference<>(callback);
     }
 
     @Override
@@ -39,13 +39,13 @@ public class TransactionsUpdateTask extends AsyncTask<Edit, Void, Boolean> {
             logger.trace("inserting: {}", edit);
         }
 
-        SQLiteDatabase db = null;
+        SQLiteDatabase db;
         try {
             db = dbHelper.getWritableDatabase();
             db.beginTransaction();
             try {
+                ContentValues cv = new ContentValues(10);
 
-                ContentValues cv = new ContentValues();
                 cv.put(DBHelper.TRANSACTIONS_KEY_CREATION_TIME, edit.getCtime());
                 cv.put(DBHelper.TRANSACTIONS_KEY_ISREMOVED, false);
                 long res = db.insert(DBHelper.TRANSACTIONS_TABLE_NAME, null, cv);
@@ -78,16 +78,6 @@ public class TransactionsUpdateTask extends AsyncTask<Edit, Void, Boolean> {
                 logger.error("modifying database failed");
             }
             return false;
-        } finally {
-            if (db != null) {
-                try {
-                    db.close();
-                } catch (Exception e) {
-                    if (BuildConfig.DEBUG) {
-                        logger.trace("closing database failed");
-                    }
-                }
-            }
         }
 
         if (BuildConfig.DEBUG) {
