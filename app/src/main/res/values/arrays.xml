@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="interval_names">
+        <!-- do not change the order of these items without adjusting the evaluating code,
+             since it's not possible to attach an id to these items -->
         <item>Daily</item>
         <item>Weekly</item>
         <item>Monthly</item>

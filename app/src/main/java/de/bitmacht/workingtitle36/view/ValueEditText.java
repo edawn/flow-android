@@ -16,6 +16,8 @@ import android.widget.EditText;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DecimalFormatSymbols;
+import java.util.Currency;
 import java.util.Locale;
 
 import de.bitmacht.workingtitle36.BuildConfig;
@@ -25,6 +27,7 @@ public class ValueEditText extends EditText implements ValueWidget {
 
     private static final Logger logger = LoggerFactory.getLogger(ValueEditText.class);
 
+    private String currencyCode;
     String currencySymbol = "";
 
     private ValueInputFilter inf;
@@ -57,7 +60,38 @@ public class ValueEditText extends EditText implements ValueWidget {
     }
 
     @Override
+    public Value getValue() {
+        String text = getText().toString();
+
+        Currency currency = Currency.getInstance(currencyCode);
+        int fractionDigits = currency.getDefaultFractionDigits();
+        text = text.replaceAll("[^0-9.,+-]+","");
+
+        char separator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getMonetaryDecimalSeparator();
+        String[] splits = text.split("[" + separator +"]", 2);
+
+        String major = splits[0].replaceAll("[^0-9+-]+", "");
+        String minor = splits.length == 2 ? splits[1].replaceAll("[^0-9]+","") : "";
+
+        if (fractionDigits == 0) {
+            minor = "";
+        } else {
+            if (0 < fractionDigits) {
+                if (fractionDigits < minor.length()) {
+                    minor = minor.substring(0, fractionDigits);
+                }
+                while (minor.length() < fractionDigits) {
+                    minor = minor + "0";
+                }
+            }
+        }
+        long amount = Long.parseLong(major + minor);
+        return new Value(currencyCode, amount);
+    }
+
+    @Override
     public String setValue(Value value) {
+        currencyCode = value.currencyCode;
         Pair<String, String> vs = value.getValueAndSymbolStrings(Locale.getDefault());
         String valueText = vs.first + vs.second;
         currencySymbol = vs.second;

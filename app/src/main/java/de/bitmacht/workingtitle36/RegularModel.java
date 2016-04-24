@@ -1,5 +1,6 @@
 package de.bitmacht.workingtitle36;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -40,6 +41,24 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
     public String description;
 
     public List<TransactionsRegularModel> executed = null;
+
+    /**
+     * Creates a new instance
+     */
+    public RegularModel(long creationTime, long timeFirst, @PeriodType int periodType, int periodMultiplier,
+                        boolean isSpread, boolean isDisabled, boolean isDeleted, long amount, String currency,
+                        String description) {
+        this.creationTime = creationTime;
+        this.timeFirst = timeFirst;
+        this.periodType = periodType;
+        this.periodMultiplier = periodMultiplier;
+        this.isSpread = isSpread;
+        this.isDisabled = isDisabled;
+        this.isDeleted = isDeleted;
+        this.amount = amount;
+        this.currency = currency;
+        this.description = description;
+    }
 
     public RegularModel(Cursor cursor) {
         creationTime = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_CREATION_TIME));
@@ -160,6 +179,26 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
 
     public Value getValue() {
         return new Value(currency, amount);
+    }
+
+    /**
+     * Map this instance to the ContentValues
+     * @param cv Where to store the fields of this instance; can be later used to
+     *           insert into {@link DBHelper#REGULARS_TABLE_NAME}
+     * @return the same instance from the arguments
+     */
+    public ContentValues toContentValues(@NonNull ContentValues cv) {
+        cv.put(DBHelper.REGULARS_KEY_CREATION_TIME, creationTime);
+        cv.put(DBHelper.REGULARS_KEY_TIME_FIRST, timeFirst);
+        cv.put(DBHelper.REGULARS_KEY_PERIOD_TYPE, periodType);
+        cv.put(DBHelper.REGULARS_KEY_PERIOD_MULTIPLIER, periodMultiplier);
+        cv.put(DBHelper.REGULARS_KEY_IS_SPREAD, isSpread);
+        cv.put(DBHelper.REGULARS_KEY_IS_DISABLED, isDisabled);
+        cv.put(DBHelper.REGULARS_KEY_IS_DELETED, isDeleted);
+        cv.put(DBHelper.REGULARS_KEY_DESCRIPTION, description);
+        cv.put(DBHelper.REGULARS_KEY_CURRENCY, currency);
+        cv.put(DBHelper.REGULARS_KEY_AMOUNT, amount);
+        return cv;
     }
 
     @Override

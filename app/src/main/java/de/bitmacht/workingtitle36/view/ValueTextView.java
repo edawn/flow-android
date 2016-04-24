@@ -32,4 +32,9 @@ public class ValueTextView extends TextView implements ValueWidget {
         setText(valueText);
         return valueText;
     }
+
+    @Override
+    public Value getValue() {
+        throw new UnsupportedOperationException("This is just a label");
+    }
 }

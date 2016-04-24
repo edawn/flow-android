@@ -9,4 +9,9 @@ public interface ValueWidget {
      * @return The text that will be displayed
      */
     String setValue(Value value);
+
+    /**
+     * Return the Value represented by this widget
+     */
+    Value getValue();
 }

@@ -14,6 +14,7 @@ import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Switch;
 
+import org.joda.time.DateTimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +26,7 @@ import de.bitmacht.workingtitle36.view.ValueModifyView;
 import de.bitmacht.workingtitle36.view.ValueWidget;
 
 public class RegularEditActivity extends AppCompatActivity implements View.OnClickListener,
-        ValueModifyView.OnValueChangeListener, DatePickerDialog.OnDateSetListener {
+        ValueModifyView.OnValueChangeListener, DatePickerDialog.OnDateSetListener, RegularsUpdateTask.UpdateFinishedCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularEditActivity.class);
 
@@ -90,6 +91,8 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         int id = v.getId();
         if (id == R.id.accept_button || id == R.id.cancel_button) {
             if (id == R.id.accept_button) {
+                RegularsUpdateTask rut = new RegularsUpdateTask(this, this);
+                rut.execute(getRegular());
             } else {
                 finish();
             }
@@ -132,5 +135,37 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     private void updateTimeViews() {
         long time = calendar.getTimeInMillis();
         dateView.setTime(time);
+    }
+
+    private RegularModel getRegular() {
+        int spinnerPos = repetitionSpinner.getSelectedItemPosition();
+        int periodType = DBHelper.REGULARS_PERIOD_TYPE_DAILY;
+        int periodMultiplier = 1;
+        switch(spinnerPos) { // case 0 is intrinsic
+            case 1: // weekly
+                periodMultiplier = DateTimeConstants.DAYS_PER_WEEK;
+                break;
+            case 3: // yearly
+                periodMultiplier = 12;
+            case 2: // monthly
+                periodType = DBHelper.REGULARS_PERIOD_TYPE_MONTHLY;
+                break;
+        }
+
+        Value cv = valueWidget.getValue();
+        if (BuildConfig.DEBUG) {
+            logger.trace("value: {}", cv);
+        }
+
+        return new RegularModel(System.currentTimeMillis(), dateView.getTime(), periodType, periodMultiplier,
+                false, !enabledSwitch.isChecked(), false, cv.amount, cv.currencyCode, descriptionView.getText().toString());
+    }
+
+    @Override
+    public void onUpdateFinished(boolean success) {
+        if (BuildConfig.DEBUG) {
+            logger.trace("update finished");
+        }
+
     }
 }
