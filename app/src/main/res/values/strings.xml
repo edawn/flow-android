@@ -12,4 +12,6 @@
     <string name="menu_regular_transactions">Regular Transactions</string>
     <string name="menu_settings">Settings</string>
     <string name="menu_about">About</string>
+    <string name="drawer_open">Open drawer</string>
+    <string name="drawer_close">Close drawer</string>
 </resources>
