@@ -8,7 +8,6 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Selection;
 import android.text.Spanned;
-import android.text.method.DigitsKeyListener;
 import android.util.AttributeSet;
 import android.util.Pair;
 import android.widget.EditText;
@@ -19,6 +18,8 @@ import org.slf4j.LoggerFactory;
 import java.text.DecimalFormatSymbols;
 import java.util.Currency;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.bitmacht.workingtitle36.BuildConfig;
 import de.bitmacht.workingtitle36.Value;
@@ -54,8 +55,12 @@ public class ValueEditText extends EditText implements ValueWidget {
     }
 
     private void init() {
-        setRawInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        inf = new ValueInputFilter();
+        Currency currency = Currency.getInstance(Locale.getDefault());
+        currencyCode = currency.getCurrencyCode();
+        currencySymbol = currency.getSymbol(Locale.getDefault());
+        setText(currencySymbol);
+        setRawInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        inf = new ValueInputFilter(currency);
         setFilters(new InputFilter[]{inf});
     }
 
@@ -92,12 +97,14 @@ public class ValueEditText extends EditText implements ValueWidget {
     @Override
     public String setValue(Value value) {
         currencyCode = value.currencyCode;
+        if (!inf.getCurrency().getCurrencyCode().equals(currencyCode)) {
+            inf = new ValueInputFilter(Currency.getInstance(currencyCode));
+            setFilters(new InputFilter[]{inf});
+        }
         Pair<String, String> vs = value.getValueAndSymbolStrings(Locale.getDefault());
         String valueText = vs.first + vs.second;
         currencySymbol = vs.second;
-        inf.setPaused(true);
         setText(valueText);
-        inf.setPaused(false);
         return valueText;
     }
 
@@ -124,23 +131,36 @@ public class ValueEditText extends EditText implements ValueWidget {
 
     private class ValueInputFilter implements InputFilter {
 
-        DigitsKeyListener digitsFilter = DigitsKeyListener.getInstance(true, true);
-        private boolean isPaused = false;
+        private final Currency currency;
+        private final char separator;
+        private final int fracts;
+        private final String symbol;
+        private final Pattern pattern;
+
+        public ValueInputFilter(Currency currency) {
+            this.currency = currency;
+            separator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getMonetaryDecimalSeparator();
+            fracts = currency.getDefaultFractionDigits();
+            symbol = currency.getSymbol(Locale.getDefault());
+            if (fracts > 0) {
+                pattern = Pattern.compile("-?(?:0|[1-9]+[0-9]*)?(?:\\Q" + separator + "\\E[0-9]{0," + fracts + "})?\\Q" + symbol + "\\E");
+            } else {
+                pattern = Pattern.compile("-?(?:0|[1-9]+[0-9]*)?\\Q" + symbol + "\\E");
+            }
+        }
 
         @Override
         public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-            if (isPaused) {
-                return source;
+            String result = dest.subSequence(0, dstart) + source.toString() + dest.subSequence(dend, dest.length());
+            Matcher matcher = pattern.matcher(result);
+            if (!matcher.matches()) {
+                return dest.subSequence(dstart, dend);
             }
-
-            CharSequence dfResult = digitsFilter.filter(source, start, end, dest, dstart, dend);
-
-            return dfResult;
+            return null;
         }
 
-        //TODO replace with a real filter
-        public void setPaused(boolean isPaused) {
-            this.isPaused = isPaused;
+        public Currency getCurrency() {
+            return currency;
         }
     }
 }
