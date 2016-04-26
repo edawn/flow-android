@@ -94,6 +94,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     startActivity(new Intent(OverviewActivity.this, OverviewRegularsActivity.class));
                     return true;
                 } else if (id == R.id.menu_settings) {
+                    startActivity(new Intent(OverviewActivity.this, SettingsActivity.class));
                 } else if (id == R.id.menu_about) {
                     return true;
                 }
