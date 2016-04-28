@@ -176,9 +176,9 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     }
 
     private void updateOverview() {
-        if (regulars == null) {
+        if (regulars == null || spentDay == null || spentBeforeDay == null) {
             if (BuildConfig.DEBUG) {
-                logger.warn("regulars is null");
+                logger.warn("not initialized yet");
             }
             return;
         }
