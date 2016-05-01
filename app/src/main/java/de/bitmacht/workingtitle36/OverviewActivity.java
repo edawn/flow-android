@@ -42,6 +42,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
+    private NavigationView navBar;
     private DBHelper dbHelper;
     private TextView monthView;
     private TextView dayView;
@@ -83,15 +84,17 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        NavigationView navBar = (NavigationView) findViewById(R.id.navigation);
+        navBar = (NavigationView) findViewById(R.id.navigation);
         navBar.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(MenuItem item) {
                 int id = item.getItemId();
                 if (id == R.id.menu_regular_transactions) {
+                    drawerLayout.closeDrawer(navBar);
                     startActivity(new Intent(OverviewActivity.this, OverviewRegularsActivity.class));
                     return true;
                 } else if (id == R.id.menu_settings) {
+                    drawerLayout.closeDrawer(navBar);
                     startActivity(new Intent(OverviewActivity.this, SettingsActivity.class));
                     return true;
                 } else if (id == R.id.menu_about) {
@@ -171,6 +174,15 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
             args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
             getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout.isDrawerOpen(navBar)) {
+            drawerLayout.closeDrawer(navBar);
+        } else {
+            super.onBackPressed();
         }
     }
 
