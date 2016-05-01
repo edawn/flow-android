@@ -29,8 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Currency;
-import java.util.Locale;
 import java.util.TreeMap;
 
 public class OverviewActivity extends AppCompatActivity implements View.OnClickListener {
@@ -184,7 +182,9 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             return;
         }
 
-        Value transactionsSum = new Value(Currency.getInstance(Locale.getDefault()).getCurrencyCode(), 0);
+        final String currencyCode = MyApplication.getCurrency().getCurrencyCode();
+
+        Value transactionsSum = new Value(currencyCode, 0);
         if (transactions != null) {
             for (TransactionsModel transaction : transactions) {
                 if (transaction.mostRecentEdit == null) {
@@ -208,7 +208,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             regularsValues.add(regular.getExecutedValue());
         }
 
-        Value regularsSum = new Value(Currency.getInstance(Locale.getDefault()).getCurrencyCode(), 0);
+        Value regularsSum = new Value(currencyCode, 0);
         try {
             regularsSum = regularsSum.addAll(regularsValues);
         } catch (Value.CurrencyMismatchException e) {
@@ -217,7 +217,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             }
         }
 
-        Value remaining = new Value(Currency.getInstance(Locale.getDefault()).getCurrencyCode(), 0);
+        Value remaining = new Value(currencyCode, 0);
         try {
             remaining = regularsSum.add(transactionsSum);
         } catch (Value.CurrencyMismatchException e) {
@@ -432,8 +432,9 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     //TODO enable user to set the day to show
                     long startOfDayMillis = startOfDay.getMillis();
                     ArrayList<TransactionsModel> trDay = new ArrayList<>(5);
-                    Value valueBeforeDay = new Value(0);
-                    Value valueDay = new Value(0);
+                    String currencyCode = MyApplication.getCurrency().getCurrencyCode();
+                    Value valueBeforeDay = new Value(currencyCode, 0);
+                    Value valueDay = new Value(currencyCode, 0);
                     for (TransactionsModel transact : transactions) {
                         long ttime = transact.mostRecentEdit.getTtime();
                         if (ttime >= startOfDayMillis) {

@@ -22,6 +22,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.bitmacht.workingtitle36.BuildConfig;
+import de.bitmacht.workingtitle36.MyApplication;
 import de.bitmacht.workingtitle36.Value;
 
 public class ValueEditText extends EditText implements ValueWidget {
@@ -55,9 +56,9 @@ public class ValueEditText extends EditText implements ValueWidget {
     }
 
     private void init() {
-        Currency currency = Currency.getInstance(Locale.getDefault());
+        Currency currency = MyApplication.getCurrency();
         currencyCode = currency.getCurrencyCode();
-        currencySymbol = currency.getSymbol(Locale.getDefault());
+        currencySymbol = currency.getSymbol();
         setText(currencySymbol);
         setRawInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         inf = new ValueInputFilter(currency);
@@ -72,7 +73,7 @@ public class ValueEditText extends EditText implements ValueWidget {
         int fractionDigits = currency.getDefaultFractionDigits();
         text = text.replaceAll("[^0-9.,+-]+","");
 
-        char separator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getMonetaryDecimalSeparator();
+        char separator = DecimalFormatSymbols.getInstance().getMonetaryDecimalSeparator();
         String[] splits = text.split("[" + separator +"]", 2);
 
         String major = splits[0].replaceAll("[^0-9+-]+", "");
@@ -139,9 +140,9 @@ public class ValueEditText extends EditText implements ValueWidget {
 
         public ValueInputFilter(Currency currency) {
             this.currency = currency;
-            separator = DecimalFormatSymbols.getInstance(Locale.getDefault()).getMonetaryDecimalSeparator();
+            separator = DecimalFormatSymbols.getInstance().getMonetaryDecimalSeparator();
             fracts = currency.getDefaultFractionDigits();
-            symbol = currency.getSymbol(Locale.getDefault());
+            symbol = currency.getSymbol();
             if (fracts > 0) {
                 pattern = Pattern.compile("-?(?:0|[1-9]+[0-9]*)?(?:\\Q" + separator + "\\E[0-9]{0," + fracts + "})?\\Q" + symbol + "\\E");
             } else {

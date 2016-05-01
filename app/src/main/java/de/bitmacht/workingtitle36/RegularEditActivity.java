@@ -46,7 +46,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        value = new Value(0);
+        value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
 
         setContentView(R.layout.activity_regular_edit);
 

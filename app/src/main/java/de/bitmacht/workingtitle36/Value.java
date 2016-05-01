@@ -22,15 +22,6 @@ public class Value {
     public final long amount;
 
     /**
-     * Create a new instance of Value using the default locale's currency
-     * @param amount The number of minor currency units
-     */
-    @Deprecated
-    public Value(long amount) {
-        this(Currency.getInstance(Locale.getDefault()).getCurrencyCode(), amount);
-    }
-
-    /**
      * Create a new instance of Value
      * @param amount The number of minor currency units
      * @param currencyCode The ISO 4217 currency code
