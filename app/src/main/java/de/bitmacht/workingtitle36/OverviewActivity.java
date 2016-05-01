@@ -39,6 +39,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private static final int LOADER_ID_TRANSACTIONS = 1;
 
     public static final int REQUEST_TRANSACTION_EDIT = 0;
+    public static final int REQUEST_REGULARS_OVERVIEW = 1;
+    public static final int REQUEST_SETTINGS = 2;
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -91,11 +93,11 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 int id = item.getItemId();
                 if (id == R.id.menu_regular_transactions) {
                     drawerLayout.closeDrawer(navBar);
-                    startActivity(new Intent(OverviewActivity.this, OverviewRegularsActivity.class));
+                    startActivityForResult(new Intent(OverviewActivity.this, OverviewRegularsActivity.class), REQUEST_REGULARS_OVERVIEW);
                     return true;
                 } else if (id == R.id.menu_settings) {
                     drawerLayout.closeDrawer(navBar);
-                    startActivity(new Intent(OverviewActivity.this, SettingsActivity.class));
+                    startActivityForResult(new Intent(OverviewActivity.this, SettingsActivity.class), REQUEST_SETTINGS);
                     return true;
                 } else if (id == R.id.menu_about) {
                     return true;
@@ -169,8 +171,27 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_TRANSACTION_EDIT && resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_TRANSACTION_EDIT) {
+            if (resultCode == RESULT_OK) {
+                Bundle args = new Bundle();
+                args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
+                args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+                getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
+            }
+        } else if (requestCode == REQUEST_REGULARS_OVERVIEW) {
+            if (resultCode == RESULT_OK) {
+                Bundle args = new Bundle();
+                args.putLong(RegularsLoader.ARG_START, periodStart.getMillis());
+                args.putLong(RegularsLoader.ARG_END, periodEnd.getMillis());
+                getLoaderManager().restartLoader(LOADER_ID_REGULARS, args, regularsLoaderListener);
+            }
+        } else if (requestCode == REQUEST_SETTINGS) {
+            //TODO check if settings actually changed before updating
             Bundle args = new Bundle();
+            args.putLong(RegularsLoader.ARG_START, periodStart.getMillis());
+            args.putLong(RegularsLoader.ARG_END, periodEnd.getMillis());
+            getLoaderManager().restartLoader(LOADER_ID_REGULARS, args, regularsLoaderListener);
+            args = new Bundle();
             args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
             args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
             getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);

@@ -25,9 +25,13 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
     public static final int REQUEST_REGULAR_EDIT = 0;
 
+    private static final String REGULARS_MODIFIED_KEY = "regulars_modified";
+
     private RecyclerView regularsRecycler;
 
     private DBHelper dbHelper;
+
+    private boolean regularsModified = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +53,13 @@ public class OverviewRegularsActivity extends AppCompatActivity {
                 startActivityForResult(new Intent(v.getContext(), RegularEditActivity.class), REQUEST_REGULAR_EDIT);
             }
         });
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.getBoolean(REGULARS_MODIFIED_KEY)) {
+                regularsModified = true;
+                setResult(RESULT_OK);
+            }
+        }
     }
 
     @Override
@@ -56,6 +67,16 @@ public class OverviewRegularsActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_REGULAR_EDIT && resultCode == RESULT_OK) {
             getLoaderManager().restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
+            setResult(RESULT_OK);
+            regularsModified = true;
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (regularsModified) {
+            outState.putBoolean(REGULARS_MODIFIED_KEY, true);
         }
     }
 

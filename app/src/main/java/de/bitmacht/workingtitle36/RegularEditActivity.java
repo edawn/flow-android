@@ -163,9 +163,9 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onUpdateFinished(boolean success) {
-        if (BuildConfig.DEBUG) {
-            logger.trace("update finished");
+        if (success) {
+            setResult(RESULT_OK);
         }
-
+        finish();
     }
 }
