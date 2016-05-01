@@ -23,6 +23,8 @@ public class MyApplication extends Application {
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
+        initPrefs(prefs);
+
         prefListener = new SharedPreferences.OnSharedPreferenceChangeListener() {
             @Override
             public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -34,6 +36,14 @@ public class MyApplication extends Application {
         prefs.registerOnSharedPreferenceChangeListener(prefListener);
 
         updateCurrency(prefs);
+    }
+
+    private void initPrefs(SharedPreferences prefs) {
+        String prefKey = getString(R.string.pref_currency_key);
+        if (!prefs.contains(prefKey)) {
+            Currency defaultCurrency = Currency.getInstance(Locale.getDefault());
+            prefs.edit().putString(prefKey, defaultCurrency.getCurrencyCode()).apply();
+        }
     }
 
     public void updateCurrency(SharedPreferences prefs) {
