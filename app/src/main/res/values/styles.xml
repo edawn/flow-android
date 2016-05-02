@@ -12,4 +12,31 @@
         <item name="windowNoTitle">true</item>
     </style>
 
+    <style name="TransactionEditorItem">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">18dp</item>
+    </style>
+
+    <style name="TransactionEditorItemIcon" parent="TransactionEditorItem">
+        <item name="android:id">@+id/icon</item>
+        <item name="android:layout_alignParentLeft">true</item>
+        <!-- should be more like ?android:attr/textColorSecondary with tintMode src_in ... -->
+        <item name="android:tint">@color/itemIcon</item>
+    </style>
+
+    <style name="TransactionEditorItemLabel" parent="TransactionEditorItem">
+        <item name="android:layout_toRightOf">@id/icon</item>
+    </style>
+
+    <style name="TransactionEditorItemAction" parent="TransactionEditorItem">
+        <item name="android:layout_alignParentRight">true</item>
+    </style>
+
+    <style name="TransactionEditorItemDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">?android:attr/listDivider</item>
+    </style>
+
 </resources>

@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 import android.app.DialogFragment;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
@@ -35,7 +36,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     private Toolbar toolbar;
     private ImageButton cancelButton;
     private ImageButton acceptButton;
-    private Switch enabledSwitch;
+    private SwitchCompat enabledSwitch;
     private TimeView dateView;
     private ValueWidget valueWidget;
     private Spinner repetitionSpinner;
@@ -60,7 +61,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         cancelButton.setOnClickListener(this);
         acceptButton.setOnClickListener(this);
 
-        enabledSwitch = (Switch) findViewById(R.id.enabled);
+        enabledSwitch = (SwitchCompat) findViewById(R.id.enabled);
         dateView = (TimeView) findViewById(R.id.date);
         valueWidget = (ValueWidget) findViewById(R.id.value);
         repetitionSpinner = (Spinner) findViewById(R.id.repetition);

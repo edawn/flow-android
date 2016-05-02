@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Working Title 36</string>
     <string name="transaction_edit_description_hint">Description</string>
-    <string name="enabled">Enabled</string>
+    <string name="active">Active</string>
     <string name="regular_first_time">Start</string>
-    <string name="regular_repetition">Repetition</string>
+    <string name="regular_repetition">Repeat</string>
     <string name="overview_title_budget">Budget</string>
     <string name="overview_month">Month</string>
     <string name="overview_day">Day</string>
@@ -17,4 +17,5 @@
     <string name="currency_list_item">%1$s</string>
     <string name="pref_currency_title">Currency</string>
     <string name="pref_currency_summary">%s</string>
+    <string name="value">Value</string>
 </resources>

@@ -1,8 +1,7 @@
 package de.bitmacht.workingtitle36.view;
 
-import android.annotation.TargetApi;
 import android.content.Context;
-import android.os.Build;
+import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
 import android.text.InputFilter;
 import android.text.InputType;
@@ -10,7 +9,6 @@ import android.text.Selection;
 import android.text.Spanned;
 import android.util.AttributeSet;
 import android.util.Pair;
-import android.widget.EditText;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +23,7 @@ import de.bitmacht.workingtitle36.BuildConfig;
 import de.bitmacht.workingtitle36.MyApplication;
 import de.bitmacht.workingtitle36.Value;
 
-public class ValueEditText extends EditText implements ValueWidget {
+public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
     private static final Logger logger = LoggerFactory.getLogger(ValueEditText.class);
 
@@ -46,12 +44,6 @@ public class ValueEditText extends EditText implements ValueWidget {
 
     public ValueEditText(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public ValueEditText(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
         init();
     }
 
