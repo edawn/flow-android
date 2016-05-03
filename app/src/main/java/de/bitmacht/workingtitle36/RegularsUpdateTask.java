@@ -39,8 +39,8 @@ public class RegularsUpdateTask extends AsyncTask<RegularModel, Void, Boolean> {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             db.beginTransaction();
             try {
-                db.insertOrThrow(DBHelper.REGULARS_TABLE_NAME, null,
-                        regular.toContentValues(new ContentValues(10)));
+                db.insertWithOnConflict(DBHelper.REGULARS_TABLE_NAME, null,
+                        regular.toContentValues(new ContentValues(10)), SQLiteDatabase.CONFLICT_REPLACE);
 
                 db.setTransactionSuccessful();
             } finally {

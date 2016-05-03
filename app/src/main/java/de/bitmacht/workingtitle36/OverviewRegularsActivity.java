@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -52,7 +53,16 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                    ((RegularsAdapter) regularsRecycler.getAdapter()).removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
+                    RegularModel regular = ((RegularsAdapter) regularsRecycler.getAdapter()).
+                            removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
+                    //TODO the database operation should act upon the id of the regular transaction instead of updating/replacing the whole row
+                    regular.isDeleted = true;
+                    RegularsUpdateTask rut = new RegularsUpdateTask(OverviewRegularsActivity.this, null);
+                    rut.execute(regular);
+                    regularsModified = true;
+                    setResult(RESULT_OK);
+                    Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG).
+                            setAction(R.string.snackbar_undo, new UndoClickListener(regular)).show();
                 }
         });
         itemSwipeHelper.attachToRecyclerView(regularsRecycler);
@@ -148,6 +158,28 @@ public class OverviewRegularsActivity extends AppCompatActivity {
         protected void onReset() {
             super.onReset();
             result = null;
+        }
+    }
+
+    private class UndoClickListener implements View.OnClickListener, RegularsUpdateTask.UpdateFinishedCallback {
+
+        private final RegularModel regular;
+
+        UndoClickListener(RegularModel regular) {
+            this.regular = regular;
+        }
+
+        @Override
+        public void onClick(View v) {
+            regular.isDeleted = false;
+            RegularsUpdateTask rut = new RegularsUpdateTask(OverviewRegularsActivity.this, this);
+            rut.execute(regular);
+        }
+
+        //TODO instead of this callback-in-a-listener approach, one might consider (simply) adding the regular transaction back to the adapter
+        @Override
+        public void onUpdateFinished(boolean success) {
+            getLoaderManager().restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
         }
     }
 }

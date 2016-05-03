@@ -36,10 +36,12 @@ public class RegularsAdapter extends BaseTransactionsAdapter<BaseTransactionsAda
     /**
      * Remove the item
      * @param holder
+     * @return The model of the item removed
      */
-    public void removeItem(BaseTransactionVH holder) {
+    public RegularModel removeItem(BaseTransactionVH holder) {
         int position = holder.getAdapterPosition();
-        regulars.remove(position);
+        RegularModel regular = regulars.remove(position);
         notifyItemRemoved(position);
+        return regular;
     }
 }
