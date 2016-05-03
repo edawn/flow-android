@@ -10,6 +10,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 
 import org.slf4j.Logger;
@@ -41,6 +42,20 @@ public class OverviewRegularsActivity extends AppCompatActivity {
         regularsRecycler = (RecyclerView) findViewById(R.id.regulars);
         regularsRecycler.setLayoutManager(new LinearLayoutManager(this));
         regularsRecycler.setAdapter(new RegularsAdapter());
+        ItemTouchHelper itemSwipeHelper = new ItemTouchHelper(
+            new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+                @Override
+                public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                    return false;
+                }
+
+                @Override
+                public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                    ((RegularsAdapter) regularsRecycler.getAdapter()).removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
+                }
+        });
+        itemSwipeHelper.attachToRecyclerView(regularsRecycler);
 
         dbHelper = new DBHelper(this);
 

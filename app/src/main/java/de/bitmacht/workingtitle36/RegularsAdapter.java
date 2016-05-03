@@ -31,4 +31,14 @@ public class RegularsAdapter extends BaseTransactionsAdapter<BaseTransactionsAda
     public void setData(List<RegularModel> regulars) {
         this.regulars = regulars;
     }
+
+    /**
+     * Remove the item
+     * @param holder
+     */
+    public void removeItem(BaseTransactionVH holder) {
+        int position = holder.getAdapterPosition();
+        regulars.remove(position);
+        notifyItemRemoved(position);
+    }
 }
