@@ -4,6 +4,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +19,7 @@ public class TransactionsUpdateTask extends AsyncTask<Edit, Void, Boolean> {
     private final DBHelper dbHelper;
     private final WeakReference<UpdateFinishedCallback> callbackRef;
 
-    public TransactionsUpdateTask(Context context, UpdateFinishedCallback callback) {
+    public TransactionsUpdateTask(@NonNull Context context, @Nullable UpdateFinishedCallback callback) {
         dbHelper = new DBHelper(context);
         callbackRef = new WeakReference<>(callback);
     }
