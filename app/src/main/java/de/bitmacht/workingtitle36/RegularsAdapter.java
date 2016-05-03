@@ -30,6 +30,7 @@ public class RegularsAdapter extends BaseTransactionsAdapter<BaseTransactionsAda
 
     public void setData(List<RegularModel> regulars) {
         this.regulars = regulars;
+        notifyDataSetChanged();
     }
 
     /**
