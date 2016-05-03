@@ -4,7 +4,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 
 import de.bitmacht.workingtitle36.view.BaseTransactionView;
-import de.bitmacht.workingtitle36.view.TransactionView;
 
 abstract class BaseTransactionsAdapter<VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
 
@@ -39,7 +38,7 @@ abstract class BaseTransactionsAdapter<VH extends RecyclerView.ViewHolder> exten
             return;
         }
         while (first <= last) {
-            TransactionView transactionView = (TransactionView) lm.findViewByPosition(first);
+            BaseTransactionView transactionView = (BaseTransactionView) lm.findViewByPosition(first);
             transactionView.setValueViewWidth(valueWidth);
             first++;
         }
