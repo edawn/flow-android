@@ -229,7 +229,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
                 }
             };
 
-    public RegularModel(Parcel in) {
+    private RegularModel(Parcel in) {
         creationTime = in.readLong();
         timeFirst = in.readLong();
         //noinspection ResourceType
