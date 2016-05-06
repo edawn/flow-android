@@ -30,6 +30,7 @@ public class OverviewRegularsActivity extends AppCompatActivity {
     private static final String REGULARS_MODIFIED_KEY = "regulars_modified";
 
     private RecyclerView regularsRecycler;
+    private RegularsAdapter regularsAdapter;
 
     private DBHelper dbHelper;
 
@@ -42,7 +43,8 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
         regularsRecycler = (RecyclerView) findViewById(R.id.regulars);
         regularsRecycler.setLayoutManager(new LinearLayoutManager(this));
-        regularsRecycler.setAdapter(new RegularsAdapter());
+        regularsAdapter = new RegularsAdapter();
+        regularsRecycler.setAdapter(regularsAdapter);
         ItemTouchHelper itemSwipeHelper = new ItemTouchHelper(
             new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 
@@ -53,8 +55,7 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
-                    RegularModel regular = ((RegularsAdapter) regularsRecycler.getAdapter()).
-                            removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
+                    RegularModel regular = regularsAdapter.removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
                     //TODO the database operation should act upon the id of the regular transaction instead of updating/replacing the whole row
                     regular.isDeleted = true;
                     RegularsUpdateTask rut = new RegularsUpdateTask(OverviewRegularsActivity.this, null);
@@ -66,6 +67,21 @@ public class OverviewRegularsActivity extends AppCompatActivity {
                 }
         });
         itemSwipeHelper.attachToRecyclerView(regularsRecycler);
+        regularsAdapter.setOnItemClickListener(new RegularsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(RegularsAdapter adapter, RegularsAdapter.ClickableVH viewHolder) {
+                RegularModel regular = adapter.getModel(viewHolder);
+                if (regular != null) {
+                    Intent intent = new Intent(OverviewRegularsActivity.this, RegularEditActivity.class);
+                    intent.putExtra(RegularEditActivity.EXTRA_REGULAR, regular);
+                    startActivityForResult(intent, REQUEST_REGULAR_EDIT);
+                } else {
+                    if (BuildConfig.DEBUG) {
+                        logger.warn("no such item");
+                    }
+                }
+            }
+        });
 
         dbHelper = new DBHelper(this);
 
@@ -115,7 +131,7 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
                 @Override
                 public void onLoadFinished(Loader<ArrayList<RegularModel>> loader, ArrayList<RegularModel> data) {
-                    ((RegularsAdapter) regularsRecycler.getAdapter()).setData(data);
+                    regularsAdapter.setData(data);
                 }
 
                 @Override

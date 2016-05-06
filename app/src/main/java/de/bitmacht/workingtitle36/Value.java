@@ -1,5 +1,7 @@
 package de.bitmacht.workingtitle36;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.util.Pair;
 
@@ -11,7 +13,7 @@ import java.util.Locale;
 /**
  * Combines an amount and a ISO 4217 currency code
  */
-public class Value {
+public class Value implements Parcelable {
     /**
      * The ISO 4217 currency code associated with this object
      */
@@ -126,6 +128,35 @@ public class Value {
                 String.format("%s%d", sign, major);
 
         return new Pair<>(valueString, symbol);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(currencyCode);
+        dest.writeLong(amount);
+    }
+
+    public static final Parcelable.Creator<Value> CREATOR =
+            new Parcelable.Creator<Value>() {
+                @Override
+                public Value createFromParcel(Parcel source) {
+                    return new Value(source);
+                }
+
+                @Override
+                public Value[] newArray(int size) {
+                    return new Value[size];
+                }
+            };
+
+    private Value(Parcel in) {
+        currencyCode = in.readString();
+        amount = in.readLong();
     }
 
     public static class CurrencyMismatchException extends Exception {

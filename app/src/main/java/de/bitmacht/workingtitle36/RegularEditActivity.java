@@ -2,6 +2,7 @@ package de.bitmacht.workingtitle36;
 
 import android.app.DatePickerDialog;
 import android.app.DialogFragment;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
@@ -13,7 +14,6 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Spinner;
-import android.widget.Switch;
 
 import org.joda.time.DateTimeConstants;
 import org.slf4j.Logger;
@@ -31,6 +31,15 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
 
     private static final Logger logger = LoggerFactory.getLogger(RegularEditActivity.class);
 
+    /**
+     * An optional extra containing a RegularModel that will be edited
+     */
+    public static final String EXTRA_REGULAR = "regular";
+
+    private static final String STATE_VALUE_KEY = "value";
+
+    private long creationTime;
+    private Calendar timeFirst = new GregorianCalendar();
     private Value value;
 
     private Toolbar toolbar;
@@ -41,50 +50,77 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     private ValueWidget valueWidget;
     private Spinner repetitionSpinner;
     private EditText descriptionView;
-    private Calendar calendar = new GregorianCalendar();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
-
         setContentView(R.layout.activity_regular_edit);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayShowTitleEnabled(false);
-
         cancelButton = (ImageButton) findViewById(R.id.cancel_button);
         acceptButton = (ImageButton) findViewById(R.id.accept_button);
-
-        cancelButton.setOnClickListener(this);
-        acceptButton.setOnClickListener(this);
-
         enabledSwitch = (SwitchCompat) findViewById(R.id.enabled);
         dateView = (TimeView) findViewById(R.id.date);
         valueWidget = (ValueWidget) findViewById(R.id.value);
         repetitionSpinner = (Spinner) findViewById(R.id.repetition);
         descriptionView = (EditText) findViewById(R.id.description);
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(DBHelper.REGULARS_KEY_CREATION_TIME)) {
-            calendar.setTimeInMillis(savedInstanceState.getLong(DBHelper.REGULARS_KEY_CREATION_TIME));
-        }
-        updateTimeViews();
-        dateView.setOnClickListener(this);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayShowTitleEnabled(false);
 
-        valueWidget.setValue(value);
+        cancelButton.setOnClickListener(this);
+        acceptButton.setOnClickListener(this);
+
+        dateView.setOnClickListener(this);
 
         ArrayAdapter<CharSequence> intervalAdapter = ArrayAdapter.createFromResource(this, R.array.interval_names, android.R.layout.simple_spinner_item);
         intervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         repetitionSpinner.setAdapter(intervalAdapter);
 
+        if (savedInstanceState == null) {
+            Intent intent = getIntent();
+            if (intent.hasExtra(EXTRA_REGULAR)) {
+                // edit an existing regular
+                RegularModel regular = intent.getParcelableExtra(EXTRA_REGULAR);
+                creationTime = regular.creationTime;
+                value = regular.getValue();
+                enabledSwitch.setChecked(!regular.isDisabled);
+                timeFirst.setTimeInMillis(regular.timeFirst);
+                int pos = 0;
+                if (regular.periodType == DBHelper.REGULARS_PERIOD_TYPE_DAILY) {
+                    if (regular.periodMultiplier == DateTimeConstants.DAYS_PER_WEEK) {
+                        pos = 1;
+                    }
+                } else {
+                    if (regular.periodMultiplier == 1) {
+                        pos = 2;
+                    } else if (regular.periodMultiplier == 12) {
+                        pos = 3;
+                    }
+                }
+                repetitionSpinner.setSelection(pos);
+                descriptionView.setText(regular.description);
+            } else {
+                creationTime = System.currentTimeMillis();
+                value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
+            }
+        } else {
+            creationTime = savedInstanceState.getLong(DBHelper.REGULARS_KEY_CREATION_TIME);
+            timeFirst.setTimeInMillis(savedInstanceState.getLong(DBHelper.REGULARS_KEY_TIME_FIRST));
+            value = savedInstanceState.getParcelable(STATE_VALUE_KEY);
+        }
+
+        valueWidget.setValue(value);
+        updateTimeViews();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(DBHelper.REGULARS_KEY_CREATION_TIME, calendar.getTimeInMillis());
+        outState.putLong(DBHelper.REGULARS_KEY_CREATION_TIME, creationTime);
+        outState.putLong(DBHelper.REGULARS_KEY_TIME_FIRST, timeFirst.getTimeInMillis());
+        outState.putParcelable(STATE_VALUE_KEY, value);
     }
 
     @Override
@@ -100,7 +136,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         } else if (id == R.id.date) {
             DialogFragment frag = new DatePickerFragment();
             Bundle bundle = new Bundle();
-            bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, calendar.getTimeInMillis());
+            bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, timeFirst.getTimeInMillis());
             frag.setArguments(bundle);
             frag.show(getFragmentManager(), "datePicker");
 
@@ -127,14 +163,14 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        calendar.set(Calendar.YEAR, year);
-        calendar.set(Calendar.MONTH, monthOfYear);
-        calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        timeFirst.set(Calendar.YEAR, year);
+        timeFirst.set(Calendar.MONTH, monthOfYear);
+        timeFirst.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         updateTimeViews();
     }
 
     private void updateTimeViews() {
-        long time = calendar.getTimeInMillis();
+        long time = timeFirst.getTimeInMillis();
         dateView.setTime(time);
     }
 
@@ -158,7 +194,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
             logger.trace("value: {}", cv);
         }
 
-        return new RegularModel(System.currentTimeMillis(), dateView.getTime(), periodType, periodMultiplier,
+        return new RegularModel(creationTime, dateView.getTime(), periodType, periodMultiplier,
                 false, !enabledSwitch.isChecked(), false, cv.amount, cv.currencyCode, descriptionView.getText().toString());
     }
 
