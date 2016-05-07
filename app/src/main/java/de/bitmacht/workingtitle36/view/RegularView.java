@@ -1,6 +1,9 @@
 package de.bitmacht.workingtitle36.view;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.os.Build;
+import android.util.AttributeSet;
 import android.widget.TextView;
 
 import de.bitmacht.workingtitle36.R;
@@ -8,11 +11,24 @@ import de.bitmacht.workingtitle36.RegularModel;
 
 public class RegularView extends BaseTransactionView {
 
-    private final TextView periodView;
+    private TextView periodView;
 
-    public RegularView(Context context) {
-        super(context, R.layout.regular_view);
+    public RegularView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
+    public RegularView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public RegularView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
         periodView = (TextView) findViewById(R.id.period);
     }
 

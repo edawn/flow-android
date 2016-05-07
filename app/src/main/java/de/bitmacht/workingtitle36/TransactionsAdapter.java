@@ -1,6 +1,7 @@
 package de.bitmacht.workingtitle36;
 
 import android.database.Cursor;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import de.bitmacht.workingtitle36.view.TransactionView;
@@ -11,7 +12,8 @@ public class TransactionsAdapter extends BaseTransactionsAdapter<BaseTransaction
 
     @Override
     public BaseTransactionsAdapter.BaseTransactionVH onCreateViewHolder(ViewGroup parent, int viewType) {
-        TransactionView transactionView = new TransactionView(parent.getContext());
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        TransactionView transactionView = (TransactionView) inflater.inflate(R.layout.transaction_view, parent, false);
         return new BaseTransactionsAdapter.BaseTransactionVH(transactionView);
     }
 

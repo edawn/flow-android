@@ -1,5 +1,6 @@
 package de.bitmacht.workingtitle36;
 
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
 import java.util.List;
@@ -13,7 +14,9 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
 
     @Override
     public BaseTransactionsAdapter.BaseTransactionVH onCreateViewHolder(ViewGroup parent, int viewType) {
-        TransactionView transactionView = new TransactionView(parent.getContext());
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        TransactionView transactionView = (TransactionView) inflater.inflate(R.layout.transaction_view, parent, false);
+
         transactionView.setTimeFormat(TimeView.TIME_FORMAT_TIMEDATE_SHORT);
         return new BaseTransactionsAdapter.BaseTransactionVH(transactionView);
     }

@@ -1,8 +1,10 @@
 package de.bitmacht.workingtitle36.view;
 
+import android.annotation.TargetApi;
 import android.content.Context;
-import android.support.annotation.LayoutRes;
-import android.widget.FrameLayout;
+import android.os.Build;
+import android.util.AttributeSet;
+import android.widget.RelativeLayout;
 
 import de.bitmacht.workingtitle36.R;
 import de.bitmacht.workingtitle36.Value;
@@ -10,24 +12,30 @@ import de.bitmacht.workingtitle36.Value;
 /**
  * A base implementation of a View showing a transaction
  */
-abstract public class BaseTransactionView extends FrameLayout {
+abstract public class BaseTransactionView extends RelativeLayout {
 
-    private final ValueTextView valueView;
-    private final DescriptionView descriptionView;
+    private ValueTextView valueView;
+    private DescriptionView descriptionView;
     private String valueText;
     private int valueTextLength;
 
-    /**
-     * Create a new instance
-     * @param context The context
-     * @param resource A layout resource that will be inflated and attached to this FrameLayout;
-     *                 it should contain a {@link ValueTextView} with the id 'value' and
-     *                 a {@link DescriptionView} with the id 'description'
-     */
-    public BaseTransactionView(Context context, @LayoutRes int resource) {
-        super(context);
+    public BaseTransactionView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
 
-        inflate(context, resource, this);
+    public BaseTransactionView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public BaseTransactionView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
+    }
+
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+
         valueView = (ValueTextView) findViewById(R.id.value);
         descriptionView = (DescriptionView) findViewById(R.id.description);
 
