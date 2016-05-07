@@ -67,10 +67,10 @@ public class OverviewRegularsActivity extends AppCompatActivity {
                 }
         });
         itemSwipeHelper.attachToRecyclerView(regularsRecycler);
-        regularsAdapter.setOnItemClickListener(new RegularsAdapter.OnItemClickListener() {
+        regularsAdapter.setOnItemClickListener(new BaseTransactionsAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(RegularsAdapter adapter, RegularsAdapter.ClickableVH viewHolder) {
-                RegularModel regular = adapter.getModel(viewHolder);
+            public void onItemClick(BaseTransactionsAdapter adapter, int position) {
+                RegularModel regular = ((RegularsAdapter)adapter).getModel(position);
                 if (regular != null) {
                     Intent intent = new Intent(OverviewRegularsActivity.this, RegularEditActivity.class);
                     intent.putExtra(RegularEditActivity.EXTRA_REGULAR, regular);

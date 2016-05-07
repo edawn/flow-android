@@ -1,7 +1,9 @@
 package de.bitmacht.workingtitle36;
 
+import android.support.annotation.Nullable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 
 import de.bitmacht.workingtitle36.view.BaseTransactionView;
 
@@ -10,6 +12,7 @@ abstract class BaseTransactionsAdapter<VH extends RecyclerView.ViewHolder> exten
     private int maxValueTextLength = 0;
     private int valueWidth = 0;
     private RecyclerView recyclerView;
+    private OnItemClickListener itemClickListener;
 
     /**
      * This should be called by the implementing class at the end of the onBindViewHolder method.
@@ -57,9 +60,44 @@ abstract class BaseTransactionsAdapter<VH extends RecyclerView.ViewHolder> exten
         this.recyclerView = null;
     }
 
+    /**
+     * Set a listener for click events on the items in this adapter
+     */
+    public void setOnItemClickListener(@Nullable OnItemClickListener listener) {
+        itemClickListener = listener;
+    }
+
+    private void performItemClick(ClickableTransactionVH viewHolder) {
+        if (itemClickListener != null) {
+            itemClickListener.onItemClick(this, viewHolder.getAdapterPosition());
+        }
+    }
+
     class BaseTransactionVH extends RecyclerView.ViewHolder {
         public BaseTransactionVH(BaseTransactionView transactionView) {
             super(transactionView);
         }
+    }
+
+    class ClickableTransactionVH extends BaseTransactionVH implements View.OnClickListener {
+        public ClickableTransactionVH(BaseTransactionView transactionView) {
+            super(transactionView);
+            transactionView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            performItemClick(this);
+        }
+    }
+
+    public interface OnItemClickListener {
+        /**
+         * This will be called when an item has been clicked
+         * @param adapter The adapter holding the item clicked
+         * @param adapterPosition The position of the item in the adapter
+         * @see android.support.v7.widget.RecyclerView.ViewHolder#getAdapterPosition()
+         */
+        void onItemClick(BaseTransactionsAdapter adapter, int adapterPosition);
     }
 }
