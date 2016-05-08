@@ -1,12 +1,14 @@
 package de.bitmacht.workingtitle36;
 
 import android.database.Cursor;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 /**
  * This represents a transaction
  * @see DBHelper#TRANSACTIONS_TABLE_NAME
  */
-public class TransactionsModel {
+public class TransactionsModel implements Parcelable {
 
     public long creationTime;
     public boolean isRemoved;
@@ -39,5 +41,34 @@ public class TransactionsModel {
     @Override
     public String toString() {
         return "cTme: " + creationTime + " isRe: " + isRemoved + " moRE: " + mostRecentEdit;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(creationTime);
+        dest.writeInt(isRemoved ? 1 : 0);
+        dest.writeParcelable(mostRecentEdit, flags);
+    }
+
+    public static final Parcelable.Creator<TransactionsModel> CREATOR = new Parcelable.Creator<TransactionsModel>() {
+        @Override
+        public TransactionsModel createFromParcel(Parcel source) {
+            return new TransactionsModel(source);
+        }
+        @Override
+        public TransactionsModel[] newArray(int size) {
+            return new TransactionsModel[size];
+        }
+    };
+
+    public TransactionsModel(Parcel in) {
+        creationTime = in.readLong();
+        isRemoved = in.readInt() == 1;
+        mostRecentEdit = in.readParcelable(Edit.class.getClassLoader());
     }
 }

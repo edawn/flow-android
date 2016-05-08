@@ -1,6 +1,8 @@
 package de.bitmacht.workingtitle36;
 
 import android.database.Cursor;
+import android.os.Parcel;
+import android.os.Parcelable;
 
 import java.util.Calendar;
 import java.util.TimeZone;
@@ -9,7 +11,7 @@ import java.util.TimeZone;
  * This describes an edit.
  * It relates to one row in the edits table.
  */
-public class Edit {
+public class Edit implements Parcelable {
 
     public static final String[] PROJECTION = {
             DBHelper.EDITS_KEY_CREATION_TIME,
@@ -96,4 +98,41 @@ public class Edit {
         return String.format("ctime: %tFT%<tTZ, ttime: %tFT%<tTZ, tdesc: %s, tloc: %s, tcurrency: %s, tamount: %d",
                 ccal, tcal, tdesc, tloc, tcurrency, tamount);
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(ctime);
+        dest.writeLong(ttime);
+        dest.writeString(tdesc);
+        dest.writeString(tloc);
+        dest.writeString(tcurrency);
+        dest.writeLong(tamount);
+    }
+
+    public static final Parcelable.Creator<Edit> CREATOR = new Parcelable.Creator<Edit>() {
+        @Override
+        public Edit createFromParcel(Parcel source) {
+            return new Edit(source);
+        }
+        @Override
+        public Edit[] newArray(int size) {
+            return new Edit[size];
+        }
+    };
+
+    private Edit(Parcel in) {
+        ctime = in.readLong();
+        ttime = in.readLong();
+        tdesc = in.readString();
+        tloc = in.readString();
+        tcurrency = in.readString();
+        tamount = in.readLong();
+    }
+
+
 }
