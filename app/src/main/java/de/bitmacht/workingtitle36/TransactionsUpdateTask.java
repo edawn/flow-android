@@ -48,21 +48,21 @@ public class TransactionsUpdateTask extends AsyncTask<Edit, Void, Boolean> {
             try {
                 ContentValues cv = new ContentValues(10);
 
-                cv.put(DBHelper.TRANSACTIONS_KEY_CREATION_TIME, edit.getCtime());
-                cv.put(DBHelper.TRANSACTIONS_KEY_ISREMOVED, false);
+                cv.put(DBHelper.TRANSACTIONS_KEY_ID, edit.getCtime());
+                cv.put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, false);
                 long res = db.insert(DBHelper.TRANSACTIONS_TABLE_NAME, null, cv);
                 if (res == -1) {
                     if (BuildConfig.DEBUG) {
-                        logger.warn("inserting transaction {} failed", cv.get(DBHelper.TRANSACTIONS_KEY_CREATION_TIME));
+                        logger.warn("inserting transaction {} failed", cv.get(DBHelper.TRANSACTIONS_KEY_ID));
                     }
                 }
 
                 cv.clear();
-                cv.put(DBHelper.EDITS_KEY_CREATION_TIME, edit.getCtime());
+                cv.put(DBHelper.EDITS_KEY_ID, edit.getCtime());
                 cv.put(DBHelper.EDITS_KEY_PARENT, edit.getCtime());
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION, edit.getCtime());
                 cv.put(DBHelper.EDITS_KEY_SEQUENCE, 0);
-                cv.put(DBHelper.EDITS_KEY_ISPENDING, false);
+                cv.put(DBHelper.EDITS_KEY_IS_PENDING, false);
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION_TIME, edit.getTtime());
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, edit.getTdesc());
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION_LOCATION, edit.getTloc());

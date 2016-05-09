@@ -18,19 +18,19 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String TRANSACTIONS_TABLE_NAME = "transactions";
     /**
-     * The id of this transaction; should be its creation time;
-     * in ms since the epoch; if an entry with this key should already exist, increment by one and retry
+     * The id of this transaction; should be its creation time in ms since the epoch;
+     * if an entry with this key should already exist, increment by one and retry
      */
-    public static final String TRANSACTIONS_KEY_CREATION_TIME = "ctime";
+    public static final String TRANSACTIONS_KEY_ID = "id";
     /**
      * Indicates that this transaction has been removed and should not be processed any further
      */
-    public static final String TRANSACTIONS_KEY_ISREMOVED = "isremoved";
+    public static final String TRANSACTIONS_KEY_IS_REMOVED = "is_removed";
 
     public static final String TRANSACTIONS_TABLE_CREATE =
             "CREATE TABLE " + TRANSACTIONS_TABLE_NAME + "(" +
-                    TRANSACTIONS_KEY_CREATION_TIME + " INTEGER PRIMARY KEY, " +
-                    TRANSACTIONS_KEY_ISREMOVED + " BOOLEAN" +
+                    TRANSACTIONS_KEY_ID + " INTEGER PRIMARY KEY, " +
+                    TRANSACTIONS_KEY_IS_REMOVED + " BOOLEAN" +
                     ");";
 
     /**
@@ -39,10 +39,10 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String EDITS_TABLE_NAME = "edits";
     /**
-     * The creation time of this edit; also serving as the primary key of this table;
-     * in ms since the epoch; if an entry with this key should already exist, increment by one and retry
+     * The id of this edit; should be its creation time in ms since the epoch;
+     * if an entry with this key should already exist, increment by one and retry
      */
-    public static final String EDITS_KEY_CREATION_TIME = "ctime";
+    public static final String EDITS_KEY_ID = "id";
     /**
      * The ctime of the parent that this entry has been derived from;
      * if this is the first edit in a transaction then this is this edit's ctime
@@ -52,7 +52,7 @@ public class DBHelper extends SQLiteOpenHelper {
      * The id of the transaction that this edit belongs to;
      * the referenced transaction must exist
      */
-    public static final String EDITS_KEY_TRANSACTION = "transact";
+    public static final String EDITS_KEY_TRANSACTION = "transaction";
     /**
      * This identifies an edit in a transaction; for the first edit this is zero;
      * a new edit gets the highest sequence number of any edit in the related transaction, incremented by one;
@@ -63,42 +63,42 @@ public class DBHelper extends SQLiteOpenHelper {
      * Indicate that the user has not finished editing this entry; this may happen when the app is put
      * in the background before the user clicks "accept" or the like
      */
-    public static final String EDITS_KEY_ISPENDING = "ispending";
+    public static final String EDITS_KEY_IS_PENDING = "is_pending";
     /**
      * The user-set time of the transaction; in ms since the epoch
      */
-    public static final String EDITS_KEY_TRANSACTION_TIME = "ttime";
+    public static final String EDITS_KEY_TRANSACTION_TIME = "transaction_time";
     /**
      * The user-set description for this transaction
      */
-    public static final String EDITS_KEY_TRANSACTION_DESCRIPTION = "tdesc";
+    public static final String EDITS_KEY_TRANSACTION_DESCRIPTION = "transaction_description";
     /**
      * The user-set location that this transaction took place;
      * preferably as geo URI (https://en.wikipedia.org/wiki/Geo_URI_scheme)
      */
-    public static final String EDITS_KEY_TRANSACTION_LOCATION = "tloc";
+    public static final String EDITS_KEY_TRANSACTION_LOCATION = "transaction_location";
     /**
      * The user-set currency for this transaction; a ISO 4217 currency code
      */
-    public static final String EDITS_KEY_TRANSACTION_CURRENCY = "tcurrency";
+    public static final String EDITS_KEY_TRANSACTION_CURRENCY = "transaction_currency";
     /**
      * The user-set transaction amount in minor currency units (usually cents); negative values indicate spending
      */
-    public static final String EDITS_KEY_TRANSACTION_AMOUNT = "tamount";
+    public static final String EDITS_KEY_TRANSACTION_AMOUNT = "transaction_amount";
 
     public static final String EDITS_TABLE_CREATE =
             "CREATE TABLE " + EDITS_TABLE_NAME + "(" +
-                    EDITS_KEY_CREATION_TIME + " INTEGER PRIMARY KEY, " +
+                    EDITS_KEY_ID + " INTEGER PRIMARY KEY, " +
                     EDITS_KEY_PARENT + " INTEGER REFERENCES " + EDITS_TABLE_NAME + ", " +
                     EDITS_KEY_TRANSACTION + " INTEGER, " +
                     EDITS_KEY_SEQUENCE + " INTEGER, " +
-                    EDITS_KEY_ISPENDING + " BOOLEAN, " +
+                    EDITS_KEY_IS_PENDING + " BOOLEAN, " +
                     EDITS_KEY_TRANSACTION_TIME + " INTEGER, " +
                     EDITS_KEY_TRANSACTION_DESCRIPTION + " TEXT, " +
                     EDITS_KEY_TRANSACTION_LOCATION + " TEXT, " +
                     EDITS_KEY_TRANSACTION_CURRENCY + " TEXT, " +
                     EDITS_KEY_TRANSACTION_AMOUNT + " INTEGER, " +
-                    "FOREIGN KEY(" + EDITS_KEY_TRANSACTION + ") REFERENCES " + TRANSACTIONS_TABLE_NAME + "(" + TRANSACTIONS_KEY_CREATION_TIME + "), " +
+                    "FOREIGN KEY(" + EDITS_KEY_TRANSACTION + ") REFERENCES " + TRANSACTIONS_TABLE_NAME + "(" + TRANSACTIONS_KEY_ID + "), " +
                     "UNIQUE(" + EDITS_KEY_TRANSACTION + ", " + EDITS_KEY_SEQUENCE + ")" +
                     ");";
 
@@ -211,35 +211,35 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String LATEST_EDITS_QUERY =
             "SELECT " + EDITS_TABLE_NAME + ".* FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
-                    "(SELECT " + EDITS_KEY_CREATION_TIME + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
-                    "FROM " + EDITS_TABLE_NAME + " WHERE NOT " + EDITS_KEY_ISPENDING + " GROUP BY " +
-                    EDITS_KEY_TRANSACTION + ") editsmax ON " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME +
-                    " = editsmax." + EDITS_KEY_CREATION_TIME + " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
+                    "(SELECT " + EDITS_KEY_ID + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
+                    "FROM " + EDITS_TABLE_NAME + " WHERE NOT " + EDITS_KEY_IS_PENDING + " GROUP BY " +
+                    EDITS_KEY_TRANSACTION + ") editsmax ON " + EDITS_TABLE_NAME + "." + EDITS_KEY_ID +
+                    " = editsmax." + EDITS_KEY_ID + " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
 
     /**
      * Returns the most current, not removed transaction/edit join for every transaction
      */
     public static final String TRANSACTIONS_EDITS_QUERY =
-            "SELECT " + EDITS_TABLE_NAME + ".*, " + TRANSACTIONS_KEY_ISREMOVED + " FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
-                    "(SELECT " + TRANSACTIONS_KEY_ISREMOVED +
-                    ", " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
-                    "FROM " + TRANSACTIONS_TABLE_NAME + ", " + EDITS_TABLE_NAME + " WHERE " + TRANSACTIONS_TABLE_NAME + "." + TRANSACTIONS_KEY_CREATION_TIME +
-                    " = " + EDITS_KEY_TRANSACTION + " AND NOT " + TRANSACTIONS_KEY_ISREMOVED + " GROUP BY " + EDITS_KEY_TRANSACTION + ") editsmax ON " +
-                    EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME + " = editsmax." + EDITS_KEY_CREATION_TIME +
+            "SELECT " + EDITS_TABLE_NAME + ".*, " + TRANSACTIONS_KEY_IS_REMOVED + " FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
+                    "(SELECT " + TRANSACTIONS_KEY_IS_REMOVED +
+                    ", " + EDITS_TABLE_NAME + "." + EDITS_KEY_ID + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
+                    "FROM " + TRANSACTIONS_TABLE_NAME + ", " + EDITS_TABLE_NAME + " WHERE " + TRANSACTIONS_TABLE_NAME + "." + TRANSACTIONS_KEY_ID +
+                    " = " + EDITS_KEY_TRANSACTION + " AND NOT " + TRANSACTIONS_KEY_IS_REMOVED + " GROUP BY " + EDITS_KEY_TRANSACTION + ") editsmax ON " +
+                    EDITS_TABLE_NAME + "." + EDITS_KEY_ID + " = editsmax." + EDITS_KEY_ID +
                     " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
 
     /**
      * Returns the most current, not removed transaction/edit join for every transaction in a defined time span
      */
     public static final String TRANSACTIONS_EDITS_TIME_SPAN_QUERY =
-            "SELECT " + EDITS_TABLE_NAME + ".*, " + TRANSACTIONS_KEY_ISREMOVED + " FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
-                    "(SELECT " + TRANSACTIONS_KEY_ISREMOVED +
-                    ", " + EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
-                    "FROM " + TRANSACTIONS_TABLE_NAME + ", " + EDITS_TABLE_NAME + " WHERE " + TRANSACTIONS_TABLE_NAME + "." + TRANSACTIONS_KEY_CREATION_TIME +
-                    " = " + EDITS_KEY_TRANSACTION + " AND NOT " + TRANSACTIONS_KEY_ISREMOVED +
+            "SELECT " + EDITS_TABLE_NAME + ".*, " + TRANSACTIONS_KEY_IS_REMOVED + " FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
+                    "(SELECT " + TRANSACTIONS_KEY_IS_REMOVED +
+                    ", " + EDITS_TABLE_NAME + "." + EDITS_KEY_ID + ", MAX(" + EDITS_KEY_SEQUENCE + ") AS maxsequence " +
+                    "FROM " + TRANSACTIONS_TABLE_NAME + ", " + EDITS_TABLE_NAME + " WHERE " + TRANSACTIONS_TABLE_NAME + "." + TRANSACTIONS_KEY_ID +
+                    " = " + EDITS_KEY_TRANSACTION + " AND NOT " + TRANSACTIONS_KEY_IS_REMOVED +
                     " AND " + EDITS_KEY_TRANSACTION_TIME + " >= ? AND " + EDITS_KEY_TRANSACTION_TIME + " < ? " +
                     " GROUP BY " + EDITS_KEY_TRANSACTION + ") editsmax ON " +
-                    EDITS_TABLE_NAME + "." + EDITS_KEY_CREATION_TIME + " = editsmax." + EDITS_KEY_CREATION_TIME +
+                    EDITS_TABLE_NAME + "." + EDITS_KEY_ID + " = editsmax." + EDITS_KEY_ID +
                     " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
 
     /**

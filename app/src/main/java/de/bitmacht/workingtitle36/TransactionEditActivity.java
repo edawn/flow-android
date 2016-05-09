@@ -67,8 +67,8 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         valueModLessView = (ValueModifyView) findViewById(R.id.value_modify_less);
         descriptionView = (EditText) findViewById(R.id.description);
 
-        if (savedInstanceState != null && savedInstanceState.containsKey(DBHelper.EDITS_KEY_CREATION_TIME)) {
-            calendar.setTimeInMillis(savedInstanceState.getLong(DBHelper.EDITS_KEY_CREATION_TIME));
+        if (savedInstanceState != null && savedInstanceState.containsKey(DBHelper.EDITS_KEY_ID)) {
+            calendar.setTimeInMillis(savedInstanceState.getLong(DBHelper.EDITS_KEY_ID));
         }
         updateTimeViews();
         timeView.setOnClickListener(this);
@@ -86,7 +86,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(DBHelper.EDITS_KEY_CREATION_TIME, calendar.getTimeInMillis());
+        outState.putLong(DBHelper.EDITS_KEY_ID, calendar.getTimeInMillis());
     }
 
     @Override

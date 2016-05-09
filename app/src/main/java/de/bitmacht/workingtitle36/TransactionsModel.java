@@ -18,8 +18,8 @@ public class TransactionsModel implements Parcelable {
     private TransactionsModel() {}
 
     public TransactionsModel(Cursor cursor) {
-        creationTime = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_CREATION_TIME));
-        isRemoved = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_ISREMOVED)) != 0;
+        creationTime = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_ID));
+        isRemoved = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_IS_REMOVED)) != 0;
     }
 
     /**
@@ -27,13 +27,13 @@ public class TransactionsModel implements Parcelable {
      * This is intended to be used with the results of {@link DBHelper#TRANSACTIONS_EDITS_QUERY} or {@link DBHelper#TRANSACTIONS_EDITS_TIME_SPAN_QUERY}
      * @param cursor A cursor positioned at the appropriate row.
      *               The columns should include any column from {@link DBHelper#EDITS_TABLE_NAME} and
-     *               {@link DBHelper#TRANSACTIONS_KEY_ISREMOVED} from {@link DBHelper#TRANSACTIONS_TABLE_NAME}
+     *               {@link DBHelper#TRANSACTIONS_KEY_IS_REMOVED} from {@link DBHelper#TRANSACTIONS_TABLE_NAME}
      * @return A new {@link TransactionsModel} with the field {@link TransactionsModel#mostRecentEdit} set.
      */
     public static TransactionsModel getInstanceWithEdit(Cursor cursor) {
         TransactionsModel transaction = new TransactionsModel();
         transaction.creationTime = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION));
-        transaction.isRemoved = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_ISREMOVED)) != 0;
+        transaction.isRemoved = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_IS_REMOVED)) != 0;
         transaction.mostRecentEdit = new Edit(cursor);
         return transaction;
     }

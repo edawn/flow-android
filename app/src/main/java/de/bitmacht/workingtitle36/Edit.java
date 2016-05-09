@@ -14,7 +14,7 @@ import java.util.TimeZone;
 public class Edit implements Parcelable {
 
     public static final String[] PROJECTION = {
-            DBHelper.EDITS_KEY_CREATION_TIME,
+            DBHelper.EDITS_KEY_ID,
             DBHelper.EDITS_KEY_TRANSACTION_TIME,
             DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION,
             DBHelper.EDITS_KEY_TRANSACTION_LOCATION,
@@ -34,7 +34,7 @@ public class Edit implements Parcelable {
      * @throws IllegalArgumentException If a required column is missing
      */
     public Edit(Cursor cursor) {
-        this(cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_CREATION_TIME)),
+        this(cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_ID)),
                 cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_TIME)),
                 cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION)),
                 cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_LOCATION)),
