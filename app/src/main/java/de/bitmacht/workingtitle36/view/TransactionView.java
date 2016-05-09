@@ -39,9 +39,9 @@ public class TransactionView extends BaseTransactionView {
      * @param edit The Edit that represents the Transaction to be displayed.
      */
     public void setData(Edit edit) {
-        timeView.setTime(edit.getTtime());
+        timeView.setTime(edit.transactionTime);
         setValue(edit.getValue());
-        setDescription(edit.getTdesc());
+        setDescription(edit.transactionDescription);
     }
 
     public void setTimeFormat(@TimeView.TimeFormat int timeFormatStyle) {

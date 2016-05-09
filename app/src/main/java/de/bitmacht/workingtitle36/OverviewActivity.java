@@ -469,8 +469,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     Value valueBeforeDay = new Value(currencyCode, 0);
                     Value valueDay = new Value(currencyCode, 0);
                     for (TransactionsModel transact : transactions) {
-                        long ttime = transact.mostRecentEdit.getTtime();
-                        if (ttime >= startOfDayMillis) {
+                        long transactionTime = transact.mostRecentEdit.transactionTime;
+                        if (transactionTime >= startOfDayMillis) {
                             trDay.add(transact);
                             try {
                                 valueDay = valueDay.add(transact.mostRecentEdit.getValue());

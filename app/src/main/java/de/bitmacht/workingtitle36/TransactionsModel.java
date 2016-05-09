@@ -10,7 +10,7 @@ import android.os.Parcelable;
  */
 public class TransactionsModel implements Parcelable {
 
-    public long creationTime;
+    public long id;
     public boolean isRemoved;
 
     public Edit mostRecentEdit = null;
@@ -18,7 +18,7 @@ public class TransactionsModel implements Parcelable {
     private TransactionsModel() {}
 
     public TransactionsModel(Cursor cursor) {
-        creationTime = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_ID));
+        id = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_ID));
         isRemoved = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_IS_REMOVED)) != 0;
     }
 
@@ -32,7 +32,7 @@ public class TransactionsModel implements Parcelable {
      */
     public static TransactionsModel getInstanceWithEdit(Cursor cursor) {
         TransactionsModel transaction = new TransactionsModel();
-        transaction.creationTime = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION));
+        transaction.id = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION));
         transaction.isRemoved = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_IS_REMOVED)) != 0;
         transaction.mostRecentEdit = new Edit(cursor);
         return transaction;
@@ -40,7 +40,7 @@ public class TransactionsModel implements Parcelable {
 
     @Override
     public String toString() {
-        return "cTme: " + creationTime + " isRe: " + isRemoved + " moRE: " + mostRecentEdit;
+        return "id: " + id + " isRe: " + isRemoved + " moRE: " + mostRecentEdit;
     }
 
     @Override
@@ -50,7 +50,7 @@ public class TransactionsModel implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(creationTime);
+        dest.writeLong(id);
         dest.writeInt(isRemoved ? 1 : 0);
         dest.writeParcelable(mostRecentEdit, flags);
     }
@@ -67,7 +67,7 @@ public class TransactionsModel implements Parcelable {
     };
 
     public TransactionsModel(Parcel in) {
-        creationTime = in.readLong();
+        id = in.readLong();
         isRemoved = in.readInt() == 1;
         mostRecentEdit = in.readParcelable(Edit.class.getClassLoader());
     }

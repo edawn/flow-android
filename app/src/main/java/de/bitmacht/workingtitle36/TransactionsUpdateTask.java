@@ -48,7 +48,7 @@ public class TransactionsUpdateTask extends AsyncTask<Edit, Void, Boolean> {
             try {
                 ContentValues cv = new ContentValues(10);
 
-                cv.put(DBHelper.TRANSACTIONS_KEY_ID, edit.getCtime());
+                cv.put(DBHelper.TRANSACTIONS_KEY_ID, edit.id);
                 cv.put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, false);
                 long res = db.insert(DBHelper.TRANSACTIONS_TABLE_NAME, null, cv);
                 if (res == -1) {
@@ -58,16 +58,16 @@ public class TransactionsUpdateTask extends AsyncTask<Edit, Void, Boolean> {
                 }
 
                 cv.clear();
-                cv.put(DBHelper.EDITS_KEY_ID, edit.getCtime());
-                cv.put(DBHelper.EDITS_KEY_PARENT, edit.getCtime());
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION, edit.getCtime());
+                cv.put(DBHelper.EDITS_KEY_ID, edit.id);
+                cv.put(DBHelper.EDITS_KEY_PARENT, edit.id);
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION, edit.id);
                 cv.put(DBHelper.EDITS_KEY_SEQUENCE, 0);
                 cv.put(DBHelper.EDITS_KEY_IS_PENDING, false);
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_TIME, edit.getTtime());
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, edit.getTdesc());
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_LOCATION, edit.getTloc());
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY, edit.getTcurrency());
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT, edit.getTamount());
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_TIME, edit.transactionTime);
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, edit.transactionDescription);
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_LOCATION, edit.transactionLocation);
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY, edit.transactionCurrency);
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT, edit.transactionAmount);
                 res = db.insertOrThrow(DBHelper.EDITS_TABLE_NAME, null, cv);
 
                 db.setTransactionSuccessful();

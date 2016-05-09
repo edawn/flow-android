@@ -13,21 +13,12 @@ import java.util.TimeZone;
  */
 public class Edit implements Parcelable {
 
-    public static final String[] PROJECTION = {
-            DBHelper.EDITS_KEY_ID,
-            DBHelper.EDITS_KEY_TRANSACTION_TIME,
-            DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION,
-            DBHelper.EDITS_KEY_TRANSACTION_LOCATION,
-            DBHelper.EDITS_KEY_TRANSACTION_CURRENCY,
-            DBHelper.EDITS_KEY_TRANSACTION_AMOUNT
-    };
-
-    private long ctime;
-    private long ttime;
-    private String tdesc;
-    private String tloc;
-    private String tcurrency;
-    private long tamount;
+    public long id;
+    public long transactionTime;
+    public String transactionDescription;
+    public String transactionLocation;
+    public String transactionCurrency;
+    public long transactionAmount;
 
     /**
      * Create a new Edit from a cursor
@@ -42,61 +33,38 @@ public class Edit implements Parcelable {
                 cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT)));
     }
 
-    public Edit(long ctime, long ttime, String tdesc, String tloc, Value value) {
-        this(ctime, ttime, tdesc, tloc, value.currencyCode, value.amount);
+    public Edit(long id, long transactionTime, String transactionDescription, String transactionLocation, Value value) {
+        this(id, transactionTime, transactionDescription, transactionLocation, value.currencyCode, value.amount);
     }
 
     /**
      * Create a new Edit from arguments
      */
-    public Edit(long ctime, long ttime, String tdesc, String tloc, String tcurrency, long tamount) {
-        this.ctime = ctime;
-        this.ttime = ttime;
-        this.tdesc = tdesc;
-        this.tloc = tloc;
-        this.tcurrency = tcurrency;
-        this.tamount = tamount;
-    }
-
-    public long getCtime() {
-        return ctime;
-    }
-
-    public long getTtime() {
-        return ttime;
-    }
-
-    public String getTdesc() {
-        return tdesc;
-    }
-
-    public String getTloc() {
-        return tloc;
-    }
-
-    public String getTcurrency() {
-        return tcurrency;
-    }
-
-    public long getTamount() {
-        return tamount;
+    public Edit(long id, long transactionTime, String transactionDescription, String transactionLocation,
+                String transactionCurrency, long transactionAmount) {
+        this.id = id;
+        this.transactionTime = transactionTime;
+        this.transactionDescription = transactionDescription;
+        this.transactionLocation = transactionLocation;
+        this.transactionCurrency = transactionCurrency;
+        this.transactionAmount = transactionAmount;
     }
 
     /**
      * Return the Value that this Edit represents
      */
     public Value getValue() {
-        return new Value(tcurrency, tamount);
+        return new Value(transactionCurrency, transactionAmount);
     }
 
     @Override
     public String toString() {
         Calendar ccal = Calendar.getInstance(TimeZone.getTimeZone("Z"));
-        ccal.setTimeInMillis(ctime);
+        ccal.setTimeInMillis(id);
         Calendar tcal = Calendar.getInstance(TimeZone.getTimeZone("Z"));
-        tcal.setTimeInMillis(ttime);
-        return String.format("ctime: %tFT%<tTZ, ttime: %tFT%<tTZ, tdesc: %s, tloc: %s, tcurrency: %s, tamount: %d",
-                ccal, tcal, tdesc, tloc, tcurrency, tamount);
+        tcal.setTimeInMillis(transactionTime);
+        return String.format("id: %tFT%<tTZ, transactionTime: %tFT%<tTZ, transactionDescription: %s, transactionLocation: %s, transactionCurrency: %s, transactionAmount: %d",
+                ccal, tcal, transactionDescription, transactionLocation, transactionCurrency, transactionAmount);
     }
 
     @Override
@@ -106,12 +74,12 @@ public class Edit implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(ctime);
-        dest.writeLong(ttime);
-        dest.writeString(tdesc);
-        dest.writeString(tloc);
-        dest.writeString(tcurrency);
-        dest.writeLong(tamount);
+        dest.writeLong(id);
+        dest.writeLong(transactionTime);
+        dest.writeString(transactionDescription);
+        dest.writeString(transactionLocation);
+        dest.writeString(transactionCurrency);
+        dest.writeLong(transactionAmount);
     }
 
     public static final Parcelable.Creator<Edit> CREATOR = new Parcelable.Creator<Edit>() {
@@ -126,12 +94,12 @@ public class Edit implements Parcelable {
     };
 
     private Edit(Parcel in) {
-        ctime = in.readLong();
-        ttime = in.readLong();
-        tdesc = in.readString();
-        tloc = in.readString();
-        tcurrency = in.readString();
-        tamount = in.readLong();
+        id = in.readLong();
+        transactionTime = in.readLong();
+        transactionDescription = in.readString();
+        transactionLocation = in.readString();
+        transactionCurrency = in.readString();
+        transactionAmount = in.readLong();
     }
 
 
