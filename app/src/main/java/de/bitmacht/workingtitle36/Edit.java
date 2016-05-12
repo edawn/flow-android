@@ -14,6 +14,9 @@ import java.util.TimeZone;
 public class Edit implements Parcelable {
 
     public long id;
+    public long parent;
+    public long transaction;
+    public int sequence;
     public long transactionTime;
     public String transactionDescription;
     public String transactionLocation;
@@ -26,6 +29,9 @@ public class Edit implements Parcelable {
      */
     public Edit(Cursor cursor) {
         this(cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_ID)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_PARENT)),
+                cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_SEQUENCE)),
                 cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_TIME)),
                 cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION)),
                 cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_LOCATION)),
@@ -33,16 +39,19 @@ public class Edit implements Parcelable {
                 cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT)));
     }
 
-    public Edit(long id, long transactionTime, String transactionDescription, String transactionLocation, Value value) {
-        this(id, transactionTime, transactionDescription, transactionLocation, value.currencyCode, value.amount);
+    public Edit(long id, long parent, long transaction, int sequence, long transactionTime, String transactionDescription, String transactionLocation, Value value) {
+        this(id, parent, transaction, sequence, transactionTime, transactionDescription, transactionLocation, value.currencyCode, value.amount);
     }
 
     /**
      * Create a new Edit from arguments
      */
-    public Edit(long id, long transactionTime, String transactionDescription, String transactionLocation,
+    public Edit(long id, long parent, long transaction, int sequence, long transactionTime, String transactionDescription, String transactionLocation,
                 String transactionCurrency, long transactionAmount) {
         this.id = id;
+        this.parent = parent;
+        this.transaction = transaction;
+        this.sequence = sequence;
         this.transactionTime = transactionTime;
         this.transactionDescription = transactionDescription;
         this.transactionLocation = transactionLocation;
@@ -75,6 +84,9 @@ public class Edit implements Parcelable {
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeLong(id);
+        dest.writeLong(parent);
+        dest.writeLong(transaction);
+        dest.writeInt(sequence);
         dest.writeLong(transactionTime);
         dest.writeString(transactionDescription);
         dest.writeString(transactionLocation);
@@ -95,6 +107,9 @@ public class Edit implements Parcelable {
 
     private Edit(Parcel in) {
         id = in.readLong();
+        parent = in.readLong();
+        transaction = in.readLong();
+        sequence = in.readInt();
         transactionTime = in.readLong();
         transactionDescription = in.readString();
         transactionLocation = in.readString();

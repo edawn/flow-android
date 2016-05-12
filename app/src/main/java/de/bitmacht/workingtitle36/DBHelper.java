@@ -44,15 +44,16 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String EDITS_KEY_ID = "id";
     /**
-     * The ctime of the parent that this entry has been derived from;
-     * if this is the first edit in a transaction then this is this edit's ctime
+     * The id of the parent that this entry has been derived from;
+     * if this is the first edit in a transaction then this is this edit's id
      */
     public static final String EDITS_KEY_PARENT = "parent";
     /**
      * The id of the transaction that this edit belongs to;
      * the referenced transaction must exist
+     * Note: "transaction" is an sqlite keyword
      */
-    public static final String EDITS_KEY_TRANSACTION = "transaction";
+    public static final String EDITS_KEY_TRANSACTION = "transaktion";
     /**
      * This identifies an edit in a transaction; for the first edit this is zero;
      * a new edit gets the highest sequence number of any edit in the related transaction, incremented by one;
@@ -241,6 +242,18 @@ public class DBHelper extends SQLiteOpenHelper {
                     " GROUP BY " + EDITS_KEY_TRANSACTION + ") editsmax ON " +
                     EDITS_TABLE_NAME + "." + EDITS_KEY_ID + " = editsmax." + EDITS_KEY_ID +
                     " ORDER BY " + EDITS_KEY_TRANSACTION_TIME;
+
+    /**
+     * Query a transaction by id
+     */
+    public static final String TRANSACTION_QUERY =
+            "SELECT * FROM " + TRANSACTIONS_TABLE_NAME + " WHERE " + TRANSACTIONS_KEY_ID + " = ?";
+
+    /**
+     * Returns all edits for a transaction (selected by the id of its associated transaction id)
+     */
+    public static final String EDITS_FOR_TRANSACTION_QUERY =
+            "SELECT * FROM " + EDITS_TABLE_NAME + " WHERE " + EDITS_KEY_TRANSACTION + " = ?";
 
     /**
      * Returns all active regular transactions

@@ -38,9 +38,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private static final int LOADER_ID_REGULARS = 0;
     private static final int LOADER_ID_TRANSACTIONS = 1;
 
-    public static final int REQUEST_TRANSACTION_EDIT = 0;
+    public static final int REQUEST_TRANSACTION_NEW = 0;
     public static final int REQUEST_REGULARS_OVERVIEW = 1;
     public static final int REQUEST_SETTINGS = 2;
+    public static final int REQUEST_TRANSACTION_EDIT = 3;
 
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
@@ -121,6 +122,20 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         dayAdapter = new TransactionsArrayAdapter();
         dayRecycler.setAdapter(dayAdapter);
 
+        BaseTransactionsAdapter.OnItemClickListener itemClickListener = new BaseTransactionsAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(BaseTransactionsAdapter adapter, int adapterPosition) {
+                TransactionsModel transaction = ((TransactionsArrayAdapter) adapter).getModel(adapterPosition);
+                if (transaction != null) {
+                    Intent intent = new Intent(OverviewActivity.this, TransactionEditActivity.class);
+                    intent.putExtra(TransactionEditActivity.EXTRA_TRANSACTION, transaction);
+                    startActivityForResult(intent, REQUEST_TRANSACTION_EDIT);
+                }
+            }
+        };
+        monthAdapter.setOnItemClickListener(itemClickListener);
+        dayAdapter.setOnItemClickListener(itemClickListener);
+
         // TODO this should be user-settable
         DateTime now = DateTime.now();
         periodStart = now.withDayOfMonth(1).withTimeAtStartOfDay();
@@ -143,7 +158,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startActivityForResult(new Intent(v.getContext(), TransactionEditActivity.class), REQUEST_TRANSACTION_EDIT);
+                startActivityForResult(new Intent(v.getContext(), TransactionEditActivity.class), REQUEST_TRANSACTION_NEW);
             }
         });
     }
@@ -171,7 +186,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_TRANSACTION_EDIT) {
+        if (requestCode == REQUEST_TRANSACTION_NEW || requestCode == REQUEST_TRANSACTION_EDIT) {
             if (resultCode == RESULT_OK) {
                 Bundle args = new Bundle();
                 args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
