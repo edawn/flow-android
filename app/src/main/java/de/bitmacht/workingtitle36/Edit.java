@@ -13,7 +13,7 @@ import java.util.TimeZone;
  */
 public class Edit implements Parcelable {
 
-    public long id;
+    public Long id = null;
     public long parent;
     public long transaction;
     public int sequence;
@@ -39,14 +39,14 @@ public class Edit implements Parcelable {
                 cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT)));
     }
 
-    public Edit(long id, long parent, long transaction, int sequence, long transactionTime, String transactionDescription, String transactionLocation, Value value) {
-        this(id, parent, transaction, sequence, transactionTime, transactionDescription, transactionLocation, value.currencyCode, value.amount);
+    public Edit(long parent, long transaction, int sequence, long transactionTime, String transactionDescription, String transactionLocation, Value value) {
+        this(null, parent, transaction, sequence, transactionTime, transactionDescription, transactionLocation, value.currencyCode, value.amount);
     }
 
     /**
      * Create a new Edit from arguments
      */
-    public Edit(long id, long parent, long transaction, int sequence, long transactionTime, String transactionDescription, String transactionLocation,
+    public Edit(Long id, long parent, long transaction, int sequence, long transactionTime, String transactionDescription, String transactionLocation,
                 String transactionCurrency, long transactionAmount) {
         this.id = id;
         this.parent = parent;
@@ -83,7 +83,7 @@ public class Edit implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(id);
+        dest.writeValue(id);
         dest.writeLong(parent);
         dest.writeLong(transaction);
         dest.writeInt(sequence);
@@ -106,7 +106,7 @@ public class Edit implements Parcelable {
     };
 
     private Edit(Parcel in) {
-        id = in.readLong();
+        id = (Long) in.readValue(Long.class.getClassLoader());
         parent = in.readLong();
         transaction = in.readLong();
         sequence = in.readInt();

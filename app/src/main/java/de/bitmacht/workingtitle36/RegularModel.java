@@ -20,7 +20,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
-public class RegularModel implements Parcelable, Comparable<RegularModel> {
+public class RegularModel implements Parcelable {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularModel.class);
 
@@ -28,7 +28,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
     @Retention(RetentionPolicy.SOURCE)
     public @interface PeriodType {}
 
-    public long creationTime;
+    public Long id = null;
     public long timeFirst;
     @PeriodType
     public int periodType;
@@ -45,10 +45,9 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
     /**
      * Creates a new instance
      */
-    public RegularModel(long creationTime, long timeFirst, @PeriodType int periodType, int periodMultiplier,
+    public RegularModel(long timeFirst, @PeriodType int periodType, int periodMultiplier,
                         boolean isSpread, boolean isDisabled, boolean isDeleted, long amount, String currency,
                         String description) {
-        this.creationTime = creationTime;
         this.timeFirst = timeFirst;
         this.periodType = periodType;
         this.periodMultiplier = periodMultiplier;
@@ -61,7 +60,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
     }
 
     public RegularModel(Cursor cursor) {
-        creationTime = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_CREATION_TIME));
+        id = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_ID));
         timeFirst = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_TIME_FIRST));
         //noinspection ResourceType
         periodType = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_PERIOD_TYPE));
@@ -188,7 +187,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
      * @return the same instance from the arguments
      */
     public ContentValues toContentValues(@NonNull ContentValues cv) {
-        cv.put(DBHelper.REGULARS_KEY_CREATION_TIME, creationTime);
+        cv.put(DBHelper.REGULARS_KEY_ID, id);
         cv.put(DBHelper.REGULARS_KEY_TIME_FIRST, timeFirst);
         cv.put(DBHelper.REGULARS_KEY_PERIOD_TYPE, periodType);
         cv.put(DBHelper.REGULARS_KEY_PERIOD_MULTIPLIER, periodMultiplier);
@@ -208,7 +207,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(creationTime);
+        dest.writeValue(id);
         dest.writeLong(timeFirst);
         dest.writeInt(periodType);
         dest.writeInt(periodMultiplier);
@@ -230,7 +229,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
             };
 
     private RegularModel(Parcel in) {
-        creationTime = in.readLong();
+        id = (Long) in.readValue(Long.class.getClassLoader());
         timeFirst = in.readLong();
         //noinspection ResourceType
         periodType = in.readInt();
@@ -246,13 +245,7 @@ public class RegularModel implements Parcelable, Comparable<RegularModel> {
     }
 
     @Override
-    public int compareTo(@NonNull RegularModel another) {
-        return timeFirst < another.timeFirst ? -1 : timeFirst > another.timeFirst ? 1 :
-                creationTime < another.creationTime ? -1 : creationTime > another.creationTime ? 1 : 0;
-    }
-
-    @Override
     public boolean equals(Object o) {
-        return o instanceof RegularModel && creationTime == ((RegularModel) o).creationTime;
+        return id != null && o instanceof RegularModel && ((RegularModel) o).id != null && id.equals(((RegularModel)o).id);
     }
 }

@@ -36,10 +36,10 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     public static final String EXTRA_TRANSACTION = "transaction";
 
     private static final String STATE_VALUE_KEY = "value";
-    private static final String STATE_PARENT_EDIT_KEY = "parent_edit";
+    private static final String STATE_PARENT_ID_KEY = "parent_id";
 
-    private long creationTime;
-    private Edit parentEdit;
+    private Long transactionId = null;
+    private Long parentId = null;
     private Calendar transactionTime = new GregorianCalendar();
     private Value value;
 
@@ -82,26 +82,33 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
             Intent intent = getIntent();
             if (intent.hasExtra(EXTRA_TRANSACTION)) {
                 TransactionsModel transaction = intent.getParcelableExtra(EXTRA_TRANSACTION);
-                creationTime = transaction.id;
                 if (transaction.mostRecentEdit != null) {
-                    parentEdit = transaction.mostRecentEdit;
+                    transactionId = transaction.id;
+                    Edit parentEdit = transaction.mostRecentEdit;
+                    parentId = parentEdit.id;
                     transactionTime.setTimeInMillis(parentEdit.transactionTime);
                     descriptionView.setText(parentEdit.transactionDescription);
                     value = parentEdit.getValue();
+                } else {
+                    if (BuildConfig.DEBUG) {
+                        logger.warn("A transaction without an edit: id: {}", transaction.id);
+                    }
                 }
-            } else {
-                creationTime = System.currentTimeMillis();
-                value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
             }
         } else {
-            creationTime = savedInstanceState.getLong(DBHelper.TRANSACTIONS_KEY_ID);
-            parentEdit = savedInstanceState.getParcelable(STATE_PARENT_EDIT_KEY);
+            if (savedInstanceState.containsKey(DBHelper.TRANSACTIONS_KEY_ID)) {
+                transactionId = savedInstanceState.getLong(DBHelper.TRANSACTIONS_KEY_ID);
+                parentId = savedInstanceState.getLong(DBHelper.EDITS_KEY_PARENT);
+            }
             transactionTime.setTimeInMillis(savedInstanceState.getLong(DBHelper.EDITS_KEY_TRANSACTION_TIME));
             value = savedInstanceState.getParcelable(STATE_VALUE_KEY);
         }
 
         updateTimeViews();
 
+        if (value == null) {
+            value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
+        }
         valueWidget.setValue(value);
 
         valueModLessView.setValue(value.withAmount(10));
@@ -114,8 +121,11 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(DBHelper.TRANSACTIONS_KEY_ID, creationTime);
-        outState.putParcelable(STATE_PARENT_EDIT_KEY, parentEdit);
+        if (transactionId != null) {
+            outState.putLong(DBHelper.TRANSACTIONS_KEY_ID, transactionId);
+            // the existence of parentId depends on the existence of transactionId
+            outState.putLong(DBHelper.EDITS_KEY_PARENT, parentId);
+        }
         outState.putLong(DBHelper.EDITS_KEY_TRANSACTION_TIME, transactionTime.getTimeInMillis());
         outState.putParcelable(STATE_VALUE_KEY, value);
     }
@@ -186,8 +196,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
      * Returns an Edit matching the currently set data
      */
     private Edit getEdit() {
-        boolean hasParent = parentEdit != null;
-        return new Edit(0, hasParent ? parentEdit.id : 0 , hasParent ? parentEdit.transaction : 0,
+        return new Edit(parentId == null ? 0 : parentId, transactionId == null ? 0 : transactionId,
                 0, transactionTime.getTimeInMillis(), descriptionView.getText().toString(), "", value);
     }
 

@@ -18,8 +18,7 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String TRANSACTIONS_TABLE_NAME = "transactions";
     /**
-     * The id of this transaction; should be its creation time in ms since the epoch;
-     * if an entry with this key should already exist, increment by one and retry
+     * The id of this transaction
      */
     public static final String TRANSACTIONS_KEY_ID = "id";
     /**
@@ -39,8 +38,7 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String EDITS_TABLE_NAME = "edits";
     /**
-     * The id of this edit; should be its creation time in ms since the epoch;
-     * if an entry with this key should already exist, increment by one and retry
+     * The id of this edit
      */
     public static final String EDITS_KEY_ID = "id";
     /**
@@ -109,10 +107,9 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String REGULARS_TABLE_NAME = "regulars";
 
     /**
-     * The creation time of this transaction; also serving as the primary key of this table;
-     * in ms since the epoch; if an entry with this key should already exist, increment by one and retry
+     * The id of this transaction
      */
-    public static final String REGULARS_KEY_CREATION_TIME = "creation_time";
+    public static final String REGULARS_KEY_ID = "id";
     /**
      * The time this transaction will be executed for the first time;
      * in ms since the epoch
@@ -165,7 +162,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public static final String REGULARS_TABLE_CREATE =
             "CREATE TABLE " + REGULARS_TABLE_NAME + "(" +
-                    REGULARS_KEY_CREATION_TIME + " INTEGER PRIMARY KEY, " +
+                    REGULARS_KEY_ID + " INTEGER PRIMARY KEY, " +
                     REGULARS_KEY_TIME_FIRST + " INTEGER, " +
                     REGULARS_KEY_PERIOD_TYPE + " INTEGER, " +
                     REGULARS_KEY_PERIOD_MULTIPLIER + " INTEGER, " +
@@ -187,7 +184,7 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME = "execution_time";
     /**
-     * The creation time (i.e. id) of the referenced regular transaction
+     * The id of the referenced regular transaction
      */
     public static final String TRANSACTIONS_REGULAR_KEY_REGULAR_ID = "regular_id";
     /**
@@ -201,7 +198,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     public static final String TRANSACTIONS_REGULAR_TABLE_CREATE =
             "CREATE TABLE " + TRANSACTIONS_REGULAR_TABLE_NAME + "(" +
-                    TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " INTEGER REFERENCES " + REGULARS_TABLE_NAME + " (" + REGULARS_KEY_CREATION_TIME + "), " +
+                    TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " INTEGER REFERENCES " + REGULARS_TABLE_NAME + ", " +
                     TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " INTEGER, " +
                     TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " INTEGER," +
                     "UNIQUE(" + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + ", " + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + "));";

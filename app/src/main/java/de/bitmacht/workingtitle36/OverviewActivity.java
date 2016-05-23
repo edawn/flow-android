@@ -403,7 +403,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     Pair<Integer, Integer> periodRange = regular.getPeriodNumberRange(start, end);
 
                     Cursor executedCursor = db.rawQuery(DBHelper.EXECUTED_REGULARS_BY_ID_PERIOD_RANGE_QUERY,
-                            new String[]{String.valueOf(regular.creationTime), String.valueOf(periodRange.first),
+                            new String[]{String.valueOf(regular.id), String.valueOf(periodRange.first),
                                     String.valueOf(periodRange.second)});
 
                     while (executedCursor.moveToNext()) {
@@ -421,7 +421,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                             //TODO check time zone
                             now = new DateTime();
                         }
-                        TransactionsRegularModel executed = new TransactionsRegularModel(regular.creationTime, now.getMillis(), periodNumber);
+                        TransactionsRegularModel executed = new TransactionsRegularModel(regular.id, now.getMillis(), periodNumber);
                         try {
                             executed.insert(db);
                         } catch (SQLException e) {

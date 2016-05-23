@@ -38,7 +38,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
 
     private static final String STATE_VALUE_KEY = "value";
 
-    private long creationTime;
+    private Long regularId = null;
     private Calendar timeFirst = new GregorianCalendar();
     private Value value;
 
@@ -83,7 +83,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
             if (intent.hasExtra(EXTRA_REGULAR)) {
                 // edit an existing regular
                 RegularModel regular = intent.getParcelableExtra(EXTRA_REGULAR);
-                creationTime = regular.creationTime;
+                regularId = regular.id;
                 value = regular.getValue();
                 enabledSwitch.setChecked(!regular.isDisabled);
                 timeFirst.setTimeInMillis(regular.timeFirst);
@@ -102,11 +102,11 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
                 repetitionSpinner.setSelection(pos);
                 descriptionView.setText(regular.description);
             } else {
-                creationTime = System.currentTimeMillis();
                 value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
             }
         } else {
-            creationTime = savedInstanceState.getLong(DBHelper.REGULARS_KEY_CREATION_TIME);
+            regularId = savedInstanceState.containsKey(DBHelper.REGULARS_KEY_ID) ?
+                    savedInstanceState.getLong(DBHelper.REGULARS_KEY_ID) : null;
             timeFirst.setTimeInMillis(savedInstanceState.getLong(DBHelper.REGULARS_KEY_TIME_FIRST));
             value = savedInstanceState.getParcelable(STATE_VALUE_KEY);
         }
@@ -118,7 +118,9 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putLong(DBHelper.REGULARS_KEY_CREATION_TIME, creationTime);
+        if (regularId != null) {
+            outState.putLong(DBHelper.REGULARS_KEY_ID, regularId);
+        }
         outState.putLong(DBHelper.REGULARS_KEY_TIME_FIRST, timeFirst.getTimeInMillis());
         outState.putParcelable(STATE_VALUE_KEY, value);
     }
@@ -194,7 +196,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
             logger.trace("value: {}", cv);
         }
 
-        return new RegularModel(creationTime, dateView.getTime(), periodType, periodMultiplier,
+        return new RegularModel(dateView.getTime(), periodType, periodMultiplier,
                 false, !enabledSwitch.isChecked(), false, cv.amount, cv.currencyCode, descriptionView.getText().toString());
     }
 

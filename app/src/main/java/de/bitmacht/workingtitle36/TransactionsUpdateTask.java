@@ -43,16 +43,16 @@ public class TransactionsUpdateTask extends AsyncTask<Void, Void, Boolean> {
                 int transactionsCount = cursor.getCount();
                 cursor.close();
                 if (transactionsCount == 0) {
-                    // transaction does not exist
-                    transactionId = System.currentTimeMillis();
-                    cv.put(DBHelper.TRANSACTIONS_KEY_ID, transactionId);
+                    // transaction does not exist; insert new
                     cv.put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, false);
                     long res = db.insert(DBHelper.TRANSACTIONS_TABLE_NAME, null, cv);
                     if (res == -1) {
                         if (BuildConfig.DEBUG) {
-                            logger.warn("inserting transaction {} failed", cv.get(DBHelper.TRANSACTIONS_KEY_ID));
+                            logger.warn("inserting new transaction failed");
                         }
+                        return false;
                     }
+                    transactionId = res;
                     cv.clear();
                 } else {
                     if (BuildConfig.DEBUG) {
@@ -80,11 +80,6 @@ public class TransactionsUpdateTask extends AsyncTask<Void, Void, Boolean> {
                     }
                 }
 
-                long id = System.currentTimeMillis();
-                if (parentId == null) {
-                    parentId = id;
-                }
-                cv.put(DBHelper.EDITS_KEY_ID, System.currentTimeMillis());
                 cv.put(DBHelper.EDITS_KEY_PARENT, parentId);
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION, transactionId);
                 cv.put(DBHelper.EDITS_KEY_SEQUENCE, nextSequence);

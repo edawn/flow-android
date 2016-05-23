@@ -4,9 +4,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.annotation.NonNull;
 
-public class TransactionsRegularModel implements Comparable<TransactionsRegularModel> {
+public class TransactionsRegularModel {
 
     public long regularId;
     public long executionTime;
@@ -30,11 +29,5 @@ public class TransactionsRegularModel implements Comparable<TransactionsRegularM
         values.put(DBHelper.TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME, executionTime);
         values.put(DBHelper.TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER, periodNumber);
         db.insertOrThrow(DBHelper.TRANSACTIONS_REGULAR_TABLE_NAME, null, values);
-    }
-
-    @Override
-    public int compareTo(@NonNull TransactionsRegularModel another) {
-        return regularId < another.regularId ? -1 : regularId > another.regularId ? 1 :
-                periodNumber < another.periodNumber ? -1 : periodNumber > another.periodNumber ? 1 : 0;
     }
 }
