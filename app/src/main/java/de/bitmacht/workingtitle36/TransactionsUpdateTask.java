@@ -36,38 +36,42 @@ public class TransactionsUpdateTask extends AsyncTask<Void, Void, Boolean> {
             try {
                 ContentValues cv = new ContentValues(10);
 
-                long transactionId = edit.transaction;
+                Long transactionId = edit.transaction;
                 Long parentId = null;
-                int nextSequence = 0;
-                Cursor cursor = db.rawQuery(DBHelper.TRANSACTION_QUERY, new String[]{Long.toString(transactionId)});
-                int transactionsCount = cursor.getCount();
-                cursor.close();
-                if (transactionsCount == 0) {
+                int sequence = 0;
+
+                boolean createNewTransaction = false;
+                if (transactionId != null) {
+                    Cursor cursor = db.rawQuery(DBHelper.TRANSACTION_QUERY, new String[]{Long.toString(transactionId)});
+                    int transactionsCount = cursor.getCount();
+                    cursor.close();
+                    if (transactionsCount == 0) {
+                        transactionId = null;
+                        createNewTransaction = true;
+                    } else {
+                        parentId = edit.parent;
+                        if (BuildConfig.DEBUG) {
+                            if (transactionsCount > 1) {
+                                logger.warn("this should not happen: more than one resulting row");
+                            }
+                        }
+                    }
+                }
+
+                if (createNewTransaction) {
                     // transaction does not exist; insert new
                     cv.put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, false);
-                    long res = db.insert(DBHelper.TRANSACTIONS_TABLE_NAME, null, cv);
-                    if (res == -1) {
-                        if (BuildConfig.DEBUG) {
-                            logger.warn("inserting new transaction failed");
-                        }
-                        return false;
-                    }
-                    transactionId = res;
+                    transactionId = db.insertOrThrow(DBHelper.TRANSACTIONS_TABLE_NAME, null, cv);
                     cv.clear();
                 } else {
-                    if (BuildConfig.DEBUG) {
-                        if (transactionsCount > 1) {
-                            logger.warn("this should not happen: more than one resulting row");
-                        }
-                    }
-                    cursor = db.rawQuery(DBHelper.EDITS_FOR_TRANSACTION_QUERY, new String[]{Long.toString(transactionId)});
+                    Cursor cursor = db.rawQuery(DBHelper.EDITS_FOR_TRANSACTION_QUERY, new String[]{Long.toString(transactionId)});
                     try {
                         if (BuildConfig.DEBUG) {
                             logger.trace("{} edits for transaction {}", cursor.getCount(), transactionId);
                         }
                         while (cursor.moveToNext()) {
                             Edit tmpEdit = new Edit(cursor);
-                            nextSequence = Math.max(nextSequence, tmpEdit.sequence + 1);
+                            sequence = Math.max(sequence, tmpEdit.sequence + 1);
                             if (edit.parent == tmpEdit.id) {
                                 parentId = edit.parent;
                             }
@@ -82,7 +86,7 @@ public class TransactionsUpdateTask extends AsyncTask<Void, Void, Boolean> {
 
                 cv.put(DBHelper.EDITS_KEY_PARENT, parentId);
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION, transactionId);
-                cv.put(DBHelper.EDITS_KEY_SEQUENCE, nextSequence);
+                cv.put(DBHelper.EDITS_KEY_SEQUENCE, sequence);
                 cv.put(DBHelper.EDITS_KEY_IS_PENDING, false);
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION_TIME, edit.transactionTime);
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, edit.transactionDescription);

@@ -196,8 +196,8 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
      * Returns an Edit matching the currently set data
      */
     private Edit getEdit() {
-        return new Edit(parentId == null ? 0 : parentId, transactionId == null ? 0 : transactionId,
-                0, transactionTime.getTimeInMillis(), descriptionView.getText().toString(), "", value);
+        Edit edit = new Edit(parentId, transactionId, transactionTime.getTimeInMillis(), descriptionView.getText().toString(), "", value);
+        return edit;
     }
 
     @Override

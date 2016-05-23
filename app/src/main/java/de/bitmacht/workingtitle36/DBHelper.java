@@ -43,7 +43,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String EDITS_KEY_ID = "id";
     /**
      * The id of the parent that this entry has been derived from;
-     * if this is the first edit in a transaction then this is this edit's id
+     * if this is the first edit in a transaction then this is NULL
      */
     public static final String EDITS_KEY_PARENT = "parent";
     /**
