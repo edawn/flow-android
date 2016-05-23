@@ -1,8 +1,8 @@
 package de.bitmacht.workingtitle36;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.os.Bundle;
 import android.widget.DatePicker;
 

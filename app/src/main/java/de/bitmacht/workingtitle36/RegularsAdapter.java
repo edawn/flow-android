@@ -43,7 +43,6 @@ public class RegularsAdapter extends BaseTransactionsAdapter<BaseTransactionsAda
 
     /**
      * Remove the item
-     * @param holder
      * @return The model of the item removed
      */
     public RegularModel removeItem(BaseTransactionVH holder) {

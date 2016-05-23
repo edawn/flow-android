@@ -36,7 +36,6 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     public static final String EXTRA_TRANSACTION = "transaction";
 
     private static final String STATE_VALUE_KEY = "value";
-    private static final String STATE_PARENT_ID_KEY = "parent_id";
 
     private Long transactionId = null;
     private Long parentId = null;
@@ -196,8 +195,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
      * Returns an Edit matching the currently set data
      */
     private Edit getEdit() {
-        Edit edit = new Edit(parentId, transactionId, transactionTime.getTimeInMillis(), descriptionView.getText().toString(), "", value);
-        return edit;
+        return new Edit(parentId, transactionId, transactionTime.getTimeInMillis(), descriptionView.getText().toString(), "", value);
     }
 
     @Override

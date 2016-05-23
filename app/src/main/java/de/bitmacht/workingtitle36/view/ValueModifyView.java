@@ -14,7 +14,6 @@ import android.widget.TextView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.bitmacht.workingtitle36.BuildConfig;
 import de.bitmacht.workingtitle36.R;
 import de.bitmacht.workingtitle36.Value;
 
