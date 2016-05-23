@@ -20,10 +20,10 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:23.3.0'
-    compile 'com.android.support:recyclerview-v7:23.3.0'
-    compile 'com.android.support:preference-v7:23.3.0'
-    compile 'com.android.support:design:23.3.0'
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:recyclerview-v7:23.4.0'
+    compile 'com.android.support:preference-v7:23.4.0'
+    compile 'com.android.support:design:23.4.0'
     compile 'com.github.tony19:logback-android-classic:1.1.1-5'
     compile 'com.github.tony19:logback-android-core:1.1.1-5'
     compile 'joda-time:joda-time:2.9.3'
