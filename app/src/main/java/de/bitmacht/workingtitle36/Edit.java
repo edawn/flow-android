@@ -68,12 +68,10 @@ public class Edit implements Parcelable {
 
     @Override
     public String toString() {
-        Calendar ccal = Calendar.getInstance(TimeZone.getTimeZone("Z"));
-        ccal.setTimeInMillis(id);
         Calendar tcal = Calendar.getInstance(TimeZone.getTimeZone("Z"));
         tcal.setTimeInMillis(transactionTime);
-        return String.format("id: %tFT%<tTZ, transactionTime: %tFT%<tTZ, transactionDescription: %s, transactionLocation: %s, transactionCurrency: %s, transactionAmount: %d",
-                ccal, tcal, transactionDescription, transactionLocation, transactionCurrency, transactionAmount);
+        return String.format("id: %s, par: %s, tr: %s, seq: %s, time: %tFT%<tTZ, desc: %s, loc: %s, cur: %s, am: %d",
+                id, parent, transaction, sequence, tcal, transactionDescription, transactionLocation, transactionCurrency, transactionAmount);
     }
 
     @Override
