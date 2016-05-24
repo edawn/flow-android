@@ -1,0 +1,8 @@
+<resources>
+
+    <style name="TransactionEditorItemActionValue" parent="TransactionEditorItemAction">
+        <item name="android:orientation">horizontal</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+
+</resources>

@@ -9,75 +9,119 @@
 
     <include layout="@layout/accept_dismiss_toolbar" />
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content">
-
-        <de.bitmacht.workingtitle36.view.TimeView
-            android:id="@+id/time"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            app:timeFormat="time" />
-
-        <de.bitmacht.workingtitle36.view.TimeView
-            android:id="@+id/date"
-            style="@style/Widget.AppCompat.Button.Borderless"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.AppCompat.Large"
-            app:timeFormat="date" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical">
-
-        <de.bitmacht.workingtitle36.view.ValueTextView
-            android:id="@+id/value"
-            style="@style/TextAppearance.AppCompat.Large"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="end"
-            android:minWidth="120sp"
-            android:paddingEnd="10dp"
-            android:paddingLeft="5dp"
-            android:paddingRight="10dp"
-            android:paddingStart="5dp" />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:divider="?android:attr/listDivider"
+            android:orientation="vertical"
+            android:showDividers="middle|end">
 
-            <de.bitmacht.workingtitle36.view.ValueModifyView
-                android:id="@+id/value_modify_more"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-            <de.bitmacht.workingtitle36.view.ValueModifyView
-                android:id="@+id/value_modify_less"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical" />
+                <ImageView
+                    style="@style/TransactionEditorItemIcon"
+                    android:src="@drawable/ic_schedule_black_24dp" />
+
+                <TextView
+                    style="@style/TransactionEditorItemLabel"
+                    android:text="@string/time" />
+
+                <LinearLayout style="@style/TransactionEditorItemActionTime">
+
+                    <de.bitmacht.workingtitle36.view.TimeView
+                        android:id="@+id/date"
+                        style="@style/TimeView_Button"
+                        app:timeFormat="date" />
+
+                    <Space
+                        android:layout_width="8dp"
+                        android:layout_height="0px" />
+
+                    <de.bitmacht.workingtitle36.view.TimeView
+                        android:id="@+id/time"
+                        style="@style/TimeView_Button"
+                        app:timeFormat="time" />
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <android.support.v7.widget.AppCompatImageView
+                    style="@style/TransactionEditorItemIcon"
+                    android:src="@drawable/ic_attach_money_black_24dp" />
+
+                <TextView
+                    style="@style/TransactionEditorItemLabel"
+                    android:text="@string/value" />
+
+                <LinearLayout style="@style/TransactionEditorItemActionValue">
+
+                    <de.bitmacht.workingtitle36.view.ValueTextView
+                        android:id="@+id/value"
+                        style="@style/TextAppearance.AppCompat.Large"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <de.bitmacht.workingtitle36.view.ValueModifyView
+                            android:id="@+id/value_modify_more"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical" />
+
+                        <de.bitmacht.workingtitle36.view.ValueModifyView
+                            android:id="@+id/value_modify_less"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <android.support.v7.widget.AppCompatImageView
+                    style="@style/TransactionEditorItemIcon"
+                    android:src="@drawable/ic_local_offer_black_24dp" />
+
+                <android.support.design.widget.TextInputLayout
+                    style="@style/TransactionEditorItemAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@id/icon"
+                    android:layout_toRightOf="@id/icon">
+
+                    <android.support.design.widget.TextInputEditText
+                        android:id="@+id/description"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:hint="@string/transaction_edit_description_hint" />
+
+                </android.support.design.widget.TextInputLayout>
+
+            </RelativeLayout>
 
         </LinearLayout>
 
-    </LinearLayout>
+    </ScrollView>
 
-    <android.support.design.widget.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <android.support.design.widget.TextInputEditText
-            android:id="@+id/description"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/transaction_edit_description_hint" />
-
-    </android.support.design.widget.TextInputLayout>
 </LinearLayout>

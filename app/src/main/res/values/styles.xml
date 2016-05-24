@@ -15,7 +15,10 @@
     <style name="TransactionEditorItem">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:padding">18dp</item>
+        <item name="android:paddingTop">18dp</item>
+        <item name="android:paddingLeft">18dp</item>
+        <item name="android:paddingRight">18dp</item>
+        <item name="android:paddingBottom">18dp</item>
     </style>
 
     <style name="TransactionEditorItemIcon" parent="TransactionEditorItem">
@@ -33,6 +36,17 @@
         <item name="android:layout_alignParentRight">true</item>
     </style>
 
+    <style name="TransactionEditorItemActionValue" parent="TransactionEditorItemAction">
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center_horizontal</item>
+    </style>
+
+    <style name="TransactionEditorItemActionTime" parent="TransactionEditorItemAction">
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+    </style>
+
     <style name="TransactionItem">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -41,6 +55,12 @@
         <item name="android:paddingRight">5dp</item>
         <item name="android:paddingTop">5dp</item>
         <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+
+    <style name="TimeView_Button" parent="@style/Widget.AppCompat.Button.Borderless">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large</item>
     </style>
 
 </resources>

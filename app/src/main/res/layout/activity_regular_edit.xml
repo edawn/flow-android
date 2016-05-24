@@ -16,15 +16,13 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:divider="?android:attr/listDivider"
-            android:showDividers="middle|end"
-            >
+            android:orientation="vertical"
+            android:showDividers="middle|end">
 
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                >
+                android:layout_height="wrap_content">
 
                 <ImageView
                     style="@style/TransactionEditorItemIcon"
@@ -32,14 +30,12 @@
 
                 <TextView
                     style="@style/TransactionEditorItemLabel"
-                    android:text="@string/active"
-                    />
+                    android:text="@string/active" />
 
                 <android.support.v7.widget.SwitchCompat
                     android:id="@+id/enabled"
-                    android:checked="true"
                     style="@style/TransactionEditorItemAction"
-                    />
+                    android:checked="true" />
 
             </RelativeLayout>
 
@@ -53,14 +49,16 @@
 
                 <TextView
                     style="@style/TransactionEditorItemLabel"
-                    android:text="@string/regular_first_time"
-                    />
+                    android:text="@string/regular_first_time" />
 
-                <de.bitmacht.workingtitle36.view.TimeView
-                    android:id="@+id/date"
-                    style="@style/TransactionEditorItemAction"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                    app:timeFormat="date" />
+                <FrameLayout style="@style/TransactionEditorItemActionTime">
+
+                    <de.bitmacht.workingtitle36.view.TimeView
+                        android:id="@+id/date"
+                        style="@style/TimeView_Button"
+                        app:timeFormat="date" />
+
+                </FrameLayout>
 
             </RelativeLayout>
 
@@ -70,18 +68,15 @@
 
                 <android.support.v7.widget.AppCompatImageView
                     style="@style/TransactionEditorItemIcon"
-                    android:src="@drawable/ic_history_black_24dp"
-                    />
+                    android:src="@drawable/ic_history_black_24dp" />
 
                 <TextView
                     style="@style/TransactionEditorItemLabel"
-                    android:text="@string/regular_repetition"
-                    />
+                    android:text="@string/regular_repetition" />
 
                 <Spinner
                     android:id="@+id/repetition"
-                    style="@style/TransactionEditorItemAction"
-                    />
+                    style="@style/TransactionEditorItemAction" />
 
             </RelativeLayout>
 
@@ -91,19 +86,16 @@
 
                 <android.support.v7.widget.AppCompatImageView
                     style="@style/TransactionEditorItemIcon"
-                    android:src="@drawable/ic_attach_money_black_24dp"
-                    />
+                    android:src="@drawable/ic_attach_money_black_24dp" />
 
                 <TextView
                     style="@style/TransactionEditorItemLabel"
-                    android:text="@string/value"
-                    />
+                    android:text="@string/value" />
 
                 <de.bitmacht.workingtitle36.view.ValueEditText
                     android:id="@+id/value"
                     style="@style/TransactionEditorItemAction"
 
-                    android:textAppearance="?android:attr/textAppearanceLarge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:gravity="end"
@@ -111,7 +103,8 @@
                     android:paddingEnd="10dp"
                     android:paddingLeft="5dp"
                     android:paddingRight="10dp"
-                    android:paddingStart="5dp" />
+                    android:paddingStart="5dp"
+                    android:textAppearance="?android:attr/textAppearanceLarge" />
 
             </RelativeLayout>
 
@@ -121,15 +114,14 @@
 
                 <android.support.v7.widget.AppCompatImageView
                     style="@style/TransactionEditorItemIcon"
-                    android:src="@drawable/ic_local_offer_black_24dp"
-                    />
+                    android:src="@drawable/ic_local_offer_black_24dp" />
 
                 <android.support.design.widget.TextInputLayout
                     style="@style/TransactionEditorItemAction"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toRightOf="@id/icon"
-                    android:layout_toEndOf="@id/icon">
+                    android:layout_toEndOf="@id/icon"
+                    android:layout_toRightOf="@id/icon">
 
                     <android.support.design.widget.TextInputEditText
                         android:id="@+id/description"
