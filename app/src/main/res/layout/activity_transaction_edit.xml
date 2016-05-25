@@ -105,8 +105,6 @@
 
                 <android.support.design.widget.TextInputLayout
                     style="@style/TransactionEditorItemAction"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/icon"
                     android:layout_toRightOf="@id/icon">
 
