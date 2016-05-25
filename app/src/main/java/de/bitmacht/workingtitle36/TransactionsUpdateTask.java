@@ -40,16 +40,16 @@ public class TransactionsUpdateTask extends AsyncTask<Void, Void, Boolean> {
                 Long parentId = null;
                 int sequence = 0;
 
-                boolean createNewTransaction = false;
+                boolean createNewTransaction = true;
                 if (transactionId != null) {
                     Cursor cursor = db.rawQuery(DBHelper.TRANSACTION_QUERY, new String[]{Long.toString(transactionId)});
                     int transactionsCount = cursor.getCount();
                     cursor.close();
                     if (transactionsCount == 0) {
                         transactionId = null;
-                        createNewTransaction = true;
                     } else {
                         parentId = edit.parent;
+                        createNewTransaction = false;
                         if (BuildConfig.DEBUG) {
                             if (transactionsCount > 1) {
                                 logger.warn("this should not happen: more than one resulting row");
