@@ -51,6 +51,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private ValueModifyView valueModMoreView;
     private ValueModifyView valueModLessView;
     private EditText descriptionView;
+    private EditText locationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +68,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         valueModMoreView = (ValueModifyView) findViewById(R.id.value_modify_more);
         valueModLessView = (ValueModifyView) findViewById(R.id.value_modify_less);
         descriptionView = (EditText) findViewById(R.id.description);
+        locationView = (EditText) findViewById(R.id.location);
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowTitleEnabled(false);
@@ -87,6 +89,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
                     parentId = parentEdit.id;
                     transactionTime.setTimeInMillis(parentEdit.transactionTime);
                     descriptionView.setText(parentEdit.transactionDescription);
+                    locationView.setText(parentEdit.transactionLocation);
                     value = parentEdit.getValue();
                 } else {
                     if (BuildConfig.DEBUG) {
@@ -195,7 +198,8 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
      * Returns an Edit matching the currently set data
      */
     private Edit getEdit() {
-        return new Edit(parentId, transactionId, transactionTime.getTimeInMillis(), descriptionView.getText().toString(), "", value);
+        return new Edit(parentId, transactionId, transactionTime.getTimeInMillis(),
+                descriptionView.getText().toString(), locationView.getText().toString(), value);
     }
 
     @Override
