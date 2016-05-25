@@ -72,7 +72,7 @@ public class TransactionsUpdateTask extends AsyncTask<Void, Void, Boolean> {
                         while (cursor.moveToNext()) {
                             Edit tmpEdit = new Edit(cursor);
                             sequence = Math.max(sequence, tmpEdit.sequence + 1);
-                            if (edit.parent == tmpEdit.id) {
+                            if (edit.parent.equals(tmpEdit.id)) {
                                 parentId = edit.parent;
                             }
                         }
