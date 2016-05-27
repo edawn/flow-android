@@ -147,7 +147,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         DateTime now = DateTime.now();
         periodStart = now.withDayOfMonth(1).withTimeAtStartOfDay();
         periodEnd = now.plusMonths(1).withDayOfMonth(1).withTimeAtStartOfDay();
-        startOfDay = DateTime.now().withTimeAtStartOfDay();
+        startOfDay = now.withTimeAtStartOfDay();
 
         dbHelper = new DBHelper(this);
 
