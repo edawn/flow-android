@@ -4,9 +4,8 @@
     <string name="active">Active</string>
     <string name="regular_first_time">Start</string>
     <string name="regular_repetition">Repeat</string>
-    <string name="overview_title_budget">Budget</string>
-    <string name="overview_month">Month</string>
-    <string name="overview_day">Day</string>
+    <string name="overview_month">This Month</string>
+    <string name="overview_day">Today</string>
     <string name="overview_budget_minus_template">%1$s - %2$s = %3$s</string>
     <string name="overview_budget_plus_template">%1$s + %2$s = %3$s</string>
     <string name="menu_regular_transactions">Regular Transactions</string>

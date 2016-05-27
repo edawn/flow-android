@@ -17,46 +17,61 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:fillViewport="true"
-            >
+            android:layout_marginLeft="16dp"
+            android:layout_marginStart="16dp"
+            android:layout_marginRight="16dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp">
 
-            <GridLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:useDefaultMargins="true"
-                android:alignmentMode="alignBounds"
-                android:columnOrderPreserved="false"
-                android:columnCount="2">
+                android:orientation="vertical">
 
                 <TextView
-                    android:layout_columnSpan="2"
-                    android:layout_gravity="center_horizontal"
-                    android:text="@string/overview_title_budget" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/overview_month" />
 
-                <TextView android:text="@string/overview_month" />
-
-                <TextView android:id="@+id/month" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    style="?attr/borderlessButtonStyle"
+                    android:id="@+id/month" />
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/transactions_month"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:visibility="gone"
-                    android:layout_columnSpan="2" />
+                    android:background="@color/overviewTransactionsBackground"
+                    android:visibility="gone" />
 
-                <TextView android:text="@string/overview_day" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceMedium"
+                    android:text="@string/overview_day" />
 
-                <TextView android:id="@+id/day" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    style="?attr/borderlessButtonStyle"
+                    android:id="@+id/day" />
 
                 <android.support.v7.widget.RecyclerView
                     android:id="@+id/transactions_day"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:visibility="gone"
-                    android:layout_columnSpan="2" />
+                    android:background="@color/overviewTransactionsBackground"
+                    android:visibility="gone" />
 
-            </GridLayout>
+            </LinearLayout>
+
         </ScrollView>
-
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"

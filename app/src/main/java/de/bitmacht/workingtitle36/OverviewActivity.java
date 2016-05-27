@@ -21,6 +21,7 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
@@ -116,11 +117,17 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         monthRecycler.setLayoutManager(new LinearLayoutManager(this));
         monthAdapter = new TransactionsArrayAdapter();
         monthRecycler.setAdapter(monthAdapter);
+        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) monthRecycler.getLayoutParams();
+        lp.leftMargin = lp.rightMargin = monthView.getCompoundPaddingLeft();
+        monthRecycler.setLayoutParams(lp);
 
         dayRecycler = (RecyclerView) findViewById(R.id.transactions_day);
         dayRecycler.setLayoutManager(new LinearLayoutManager(this));
         dayAdapter = new TransactionsArrayAdapter();
         dayRecycler.setAdapter(dayAdapter);
+        lp = (ViewGroup.MarginLayoutParams) dayRecycler.getLayoutParams();
+        lp.leftMargin = lp.rightMargin = dayView.getCompoundPaddingLeft();
+        dayRecycler.setLayoutParams(lp);
 
         BaseTransactionsAdapter.OnItemClickListener itemClickListener = new BaseTransactionsAdapter.OnItemClickListener() {
             @Override
