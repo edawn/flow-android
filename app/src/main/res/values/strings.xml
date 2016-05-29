@@ -4,6 +4,7 @@
     <string name="active">Active</string>
     <string name="regular_first_time">Start</string>
     <string name="regular_repetition">Repeat</string>
+    <string name="overview_title">%1$tB %1$tY</string>
     <string name="overview_month">This Month</string>
     <string name="overview_day">Today</string>
     <string name="overview_budget_minus_template">%1$s - %2$s = %3$s</string>

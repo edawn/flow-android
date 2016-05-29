@@ -10,6 +10,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -18,10 +19,12 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
@@ -29,12 +32,16 @@ import org.joda.time.Days;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.TreeMap;
 
 public class OverviewActivity extends AppCompatActivity implements View.OnClickListener {
     
     private static final Logger logger = LoggerFactory.getLogger(OverviewActivity.class);
+
+    public static final String STATE_PERIOD_START = "periodStart";
 
     private static final int LOADER_ID_REGULARS = 0;
     private static final int LOADER_ID_TRANSACTIONS = 1;
@@ -44,6 +51,17 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     public static final int REQUEST_SETTINGS = 2;
     public static final int REQUEST_TRANSACTION_EDIT = 3;
 
+    public static final int PERIOD_NOW = 0;
+    public static final int PERIOD_BEFORE = 1;
+    public static final int PERIOD_NEXT = 2;
+    public static final int PERIOD_UNCHANGED = 3;
+
+    @IntDef({PERIOD_NOW, PERIOD_BEFORE, PERIOD_NEXT, PERIOD_UNCHANGED})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface PeriodModifier {}
+
+    private ImageButton monthBeforeBtn;
+    private ImageButton monthNextBtn;
     private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
     private NavigationView navBar;
@@ -80,13 +98,18 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_overview);
 
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        monthBeforeBtn = (ImageButton) findViewById(R.id.before_button);
+        monthBeforeBtn.setOnClickListener(this);
+        monthNextBtn = (ImageButton) findViewById(R.id.next_button);
+        monthNextBtn.setOnClickListener(this);
+
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close) {};
 
         drawerLayout.addDrawerListener(drawerToggle);
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
 
         navBar = (NavigationView) findViewById(R.id.navigation);
         navBar.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -143,23 +166,12 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         monthAdapter.setOnItemClickListener(itemClickListener);
         dayAdapter.setOnItemClickListener(itemClickListener);
 
-        // TODO this should be user-settable
-        DateTime now = DateTime.now();
-        periodStart = now.withDayOfMonth(1).withTimeAtStartOfDay();
-        periodEnd = now.plusMonths(1).withDayOfMonth(1).withTimeAtStartOfDay();
-        startOfDay = now.withTimeAtStartOfDay();
-
         dbHelper = new DBHelper(this);
 
-        Bundle args = new Bundle();
-        args.putLong(RegularsLoader.ARG_START, periodStart.getMillis());
-        args.putLong(RegularsLoader.ARG_END, periodEnd.getMillis());
-        getLoaderManager().initLoader(LOADER_ID_REGULARS, args, regularsLoaderListener);
-
-        args = new Bundle();
-        args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
-        args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
-        getLoaderManager().initLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
+        if (savedInstanceState != null) {
+            periodStart = new DateTime(savedInstanceState.getLong(STATE_PERIOD_START));
+        }
+        changePeriod(PERIOD_UNCHANGED);
 
         FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
         floatingActionButton.setOnClickListener(new View.OnClickListener() {
@@ -168,6 +180,27 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 startActivityForResult(new Intent(v.getContext(), TransactionEditActivity.class), REQUEST_TRANSACTION_NEW);
             }
         });
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        //TODO if the timezone changes after this, a wrong period may be restored
+        outState.putLong(STATE_PERIOD_START, periodStart.getMillis());
+    }
+
+    /**
+     * Update the action bar
+     */
+    private void upDate() {
+        if (periodEnd.isAfterNow()) {
+            monthNextBtn.setEnabled(false);
+            monthNextBtn.setAlpha(0.26f);
+        } else {
+            monthNextBtn.setEnabled(true);
+            monthNextBtn.setAlpha(1.0f);
+        }
+        getSupportActionBar().setTitle(getString(R.string.overview_title, periodStart.toGregorianCalendar()));
     }
 
     @Override
@@ -227,6 +260,33 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         } else {
             super.onBackPressed();
         }
+    }
+
+    private void changePeriod(@PeriodModifier int periodModifier) {
+        DateTime now;
+        if (periodModifier == PERIOD_NOW || periodStart == null) {
+            now = DateTime.now();
+        } else if (periodModifier == PERIOD_BEFORE) {
+            now = periodStart.minusMonths(1);
+        } else if (periodModifier == PERIOD_NEXT) {
+            now = periodStart.plusMonths(1);
+        } else { // PERIOD_UNCHANGED
+            now = periodStart;
+        }
+        periodStart = now.withDayOfMonth(1).withTimeAtStartOfDay();
+        periodEnd = now.plusMonths(1).withDayOfMonth(1).withTimeAtStartOfDay();
+        startOfDay = now.withTimeAtStartOfDay();
+        upDate();
+
+        Bundle args = new Bundle();
+        args.putLong(RegularsLoader.ARG_START, periodStart.getMillis());
+        args.putLong(RegularsLoader.ARG_END, periodEnd.getMillis());
+        getLoaderManager().restartLoader(LOADER_ID_REGULARS, args, regularsLoaderListener);
+
+        args = new Bundle();
+        args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
+        args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+        getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
     }
 
     private void updateOverview() {
@@ -326,6 +386,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
                 getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
             }
+        } else if (id == R.id.before_button) {
+            changePeriod(PERIOD_BEFORE);
+        } else if (id == R.id.next_button) {
+            changePeriod(PERIOD_NEXT);
         }
     }
 
