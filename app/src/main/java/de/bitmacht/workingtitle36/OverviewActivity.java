@@ -547,27 +547,27 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     // filter the transactions so we get only the transactions performed today
                     //TODO respect timezone
                     //TODO applying to a result that does not include the current day makes only little sense
-                    //TODO add a check for end of day (when using with past days)
                     //TODO enable user to set the day to show
                     long startOfDayMillis = startOfDay.getMillis();
+                    long endOfDayMillis = startOfDay.plusDays(1).getMillis();
                     ArrayList<TransactionsModel> trDay = new ArrayList<>(5);
                     String currencyCode = MyApplication.getCurrency().getCurrencyCode();
                     Value valueBeforeDay = new Value(currencyCode, 0);
                     Value valueDay = new Value(currencyCode, 0);
                     for (TransactionsModel transact : transactions) {
                         long transactionTime = transact.mostRecentEdit.transactionTime;
-                        if (transactionTime >= startOfDayMillis) {
-                            trDay.add(transact);
+                        if (transactionTime < startOfDayMillis) {
                             try {
-                                valueDay = valueDay.add(transact.mostRecentEdit.getValue());
+                                valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit.getValue());
                             } catch (Value.CurrencyMismatchException e) {
                                 if (BuildConfig.DEBUG) {
                                     logger.warn("unable to add: {}", transact.mostRecentEdit);
                                 }
                             }
-                        } else { // if (ttime < startOfDayMillis)
+                        } else if (transactionTime < endOfDayMillis) {
+                            trDay.add(transact);
                             try {
-                                valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit.getValue());
+                                valueDay = valueDay.add(transact.mostRecentEdit.getValue());
                             } catch (Value.CurrencyMismatchException e) {
                                 if (BuildConfig.DEBUG) {
                                     logger.warn("unable to add: {}", transact.mostRecentEdit);
