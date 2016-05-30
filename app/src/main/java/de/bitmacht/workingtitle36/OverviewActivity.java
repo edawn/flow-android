@@ -275,7 +275,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         }
         periodStart = now.withDayOfMonth(1).withTimeAtStartOfDay();
         periodEnd = now.plusMonths(1).withDayOfMonth(1).withTimeAtStartOfDay();
-        startOfDay = now.withTimeAtStartOfDay();
+        // if it's the current month, use the current day; otherwise use the first day of the month
+        startOfDay = periodEnd.isAfterNow() ? DateTime.now().withTimeAtStartOfDay() : now.withTimeAtStartOfDay();
         upDate();
 
         Bundle args = new Bundle();
