@@ -16,7 +16,18 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionsArrayAdapter.class);
 
+    /** will be non-null in the subadapter */
+    private TransactionsArrayAdapter parent = null;
+    /** the one and only subadapter of this adapter; will be null in the subadapter */
+    private TransactionsArrayAdapter sub = null;
+
     private List<TransactionsModel> transactions;
+
+    public TransactionsArrayAdapter() {}
+
+    private TransactionsArrayAdapter(TransactionsArrayAdapter parent) {
+        this.parent = parent;
+    }
 
     @Override
     public BaseTransactionsAdapter.BaseTransactionVH onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -40,6 +51,9 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
     }
 
     public void setData(List<TransactionsModel> transactions) {
+        if (parent != null) {
+            throw new UnsupportedOperationException("not allowed for a subadapter");
+        }
         this.transactions = transactions;
         notifyDataSetChanged();
     }
@@ -58,6 +72,66 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
             }
         }
         return null;
+    }
+
+    /**
+     * Return an adapter, that depends on this adapters data source
+     */
+    public TransactionsArrayAdapter getSubAdapter() {
+        if (parent != null) {
+            throw new UnsupportedOperationException("not allowed for a subadapter");
+        }
+        if (sub == null) {
+            sub = new TransactionsArrayAdapter(this);
+        }
+        return sub;
+    }
+
+    /**
+     * Define the time range for the subadapter
+     * @param startTime The start of the time range (including; in ms since the epoch)
+     * @param endTime The end of the time range (excluding; in ms since the epoch)
+     */
+    public void setSubRange(long startTime, long endTime) {
+        if (parent != null) {
+            throw new UnsupportedOperationException("not allowed for a subadapter");
+        }
+        if (transactions == null) {
+            return;
+        }
+        Integer startIndex = null;
+        Integer endIndex = null;
+        final int size = transactions.size();
+        int i = 0;
+
+        while (i < size) {
+            long trTime = transactions.get(i).mostRecentEdit.transactionTime;
+            if (i == 0 && startTime <= trTime) {
+                startIndex = 0;
+            }
+            if (startIndex == null && startTime < trTime) {
+                startIndex = i;
+            }
+            if (endIndex == null && endTime <= trTime) {
+                endIndex = i;
+            }
+            if (i == size - 1 && endIndex == null) {
+                endIndex = size;
+            }
+            i++;
+        }
+        if (startIndex == null || endIndex == null) {
+            // this will happen when transactions is empty
+            startIndex = endIndex = 0;
+        } else if (endIndex < startIndex) {
+            if (BuildConfig.DEBUG) {
+                logger.warn("start/end index {}/{} for start/end time {}/{}", startIndex, endIndex, startTime, endTime);
+                startIndex = endIndex = 0;
+            }
+        }
+        TransactionsArrayAdapter subAdapter = getSubAdapter();
+        subAdapter.transactions = transactions.subList(startIndex, endIndex);
+        subAdapter.notifyDataSetChanged();
     }
 
 }

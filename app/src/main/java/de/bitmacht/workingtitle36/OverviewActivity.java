@@ -78,13 +78,11 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
     private ArrayList<RegularModel> regulars = null;
     private ArrayList<TransactionsModel> transactions = null;
-    private ArrayList<TransactionsModel> transactionsDay = null;
 
     private RecyclerView monthRecycler;
-    private TransactionsArrayAdapter monthAdapter;
+    private TransactionsArrayAdapter adapter;
 
     private RecyclerView dayRecycler;
-    private TransactionsArrayAdapter dayAdapter;
 
     /**
      * Value of the transactions between the start of the accounting period (including) and
@@ -138,16 +136,15 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
         monthRecycler = (RecyclerView) findViewById(R.id.transactions_month);
         monthRecycler.setLayoutManager(new LinearLayoutManager(this));
-        monthAdapter = new TransactionsArrayAdapter();
-        monthRecycler.setAdapter(monthAdapter);
+        adapter = new TransactionsArrayAdapter();
+        monthRecycler.setAdapter(adapter);
         ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) monthRecycler.getLayoutParams();
         lp.leftMargin = lp.rightMargin = monthView.getCompoundPaddingLeft();
         monthRecycler.setLayoutParams(lp);
 
         dayRecycler = (RecyclerView) findViewById(R.id.transactions_day);
         dayRecycler.setLayoutManager(new LinearLayoutManager(this));
-        dayAdapter = new TransactionsArrayAdapter();
-        dayRecycler.setAdapter(dayAdapter);
+        dayRecycler.setAdapter(adapter.getSubAdapter());
         lp = (ViewGroup.MarginLayoutParams) dayRecycler.getLayoutParams();
         lp.leftMargin = lp.rightMargin = dayView.getCompoundPaddingLeft();
         dayRecycler.setLayoutParams(lp);
@@ -163,8 +160,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 }
             }
         };
-        monthAdapter.setOnItemClickListener(itemClickListener);
-        dayAdapter.setOnItemClickListener(itemClickListener);
+        adapter.setOnItemClickListener(itemClickListener);
+        adapter.getSubAdapter().setOnItemClickListener(itemClickListener);
 
         dbHelper = new DBHelper(this);
 
@@ -543,15 +540,14 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 @Override
                 public void onLoadFinished(Loader<ArrayList<TransactionsModel>> loader, ArrayList<TransactionsModel> data) {
                     transactions = data;
-                    monthAdapter.setData(transactions);
 
                     // filter the transactions so we get only the transactions performed today
                     //TODO respect timezone
                     //TODO applying to a result that does not include the current day makes only little sense
                     //TODO enable user to set the day to show
+                    //TODO somehow merge this with TransactionsArrayAdapter#setSubRange()
                     long startOfDayMillis = startOfDay.getMillis();
                     long endOfDayMillis = startOfDay.plusDays(1).getMillis();
-                    ArrayList<TransactionsModel> trDay = new ArrayList<>(5);
                     String currencyCode = MyApplication.getCurrency().getCurrencyCode();
                     Value valueBeforeDay = new Value(currencyCode, 0);
                     Value valueDay = new Value(currencyCode, 0);
@@ -566,7 +562,6 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                                 }
                             }
                         } else if (transactionTime < endOfDayMillis) {
-                            trDay.add(transact);
                             try {
                                 valueDay = valueDay.add(transact.mostRecentEdit.getValue());
                             } catch (Value.CurrencyMismatchException e) {
@@ -576,8 +571,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                             }
                         }
                     }
-                    transactionsDay = trDay;
-                    dayAdapter.setData(transactionsDay);
+                    adapter.setData(transactions);
+                    adapter.setSubRange(startOfDayMillis, endOfDayMillis);
                     spentDay = valueDay;
                     spentBeforeDay = valueBeforeDay;
 
