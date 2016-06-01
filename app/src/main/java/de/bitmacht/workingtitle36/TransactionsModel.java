@@ -1,8 +1,10 @@
 package de.bitmacht.workingtitle36;
 
+import android.content.ContentValues;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 
 /**
  * This represents a transaction
@@ -36,6 +38,18 @@ public class TransactionsModel implements Parcelable {
         transaction.isRemoved = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_IS_REMOVED)) != 0;
         transaction.mostRecentEdit = new Edit(cursor);
         return transaction;
+    }
+
+    /**
+     * Map this instance to the ContentValues
+     * @param cv Where to store the fields of this instance; can be later used to
+     *           insert into {@link DBHelper#TRANSACTIONS_TABLE_NAME}
+     * @return the same instance from the arguments
+     */
+    public ContentValues toContentValues(@NonNull ContentValues cv) {
+        cv.put(DBHelper.TRANSACTIONS_KEY_ID, id);
+        cv.put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, isRemoved);
+        return cv;
     }
 
     @Override

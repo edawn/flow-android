@@ -14,12 +14,14 @@ import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
@@ -162,6 +164,50 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         };
         adapter.setOnItemClickListener(itemClickListener);
         adapter.getSubAdapter().setOnItemClickListener(itemClickListener);
+
+        new ItemTouchHelper(
+                new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+                    @Override
+                    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                        return false;
+                    }
+
+                    @Override
+                    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                        TransactionsModel transaction = adapter.removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
+                        transaction.isRemoved = true;
+                        TransactionsDeleteTask tdt = new TransactionsDeleteTask(OverviewActivity.this, null, transaction);
+                        tdt.execute();
+                        //TODO this should be shown only after a successful removal
+                        Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG).
+                                setAction(R.string.snackbar_undo, new UndoClickListener(transaction)).show();
+                        transactions.remove(transaction);
+                        updateOverview();
+                    }
+                }).attachToRecyclerView(monthRecycler);
+
+        new ItemTouchHelper(
+                new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+
+                    @Override
+                    public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                        return false;
+                    }
+
+                    @Override
+                    public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
+                        TransactionsModel transaction = adapter.getSubAdapter().removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
+                        transaction.isRemoved = true;
+                        TransactionsDeleteTask tdt = new TransactionsDeleteTask(OverviewActivity.this, null, transaction);
+                        tdt.execute();
+                        //TODO this should be shown only after a successful removal
+                        Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG).
+                                setAction(R.string.snackbar_undo, new UndoClickListener(transaction)).show();
+                        transactions.remove(transaction);
+                        updateOverview();
+                    }
+                }).attachToRecyclerView(dayRecycler);
 
         dbHelper = new DBHelper(this);
 
@@ -571,8 +617,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                             }
                         }
                     }
-                    adapter.setData(transactions);
-                    adapter.setSubRange(startOfDayMillis, endOfDayMillis);
+                    adapter.setData(transactions, startOfDayMillis, endOfDayMillis);
                     spentDay = valueDay;
                     spentBeforeDay = valueBeforeDay;
 
@@ -643,4 +688,30 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             result = null;
         }
     }
+
+    private class UndoClickListener implements View.OnClickListener, TransactionsDeleteTask.UpdateFinishedCallback {
+
+        private final TransactionsModel transaction;
+
+        UndoClickListener(TransactionsModel transaction) {
+            this.transaction = transaction;
+        }
+
+        @Override
+        public void onClick(View v) {
+            transaction.isRemoved = false;
+            TransactionsDeleteTask tdt = new TransactionsDeleteTask(OverviewActivity.this, this, transaction);
+            tdt.execute();
+        }
+
+        //TODO instead of this callback-in-a-listener approach, one might consider (simply) adding the transaction back to the adapter
+        @Override
+        public void onUpdateFinished(boolean success) {
+            Bundle args = new Bundle();
+            args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
+            args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+            getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
+        }
+    }
+
 }

@@ -12,6 +12,10 @@ import java.util.List;
 import de.bitmacht.workingtitle36.view.TimeView;
 import de.bitmacht.workingtitle36.view.TransactionView;
 
+/**
+ * This adapter holds an array of transactions; it also creates a dependent adapter that exposes a
+ * subset of the transactions of its parent
+ */
 public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransactionsAdapter.BaseTransactionVH> {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionsArrayAdapter.class);
@@ -22,8 +26,12 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
     private TransactionsArrayAdapter sub = null;
 
     private List<TransactionsModel> transactions;
+    private int subIndexStart = 0;
+    private int subIndexEnd = 0;
 
-    public TransactionsArrayAdapter() {}
+    public TransactionsArrayAdapter() {
+        sub = new TransactionsArrayAdapter(this);
+    }
 
     private TransactionsArrayAdapter(TransactionsArrayAdapter parent) {
         this.parent = parent;
@@ -40,22 +48,67 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
 
     @Override
     public int getItemCount() {
-        return transactions == null ? 0 : transactions.size();
+        if (parent == null) {
+            return transactions == null ? 0 : transactions.size();
+        } else {
+            return parent.transactions == null ? 0 : parent.subIndexEnd - parent.subIndexStart;
+        }
     }
 
     @Override
     public void onBindViewHolder(BaseTransactionsAdapter.BaseTransactionVH holder, int position) {
         TransactionView transactionView = (TransactionView) holder.itemView;
-        transactionView.setData(transactions.get(position).mostRecentEdit);
+        TransactionsModel transaction = parent != null ?
+                parent.transactions.get(parent.subIndexStart + position) : transactions.get(position);
+        transactionView.setData(transaction.mostRecentEdit);
         onPostBind(transactionView);
     }
 
-    public void setData(List<TransactionsModel> transactions) {
+    /**
+     * Set the transaction that will be represented by this adapter and its subadapter
+     * @param transactions The transactions to be represented
+     * @param subStartTime The start of the time range which the subadapter will represent (including; in ms since the epoch)
+     * @param subEndTime The end of the time range which the subadapter will represent (excluding; in ms since the epoch)
+     */
+    public void setData(List<TransactionsModel> transactions, long subStartTime, long subEndTime) {
         if (parent != null) {
             throw new UnsupportedOperationException("not allowed for a subadapter");
         }
         this.transactions = transactions;
+        setSubRange(subStartTime, subEndTime);
         notifyDataSetChanged();
+    }
+
+    /**
+     * Remove the item
+     * @return The model of the item removed
+     */
+    public TransactionsModel removeItem(BaseTransactionVH holder) {
+        int position = holder.getAdapterPosition();
+        TransactionsModel transactionRemoved;
+        if (parent != null) {
+            int parentPos = subIndexStart + position;
+            transactionRemoved = parent.transactions.remove(parentPos);
+            parent.subIndexEnd--;
+            parent.notifyItemRemoved(parentPos);
+        } else {
+            transactionRemoved = transactions.remove(position);
+            Integer subPos = null;
+            if (subIndexStart <= position && position < subIndexEnd) {
+                subPos = position - subIndexStart;
+            }
+            if (position < subIndexEnd) {
+                subIndexEnd--;
+            }
+            if (position < subIndexStart) {
+                subIndexStart--;
+            }
+            if (subPos != null) {
+                sub.notifyItemRemoved(subPos);
+            }
+        }
+        notifyItemRemoved(position);
+        return transactionRemoved;
     }
 
     /**
@@ -65,6 +118,9 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
     @Nullable
     public TransactionsModel getModel(int position) {
         try {
+            if (parent != null) {
+                return parent.transactions.get(subIndexStart + position);
+            }
             return transactions.get(position);
         } catch (IndexOutOfBoundsException e) {
             if (BuildConfig.DEBUG) {
@@ -80,9 +136,6 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
     public TransactionsArrayAdapter getSubAdapter() {
         if (parent != null) {
             throw new UnsupportedOperationException("not allowed for a subadapter");
-        }
-        if (sub == null) {
-            sub = new TransactionsArrayAdapter(this);
         }
         return sub;
     }
@@ -126,12 +179,12 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
         } else if (endIndex < startIndex) {
             if (BuildConfig.DEBUG) {
                 logger.warn("start/end index {}/{} for start/end time {}/{}", startIndex, endIndex, startTime, endTime);
-                startIndex = endIndex = 0;
             }
+            startIndex = endIndex = 0;
         }
-        TransactionsArrayAdapter subAdapter = getSubAdapter();
-        subAdapter.transactions = transactions.subList(startIndex, endIndex);
-        subAdapter.notifyDataSetChanged();
+        subIndexStart = startIndex;
+        subIndexEnd = endIndex;
+        sub.notifyDataSetChanged();
     }
 
 }
