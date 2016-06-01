@@ -44,6 +44,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private static final Logger logger = LoggerFactory.getLogger(OverviewActivity.class);
 
     public static final String STATE_PERIOD_START = "periodStart";
+    private static final String STATE_MONTH_RECYCLER_VISIBLE = "monthRecyclerVisible";
+    private static final String STATE_DAY_RECYCLER_VISIBLE = "dayRecyclerVisible";
 
     private static final int LOADER_ID_REGULARS = 0;
     private static final int LOADER_ID_TRANSACTIONS = 1;
@@ -213,6 +215,12 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
         if (savedInstanceState != null) {
             periodStart = new DateTime(savedInstanceState.getLong(STATE_PERIOD_START));
+            if (savedInstanceState.getBoolean(STATE_MONTH_RECYCLER_VISIBLE)) {
+                monthRecycler.setVisibility(View.VISIBLE);
+            }
+            if (savedInstanceState.getBoolean(STATE_DAY_RECYCLER_VISIBLE)) {
+                dayRecycler.setVisibility(View.VISIBLE);
+            }
         }
         changePeriod(PERIOD_UNCHANGED);
 
@@ -230,6 +238,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         super.onSaveInstanceState(outState);
         //TODO if the timezone changes after this, a wrong period may be restored
         outState.putLong(STATE_PERIOD_START, periodStart.getMillis());
+        outState.putBoolean(STATE_MONTH_RECYCLER_VISIBLE, monthRecycler.getVisibility() == View.VISIBLE);
+        outState.putBoolean(STATE_DAY_RECYCLER_VISIBLE, dayRecycler.getVisibility() == View.VISIBLE);
     }
 
     /**
