@@ -74,6 +74,6 @@ abstract public class BaseTransactionView extends RelativeLayout {
     }
 
     public final void setValueViewWidth(int width) {
-        valueView.setWidth(width);
+        valueView.setMinWidth(width);
     }
 }
