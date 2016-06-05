@@ -31,12 +31,14 @@ import android.widget.TextView;
 
 import org.joda.time.DateTime;
 import org.joda.time.Days;
+import org.joda.time.Interval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.TreeMap;
 
 public class OverviewActivity extends AppCompatActivity implements View.OnClickListener {
@@ -46,6 +48,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     public static final String STATE_PERIOD_START = "periodStart";
     private static final String STATE_MONTH_RECYCLER_VISIBLE = "monthRecyclerVisible";
     private static final String STATE_DAY_RECYCLER_VISIBLE = "dayRecyclerVisible";
+    private static final String STATE_SELECTED_DAY_FOR_PERIOD = "selectedDayForPeriod";
 
     private static final int LOADER_ID_REGULARS = 0;
     private static final int LOADER_ID_TRANSACTIONS = 1;
@@ -59,6 +62,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     public static final int PERIOD_BEFORE = 1;
     public static final int PERIOD_NEXT = 2;
     public static final int PERIOD_UNCHANGED = 3;
+
+    private TextView dayLabel;
+    private ImageButton dayBeforeBtn;
+    private ImageButton dayNextBtn;
 
     @IntDef({PERIOD_NOW, PERIOD_BEFORE, PERIOD_NEXT, PERIOD_UNCHANGED})
     @Retention(RetentionPolicy.SOURCE)
@@ -94,6 +101,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
      */
     private Value spentBeforeDay = null;
     private Value spentDay = null;
+
+    private HashMap<Long, Long> selectedDayForPeriod = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -137,6 +146,12 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         monthView.setOnClickListener(this);
         dayView = (TextView) findViewById(R.id.day);
         dayView.setOnClickListener(this);
+
+        dayLabel = (TextView) findViewById(R.id.dayLabel);
+        dayBeforeBtn = (ImageButton) findViewById(R.id.day_before_button);
+        dayBeforeBtn.setOnClickListener(this);
+        dayNextBtn = (ImageButton) findViewById(R.id.day_next_button);
+        dayNextBtn.setOnClickListener(this);
 
         monthRecycler = (RecyclerView) findViewById(R.id.transactions_month);
         monthRecycler.setLayoutManager(new LinearLayoutManager(this));
@@ -221,6 +236,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             if (savedInstanceState.getBoolean(STATE_DAY_RECYCLER_VISIBLE)) {
                 dayRecycler.setVisibility(View.VISIBLE);
             }
+            selectedDayForPeriod = (HashMap<Long, Long>) savedInstanceState.getSerializable(STATE_SELECTED_DAY_FOR_PERIOD);
         }
         changePeriod(PERIOD_UNCHANGED);
 
@@ -240,6 +256,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         outState.putLong(STATE_PERIOD_START, periodStart.getMillis());
         outState.putBoolean(STATE_MONTH_RECYCLER_VISIBLE, monthRecycler.getVisibility() == View.VISIBLE);
         outState.putBoolean(STATE_DAY_RECYCLER_VISIBLE, dayRecycler.getVisibility() == View.VISIBLE);
+        outState.putSerializable(STATE_SELECTED_DAY_FOR_PERIOD, selectedDayForPeriod);
     }
 
     /**
@@ -254,6 +271,35 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             monthNextBtn.setAlpha(1.0f);
         }
         getSupportActionBar().setTitle(getString(R.string.overview_title, periodStart.toGregorianCalendar()));
+    }
+
+    private void setStartOfDay(DateTime newStartOfDay) {
+        if (newStartOfDay.equals(startOfDay)) {
+            return;
+        }
+        startOfDay = newStartOfDay;
+        selectedDayForPeriod.put(periodStart.getMillis(), startOfDay.getMillis());
+
+        if (periodStart.isAfter(startOfDay.minusDays(1))) {
+            dayBeforeBtn.setEnabled(false);
+            dayBeforeBtn.setAlpha(0.26f);
+        } else {
+            dayBeforeBtn.setEnabled(true);
+            dayBeforeBtn.setAlpha(1.0f);
+        }
+        boolean isToday = new Interval(DateTime.now().withTimeAtStartOfDay(), Days.ONE).contains(startOfDay);
+        if (!periodEnd.isAfter(startOfDay.plusDays(1)) || isToday) {
+            dayNextBtn.setEnabled(false);
+            dayNextBtn.setAlpha(0.26f);
+        } else {
+            dayNextBtn.setEnabled(true);
+            dayNextBtn.setAlpha(1.0f);
+        }
+        if (isToday) {
+            dayLabel.setText(getString(R.string.overview_today));
+        } else {
+            dayLabel.setText(getString(R.string.overview_day, startOfDay.dayOfMonth().get()));
+        }
     }
 
     @Override
@@ -328,8 +374,11 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         }
         periodStart = now.withDayOfMonth(1).withTimeAtStartOfDay();
         periodEnd = now.plusMonths(1).withDayOfMonth(1).withTimeAtStartOfDay();
-        // if it's the current month, use the current day; otherwise use the first day of the month
-        startOfDay = periodEnd.isAfterNow() ? DateTime.now().withTimeAtStartOfDay() : now.withTimeAtStartOfDay();
+
+        Long newStartOfDay = selectedDayForPeriod.get(periodStart.getMillis());
+        setStartOfDay(newStartOfDay != null ? new DateTime(newStartOfDay) :
+                periodEnd.isAfterNow() ? DateTime.now().withTimeAtStartOfDay() : now.withTimeAtStartOfDay());
+
         upDate();
 
         Bundle args = new Bundle();
@@ -341,6 +390,71 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
         args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
         getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
+    }
+
+    private void changeDay(@PeriodModifier int periodModifier) {
+        if (periodStart == null || periodEnd == null || startOfDay == null) {
+            return;
+        }
+        DateTime newStartOfDay;
+        if (periodModifier == PERIOD_NOW) {
+            newStartOfDay = DateTime.now();
+        } else if (periodModifier == PERIOD_BEFORE) {
+            newStartOfDay = startOfDay.minusDays(1);
+        } else if (periodModifier == PERIOD_NEXT) {
+            newStartOfDay = startOfDay.plusDays(1);
+        } else { // PERIOD_UNCHANGED
+            newStartOfDay = startOfDay;
+        }
+
+        // stay inside the bounds of the currently selected month
+        if (newStartOfDay.isBefore(periodStart)) {
+            newStartOfDay = periodStart;
+        } else if (!newStartOfDay.isBefore(periodEnd)) {
+            newStartOfDay = periodEnd.minusDays(1);
+        }
+        // enforce the assumption that there are no transactions in the future
+        if (newStartOfDay.isAfterNow()) {
+            newStartOfDay = DateTime.now();
+        }
+        setStartOfDay(newStartOfDay.withTimeAtStartOfDay());
+        updateTransactions();
+        updateOverview();
+    }
+
+    private void updateTransactions() {
+        // filter the transactions so we get only the transactions performed on the selected day
+        //TODO respect timezone
+        //TODO applying to a result that does not include the current day makes only little sense
+        //TODO somehow merge this with TransactionsArrayAdapter#setSubRange()
+        long startOfDayMillis = startOfDay.getMillis();
+        long endOfDayMillis = startOfDay.plusDays(1).getMillis();
+        String currencyCode = MyApplication.getCurrency().getCurrencyCode();
+        Value valueBeforeDay = new Value(currencyCode, 0);
+        Value valueDay = new Value(currencyCode, 0);
+        for (TransactionsModel transact : transactions) {
+            long transactionTime = transact.mostRecentEdit.transactionTime;
+            if (transactionTime < startOfDayMillis) {
+                try {
+                    valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit.getValue());
+                } catch (Value.CurrencyMismatchException e) {
+                    if (BuildConfig.DEBUG) {
+                        logger.warn("unable to add: {}", transact.mostRecentEdit);
+                    }
+                }
+            } else if (transactionTime < endOfDayMillis) {
+                try {
+                    valueDay = valueDay.add(transact.mostRecentEdit.getValue());
+                } catch (Value.CurrencyMismatchException e) {
+                    if (BuildConfig.DEBUG) {
+                        logger.warn("unable to add: {}", transact.mostRecentEdit);
+                    }
+                }
+            }
+        }
+        adapter.setData(transactions, startOfDayMillis, endOfDayMillis);
+        spentDay = valueDay;
+        spentBeforeDay = valueBeforeDay;
     }
 
     private void updateOverview() {
@@ -424,9 +538,6 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    private void updateTransactions() {
-    }
-
     @Override
     public void onClick(View v) {
         final int id = v.getId();
@@ -444,6 +555,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             changePeriod(PERIOD_BEFORE);
         } else if (id == R.id.next_button) {
             changePeriod(PERIOD_NEXT);
+        } else if (id == R.id.day_before_button) {
+            changeDay(PERIOD_BEFORE);
+        } else if (id == R.id.day_next_button) {
+            changeDay(PERIOD_NEXT);
         }
     }
 
@@ -596,43 +711,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 @Override
                 public void onLoadFinished(Loader<ArrayList<TransactionsModel>> loader, ArrayList<TransactionsModel> data) {
                     transactions = data;
-
-                    // filter the transactions so we get only the transactions performed today
-                    //TODO respect timezone
-                    //TODO applying to a result that does not include the current day makes only little sense
-                    //TODO enable user to set the day to show
-                    //TODO somehow merge this with TransactionsArrayAdapter#setSubRange()
-                    long startOfDayMillis = startOfDay.getMillis();
-                    long endOfDayMillis = startOfDay.plusDays(1).getMillis();
-                    String currencyCode = MyApplication.getCurrency().getCurrencyCode();
-                    Value valueBeforeDay = new Value(currencyCode, 0);
-                    Value valueDay = new Value(currencyCode, 0);
-                    for (TransactionsModel transact : transactions) {
-                        long transactionTime = transact.mostRecentEdit.transactionTime;
-                        if (transactionTime < startOfDayMillis) {
-                            try {
-                                valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit.getValue());
-                            } catch (Value.CurrencyMismatchException e) {
-                                if (BuildConfig.DEBUG) {
-                                    logger.warn("unable to add: {}", transact.mostRecentEdit);
-                                }
-                            }
-                        } else if (transactionTime < endOfDayMillis) {
-                            try {
-                                valueDay = valueDay.add(transact.mostRecentEdit.getValue());
-                            } catch (Value.CurrencyMismatchException e) {
-                                if (BuildConfig.DEBUG) {
-                                    logger.warn("unable to add: {}", transact.mostRecentEdit);
-                                }
-                            }
-                        }
-                    }
-                    adapter.setData(transactions, startOfDayMillis, endOfDayMillis);
-                    spentDay = valueDay;
-                    spentBeforeDay = valueBeforeDay;
-
-                    updateOverview();
                     updateTransactions();
+                    updateOverview();
                 }
 
                 @Override

@@ -87,18 +87,52 @@
                         android:background="@color/overviewTransactionsBackground"
                         android:visibility="gone" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/overview_day"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
 
-                    <TextView
-                        android:id="@+id/day"
-                        style="?attr/borderlessButtonStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?android:attr/textAppearanceLarge" />
+                        <TextView
+                            android:id="@+id/dayLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?android:attr/textAppearanceMedium"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignParentStart="true"
+                            android:layout_alignParentTop="true"
+                            />
+
+                        <TextView
+                            android:id="@+id/day"
+                            style="?attr/borderlessButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textAppearance="?android:attr/textAppearanceLarge"
+                            android:layout_alignParentLeft="true"
+                            android:layout_alignParentStart="true"
+                            android:layout_below="@id/dayLabel"
+                            />
+
+                        <ImageButton
+                            android:id="@+id/day_before_button"
+                            style="?android:attr/borderlessButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_navigate_before_black_24dp"
+                            android:layout_toLeftOf="@+id/day_next_button"
+                            android:layout_toStartOf="@+id/day_next_button"
+                            />
+
+                        <ImageButton
+                            android:id="@+id/day_next_button"
+                            style="?android:attr/borderlessButtonStyle"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/ic_navigate_next_black_24dp"
+                            android:layout_alignParentRight="true"
+                            android:layout_alignParentEnd="true"
+                            />
+
+                    </RelativeLayout>
 
                     <android.support.v7.widget.RecyclerView
                         android:id="@+id/transactions_day"
