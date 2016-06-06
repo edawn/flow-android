@@ -87,7 +87,7 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
         int position = holder.getAdapterPosition();
         TransactionsModel transactionRemoved;
         if (parent != null) {
-            int parentPos = subIndexStart + position;
+            int parentPos = parent.subIndexStart + position;
             transactionRemoved = parent.transactions.remove(parentPos);
             parent.subIndexEnd--;
             parent.notifyItemRemoved(parentPos);
@@ -119,7 +119,7 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
     public TransactionsModel getModel(int position) {
         try {
             if (parent != null) {
-                return parent.transactions.get(subIndexStart + position);
+                return parent.transactions.get(parent.subIndexStart + position);
             }
             return transactions.get(position);
         } catch (IndexOutOfBoundsException e) {
