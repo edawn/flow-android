@@ -196,8 +196,8 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
             logger.trace("value: {}", cv);
         }
 
-        return new RegularModel(dateView.getTime(), periodType, periodMultiplier,
-                false, !enabledSwitch.isChecked(), false, cv.amount, cv.currencyCode, descriptionView.getText().toString());
+        return new RegularModel(dateView.getTime(), -1, periodType, periodMultiplier, false,
+                !enabledSwitch.isChecked(), cv.amount, cv.currencyCode, descriptionView.getText().toString());
     }
 
     @Override

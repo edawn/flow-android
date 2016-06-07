@@ -56,10 +56,8 @@ public class OverviewRegularsActivity extends AppCompatActivity {
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                     RegularModel regular = regularsAdapter.removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
-                    //TODO the database operation should act upon the id of the regular transaction instead of updating/replacing the whole row
-                    regular.isDeleted = true;
-                    RegularsUpdateTask rut = new RegularsUpdateTask(OverviewRegularsActivity.this, null);
-                    rut.execute(regular);
+                    RegularsRemoveTask rut = new RegularsRemoveTask(OverviewRegularsActivity.this, null, regular.id);
+                    rut.execute();
                     regularsModified = true;
                     setResult(RESULT_OK);
                     Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG).
@@ -187,7 +185,6 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
         @Override
         public void onClick(View v) {
-            regular.isDeleted = false;
             RegularsUpdateTask rut = new RegularsUpdateTask(OverviewRegularsActivity.this, this);
             rut.execute(regular);
         }

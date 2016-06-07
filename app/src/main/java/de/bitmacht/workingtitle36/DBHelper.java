@@ -112,9 +112,14 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String REGULARS_KEY_ID = "id";
     /**
      * The time this transaction will be executed for the first time;
-     * in ms since the epoch
+     * in ms since the epoch; including
      */
     public static final String REGULARS_KEY_TIME_FIRST = "time_first";
+    /**
+     * The time this transaction will be executed for the last time;
+     * in ms since the epoch; excluding; a negative value indicates that this transaction will happen indefinitely
+     */
+    public static final String REGULARS_KEY_TIME_LAST = "time_last";
     /**
      * Defines the way this transaction is supposed to repeat;
      * 0: daily 1: monthly
@@ -130,14 +135,9 @@ public class DBHelper extends SQLiteOpenHelper {
      */
     public static final String REGULARS_KEY_IS_SPREAD = "is_spread";
     /**
-     * Do not use this transaction when a new accounting period starts
+     * Do not use this transaction when calculating the balance
      */
     public static final String REGULARS_KEY_IS_DISABLED = "is_disabled";
-    /**
-     * This regular transaction is virtually removed; should be used if this transaction is (still)
-     * referenced in transactions_regular
-     */
-    public static final String REGULARS_KEY_IS_DELETED = "is_deleted";
     /**
      * The user-set description for this transaction
      */
@@ -164,48 +164,17 @@ public class DBHelper extends SQLiteOpenHelper {
             "CREATE TABLE " + REGULARS_TABLE_NAME + "(" +
                     REGULARS_KEY_ID + " INTEGER PRIMARY KEY, " +
                     REGULARS_KEY_TIME_FIRST + " INTEGER, " +
+                    REGULARS_KEY_TIME_LAST + " INTEGER, " +
                     REGULARS_KEY_PERIOD_TYPE + " INTEGER, " +
                     REGULARS_KEY_PERIOD_MULTIPLIER + " INTEGER, " +
                     REGULARS_KEY_IS_SPREAD + " BOOLEAN, " +
                     REGULARS_KEY_IS_DISABLED + " BOOLEAN, " +
-                    REGULARS_KEY_IS_DELETED + " BOOLEAN, " +
                     REGULARS_KEY_DESCRIPTION + " TEXT, " +
                     REGULARS_KEY_CURRENCY + " TEXT, " +
                     REGULARS_KEY_AMOUNT + " INTEGER);";
 
     /**
-     * Holds the already-executed regular transactions
-     */
-    public static final String TRANSACTIONS_REGULAR_TABLE_NAME = "transactions_regular";
-
-    /**
-     * The time at which the referenced regular transaction has been executed;
-     * in ms since the epoch
-     */
-    public static final String TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME = "execution_time";
-    /**
-     * The id of the referenced regular transaction
-     */
-    public static final String TRANSACTIONS_REGULAR_KEY_REGULAR_ID = "regular_id";
-    /**
-     * The period in which the referenced regular transactions is due;
-     * example: a transaction is due at the following unix time:
-     *          regulars.time_first + regulars.period * transactions_regular.period_number,
-     *          where regulars.period is the period that results from regulars.period_type and
-     *          regulars.period_multiplier
-     */
-    public static final String TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER = "period_number";
-
-    public static final String TRANSACTIONS_REGULAR_TABLE_CREATE =
-            "CREATE TABLE " + TRANSACTIONS_REGULAR_TABLE_NAME + "(" +
-                    TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " INTEGER REFERENCES " + REGULARS_TABLE_NAME + ", " +
-                    TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " INTEGER, " +
-                    TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " INTEGER," +
-                    "UNIQUE(" + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + ", " + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + "));";
-
-    /**
      * Returns the most current, not pending edit for every transaction
-     * TODO do not return edits from deleted transactions
      */
     public static final String LATEST_EDITS_QUERY =
             "SELECT " + EDITS_TABLE_NAME + ".* FROM " + EDITS_TABLE_NAME + " INNER JOIN " +
@@ -256,35 +225,7 @@ public class DBHelper extends SQLiteOpenHelper {
      * Returns all active regular transactions
      */
     public static final String ACTIVE_REGULARS_QUERY =
-            "SELECT * FROM " + REGULARS_TABLE_NAME + " WHERE NOT " + REGULARS_KEY_IS_DISABLED + " AND NOT " + REGULARS_KEY_IS_DELETED;
-
-    /**
-     * Returns all executed regular transactions in a defined time span
-     */
-    public static final String EXECUTED_REGULARS_TIME_SPAN_QUERY =
-            "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " >= ? AND " +
-                    TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " < ?";
-
-    /**
-     * Returns all realized executions of a regular transaction
-     */
-    public static final String EXECUTED_REGULARS_BY_ID_QUERY =
-            "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " = ?";
-
-    /**
-     * Returns all realized executions of a regular transaction in a defined time span
-     */
-    public static final String EXECUTED_REGULARS_BY_ID_TIME_SPAN_QUERY =
-            "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " = ? AND "
-                    + TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " >= ? AND " + TRANSACTIONS_REGULAR_KEY_EXECUTION_TIME + " < ?";
-
-    /**
-     * Returns all realized executions of a regular transaction in a defined period span
-     */
-    public static final String EXECUTED_REGULARS_BY_ID_PERIOD_RANGE_QUERY =
-            "SELECT * FROM " + TRANSACTIONS_REGULAR_TABLE_NAME + " WHERE " + TRANSACTIONS_REGULAR_KEY_REGULAR_ID + " = ? AND "
-                    + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " >= ? AND " + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " < ?"
-            + " ORDER BY " + TRANSACTIONS_REGULAR_KEY_PERIOD_NUMBER + " ASC";
+            "SELECT * FROM " + REGULARS_TABLE_NAME + " WHERE NOT " + REGULARS_KEY_IS_DISABLED;
 
      public DBHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -302,7 +243,6 @@ public class DBHelper extends SQLiteOpenHelper {
         db.execSQL(TRANSACTIONS_TABLE_CREATE);
         db.execSQL(EDITS_TABLE_CREATE);
         db.execSQL(REGULARS_TABLE_CREATE);
-        db.execSQL(TRANSACTIONS_REGULAR_TABLE_CREATE);
     }
 
     @Override

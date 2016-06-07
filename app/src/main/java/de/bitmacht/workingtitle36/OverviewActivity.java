@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.Loader;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
@@ -22,7 +21,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
-import android.util.Pair;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,7 +37,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.TreeMap;
 
 public class OverviewActivity extends AppCompatActivity implements View.OnClickListener {
     
@@ -334,18 +331,12 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             }
         } else if (requestCode == REQUEST_REGULARS_OVERVIEW) {
             if (resultCode == RESULT_OK) {
-                Bundle args = new Bundle();
-                args.putLong(RegularsLoader.ARG_START, periodStart.getMillis());
-                args.putLong(RegularsLoader.ARG_END, periodEnd.getMillis());
-                getLoaderManager().restartLoader(LOADER_ID_REGULARS, args, regularsLoaderListener);
+                getLoaderManager().restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
             }
         } else if (requestCode == REQUEST_SETTINGS) {
             //TODO check if settings actually changed before updating
+            getLoaderManager().restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
             Bundle args = new Bundle();
-            args.putLong(RegularsLoader.ARG_START, periodStart.getMillis());
-            args.putLong(RegularsLoader.ARG_END, periodEnd.getMillis());
-            getLoaderManager().restartLoader(LOADER_ID_REGULARS, args, regularsLoaderListener);
-            args = new Bundle();
             args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
             args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
             getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
@@ -381,12 +372,9 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
         upDate();
 
-        Bundle args = new Bundle();
-        args.putLong(RegularsLoader.ARG_START, periodStart.getMillis());
-        args.putLong(RegularsLoader.ARG_END, periodEnd.getMillis());
-        getLoaderManager().restartLoader(LOADER_ID_REGULARS, args, regularsLoaderListener);
+        getLoaderManager().restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
 
-        args = new Bundle();
+        Bundle args = new Bundle();
         args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
         args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
         getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
@@ -488,7 +476,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
         ArrayList<Value> regularsValues = new ArrayList<>(regulars.size());
         for (RegularModel regular : regulars) {
-            regularsValues.add(regular.getExecutedValue());
+            if (regular.isDisabled) {
+                continue;
+            }
+            regularsValues.add(regular.getCumulativeValue(periodStart, periodEnd));
         }
 
         Value regularsSum = new Value(currencyCode, 0);
@@ -569,22 +560,13 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     if (BuildConfig.DEBUG) {
                         logger.trace("-");
                     }
-                    return new RegularsLoader(OverviewActivity.this, dbHelper, args);
+                    return new RegularsLoader(OverviewActivity.this, dbHelper);
                 }
 
                 @Override
                 public void onLoadFinished(Loader<ArrayList<RegularModel>> loader, ArrayList<RegularModel> data) {
                     if (BuildConfig.DEBUG) {
                         logger.trace("-");
-                    }
-                    for (RegularModel regular : data) {
-                        logger.debug("regular: {}", regular.description);
-                        if (regular.executed == null) {
-                            continue;
-                        }
-                        for (TransactionsRegularModel transact : regular.executed) {
-                            logger.debug("transact: {}/{}", transact.periodNumber, new DateTime(regular.getTimeForPeriodNumber(transact.periodNumber)));
-                        }
                     }
                     regulars = data;
                     updateOverview();
@@ -599,83 +581,17 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             };
 
     private static class RegularsLoader extends AsyncTaskLoader<ArrayList<RegularModel>> {
-        /**
-         * The start of the balancing period (including; in ms since the epoch; default: java.lang.Long.MIN_VALUE)
-         */
-        public static final String ARG_START = "period_start";
-        /**
-         * The end of the balancing period (excluding; in ms since the epoch; default: java.lang.Long.MAX_VALUE)
-         */
-        public static final String ARG_END = "period_end";
-        /**
-         * An ArrayList of {@link RegularModel}s for which the transactions shall be queried.
-         */
-        public static final String ARG_REGULARS = DBHelper.REGULARS_TABLE_NAME;
-
         private final DBHelper dbHelper;
-        private final Bundle args;
         private ArrayList<RegularModel> result;
 
-        RegularsLoader(Context context, DBHelper dbHelper, Bundle args) {
+        RegularsLoader(Context context, DBHelper dbHelper) {
             super(context);
             this.dbHelper = dbHelper;
-            this.args = args;
         }
 
         @Override
         public ArrayList<RegularModel> loadInBackground() {
-            long start = args.getLong(ARG_START, Long.MIN_VALUE);
-            long end = args.getLong(ARG_END, Long.MAX_VALUE);
-            ArrayList<RegularModel> regulars = args.getParcelableArrayList(ARG_REGULARS);
-
-            DateTime now = null;
-
-            if (regulars == null) {
-                regulars = DBHelper.queryRegulars(dbHelper);
-            }
-
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
-            db.beginTransaction();
-            try {
-                for (RegularModel regular : regulars) {
-                    TreeMap<Integer, TransactionsRegularModel> executedMap = new TreeMap<>();
-
-                    Pair<Integer, Integer> periodRange = regular.getPeriodNumberRange(start, end);
-
-                    Cursor executedCursor = db.rawQuery(DBHelper.EXECUTED_REGULARS_BY_ID_PERIOD_RANGE_QUERY,
-                            new String[]{String.valueOf(regular.id), String.valueOf(periodRange.first),
-                                    String.valueOf(periodRange.second)});
-
-                    while (executedCursor.moveToNext()) {
-                        TransactionsRegularModel executed = new TransactionsRegularModel(executedCursor);
-                        executedMap.put(executed.periodNumber, executed);
-                    }
-
-                    executedCursor.close();
-
-                    for (int periodNumber = periodRange.first; periodNumber < periodRange.second; periodNumber++) {
-                        if (executedMap.containsKey(periodNumber)) {
-                            continue;
-                        }
-                        if (now == null) {
-                            //TODO check time zone
-                            now = new DateTime();
-                        }
-                        TransactionsRegularModel executed = new TransactionsRegularModel(regular.id, now.getMillis(), periodNumber);
-                        try {
-                            executed.insert(db);
-                        } catch (SQLException e) {
-                            logger.warn("insert failed", e);
-                        }
-                        executedMap.put(periodNumber, executed);
-                    }
-                    regular.executed = new ArrayList<>(executedMap.values());
-                }
-                db.setTransactionSuccessful();
-            } finally {
-                db.endTransaction();
-            }
-            return regulars;
+            return DBHelper.queryRegulars(dbHelper);
         }
 
         @Override
