@@ -163,8 +163,8 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         int id = v.getId();
         if (id == R.id.accept_button || id == R.id.cancel_button) {
             if (id == R.id.accept_button) {
-                RegularsUpdateTask rut = new RegularsUpdateTask(this, this);
-                rut.execute(getRegular());
+                RegularsUpdateTask rut = new RegularsUpdateTask(this, this, getRegular());
+                rut.execute();
             } else {
                 finish();
             }
@@ -249,10 +249,12 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
 
         Value cv = valueWidget.getValue();
 
-        return new RegularModel(timeFirst.getTimeInMillis(),
+        RegularModel regular = new RegularModel(timeFirst.getTimeInMillis(),
                 isLastIndefinite || timeLast == null ? -1 : timeLast.getTimeInMillis(),
                 periodType, periodMultiplier, false, !enabledSwitch.isChecked(),
                 cv.amount, cv.currencyCode, descriptionView.getText().toString());
+        regular.id = regularId;
+        return regular;
     }
 
     @Override

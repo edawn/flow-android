@@ -12,48 +12,38 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
 
-public class RegularsUpdateTask extends AsyncTask<RegularModel, Void, Boolean> {
+public class RegularsUpdateTask extends AsyncTask<Void, Void, Boolean> {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularsUpdateTask.class);
 
     private final DBHelper dbHelper;
     private final WeakReference<UpdateFinishedCallback> callbackRef;
+    private final RegularModel regular;
 
-    public RegularsUpdateTask(@NonNull Context context, @Nullable UpdateFinishedCallback callback) {
+    public RegularsUpdateTask(@NonNull Context context, @Nullable UpdateFinishedCallback callback, RegularModel regular) {
         dbHelper = new DBHelper(context);
         callbackRef = new WeakReference<>(callback);
+        this.regular = regular;
     }
 
     @Override
-    protected Boolean doInBackground(RegularModel... regulars) {
-        if (regulars.length != 1) {
-            throw new IllegalArgumentException("only one regular transaction allowed");
-        }
-
-        RegularModel regular = regulars[0];
-        if (BuildConfig.DEBUG) {
-            logger.trace("inserting: {}", regular);
-        }
-
+    protected Boolean doInBackground(Void... voids) {
         try {
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             db.beginTransaction();
             try {
                 db.insertWithOnConflict(DBHelper.REGULARS_TABLE_NAME, null,
                         regular.toContentValues(new ContentValues(10)), SQLiteDatabase.CONFLICT_REPLACE);
-
                 db.setTransactionSuccessful();
             } finally {
                 db.endTransaction();
             }
-
         } catch (Exception e) {
             if (BuildConfig.DEBUG) {
                 logger.error("modifying database failed");
             }
             return false;
         }
-
         if (BuildConfig.DEBUG) {
             logger.trace("finished inserting");
         }

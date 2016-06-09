@@ -185,8 +185,8 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
         @Override
         public void onClick(View v) {
-            RegularsUpdateTask rut = new RegularsUpdateTask(OverviewRegularsActivity.this, this);
-            rut.execute(regular);
+            RegularsUpdateTask rut = new RegularsUpdateTask(OverviewRegularsActivity.this, this, regular);
+            rut.execute();
         }
 
         //TODO instead of this callback-in-a-listener approach, one might consider (simply) adding the regular transaction back to the adapter
