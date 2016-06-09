@@ -10,6 +10,16 @@ import java.util.Calendar;
 
 public class DatePickerFragment extends TimeDatePickerDialogFragment implements DatePickerDialog.OnDateSetListener {
 
+    private final int id;
+
+    /**
+     * Create a new instance
+     * @param id
+     */
+    public DatePickerFragment(int id) {
+        this.id = id;
+    }
+
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Calendar calendar = getCalendarFromArguments();
@@ -20,8 +30,12 @@ public class DatePickerFragment extends TimeDatePickerDialogFragment implements 
     @Override
     public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
         Activity activity = getActivity();
-        if (activity instanceof DatePickerDialog.OnDateSetListener) {
-            ((DatePickerDialog.OnDateSetListener) activity).onDateSet(view, year, monthOfYear, dayOfMonth);
+        if (activity instanceof DatePickerFragment.OnDateSetListener) {
+            ((OnDateSetListener) activity).onDateSet(id, year, monthOfYear, dayOfMonth);
         }
+    }
+
+    public interface OnDateSetListener {
+        void onDateSet(int id, int year, int monthOfYear, int dayOfMonth);
     }
 }

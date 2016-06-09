@@ -26,7 +26,7 @@ import de.bitmacht.workingtitle36.view.ValueModifyView;
 import de.bitmacht.workingtitle36.view.ValueWidget;
 
 public class TransactionEditActivity extends AppCompatActivity implements View.OnClickListener,
-        ValueModifyView.OnValueChangeListener, TimePickerDialog.OnTimeSetListener, DatePickerDialog.OnDateSetListener, TransactionsUpdateTask.UpdateFinishedCallback {
+        ValueModifyView.OnValueChangeListener, TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener, TransactionsUpdateTask.UpdateFinishedCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionEditActivity.class);
 
@@ -150,7 +150,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
             }
 
         } else if (id == R.id.time || id == R.id.date) {
-            DialogFragment frag = id == R.id.time ? new TimePickerFragment() : new DatePickerFragment();
+            DialogFragment frag = id == R.id.time ? new TimePickerFragment() : new DatePickerFragment(0);
             Bundle bundle = new Bundle();
             bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, transactionTime.getTimeInMillis());
             frag.setArguments(bundle);
@@ -174,7 +174,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     }
 
     @Override
-    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+    public void onDateSet(int id, int year, int monthOfYear, int dayOfMonth) {
         transactionTime.set(Calendar.YEAR, year);
         transactionTime.set(Calendar.MONTH, monthOfYear);
         transactionTime.set(Calendar.DAY_OF_MONTH, dayOfMonth);

@@ -3,6 +3,8 @@
     <string name="transaction_edit_description_hint">Description</string>
     <string name="active">Active</string>
     <string name="regular_first_time">Start</string>
+    <string name="regular_last_time">End</string>
+    <string name="regular_last_time_indefinite">Indefinite</string>
     <string name="regular_repetition">Repeat</string>
     <string name="overview_title">%1$tB %1$tY</string>
     <string name="overview_month">This Month</string>

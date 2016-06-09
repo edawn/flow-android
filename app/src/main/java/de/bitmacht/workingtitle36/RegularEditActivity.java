@@ -1,6 +1,5 @@
 package de.bitmacht.workingtitle36;
 
-import android.app.DatePickerDialog;
 import android.app.DialogFragment;
 import android.content.Intent;
 import android.os.Bundle;
@@ -10,9 +9,10 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
-import android.widget.DatePicker;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 
 import org.joda.time.DateTimeConstants;
@@ -27,7 +27,7 @@ import de.bitmacht.workingtitle36.view.ValueModifyView;
 import de.bitmacht.workingtitle36.view.ValueWidget;
 
 public class RegularEditActivity extends AppCompatActivity implements View.OnClickListener,
-        ValueModifyView.OnValueChangeListener, DatePickerDialog.OnDateSetListener, RegularsUpdateTask.UpdateFinishedCallback {
+        ValueModifyView.OnValueChangeListener, DatePickerFragment.OnDateSetListener, RegularsUpdateTask.UpdateFinishedCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularEditActivity.class);
 
@@ -37,16 +37,23 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     public static final String EXTRA_REGULAR = "regular";
 
     private static final String STATE_VALUE_KEY = "value";
+    private static final String STATE_IS_LAST_INDEFINITE_KEY = "isLastIndefinite";
 
     private Long regularId = null;
     private Calendar timeFirst = new GregorianCalendar();
+    private Calendar timeLast = null;
+    private boolean isLastIndefinite = true;
     private Value value;
 
     private Toolbar toolbar;
     private ImageButton cancelButton;
     private ImageButton acceptButton;
     private SwitchCompat enabledSwitch;
-    private TimeView dateView;
+    private TimeView dateFirstView;
+    private Button dateLastIndefButton;
+    private LinearLayout dateLastContainer;
+    private ImageButton dateLastClearButton;
+    private TimeView dateLastView;
     private ValueWidget valueWidget;
     private Spinner repetitionSpinner;
     private EditText descriptionView;
@@ -61,7 +68,11 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         cancelButton = (ImageButton) findViewById(R.id.cancel_button);
         acceptButton = (ImageButton) findViewById(R.id.accept_button);
         enabledSwitch = (SwitchCompat) findViewById(R.id.enabled);
-        dateView = (TimeView) findViewById(R.id.date);
+        dateFirstView = (TimeView) findViewById(R.id.date_first);
+        dateLastIndefButton = (Button) findViewById(R.id.date_last_indef_button);
+        dateLastContainer = (LinearLayout) findViewById(R.id.date_last_container);
+        dateLastClearButton = (ImageButton) findViewById(R.id.date_last_clear_button);
+        dateLastView = (TimeView) findViewById(R.id.date_last);
         valueWidget = (ValueWidget) findViewById(R.id.value);
         repetitionSpinner = (Spinner) findViewById(R.id.repetition);
         descriptionView = (EditText) findViewById(R.id.description);
@@ -72,7 +83,11 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         cancelButton.setOnClickListener(this);
         acceptButton.setOnClickListener(this);
 
-        dateView.setOnClickListener(this);
+        dateFirstView.setOnClickListener(this);
+
+        dateLastIndefButton.setOnClickListener(this);
+        dateLastClearButton.setOnClickListener(this);
+        dateLastView.setOnClickListener(this);
 
         ArrayAdapter<CharSequence> intervalAdapter = ArrayAdapter.createFromResource(this, R.array.interval_names, android.R.layout.simple_spinner_item);
         intervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -87,6 +102,14 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
                 value = regular.getValue();
                 enabledSwitch.setChecked(!regular.isDisabled);
                 timeFirst.setTimeInMillis(regular.timeFirst);
+                if (regular.timeLast < 0) {
+                    isLastIndefinite = true;
+                } else {
+                    isLastIndefinite = false;
+                    timeLast = new GregorianCalendar();
+                    timeLast.setTimeInMillis(regular.timeLast);
+                }
+
                 int pos = 0;
                 if (regular.periodType == DBHelper.REGULARS_PERIOD_TYPE_DAILY) {
                     if (regular.periodMultiplier == DateTimeConstants.DAYS_PER_WEEK) {
@@ -108,11 +131,17 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
             regularId = savedInstanceState.containsKey(DBHelper.REGULARS_KEY_ID) ?
                     savedInstanceState.getLong(DBHelper.REGULARS_KEY_ID) : null;
             timeFirst.setTimeInMillis(savedInstanceState.getLong(DBHelper.REGULARS_KEY_TIME_FIRST));
+            isLastIndefinite = savedInstanceState.getBoolean(STATE_IS_LAST_INDEFINITE_KEY);
+            if (savedInstanceState.containsKey(DBHelper.REGULARS_KEY_TIME_LAST)) {
+                timeLast = new GregorianCalendar();
+                timeLast.setTimeInMillis(savedInstanceState.getLong(DBHelper.REGULARS_KEY_TIME_LAST));
+            }
             value = savedInstanceState.getParcelable(STATE_VALUE_KEY);
         }
 
         valueWidget.setValue(value);
         updateTimeViews();
+        updateLastTimeInput();
     }
 
     @Override
@@ -122,6 +151,10 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
             outState.putLong(DBHelper.REGULARS_KEY_ID, regularId);
         }
         outState.putLong(DBHelper.REGULARS_KEY_TIME_FIRST, timeFirst.getTimeInMillis());
+        outState.putBoolean(STATE_IS_LAST_INDEFINITE_KEY, isLastIndefinite);
+        if (timeLast != null) {
+            outState.putLong(DBHelper.REGULARS_KEY_TIME_LAST, timeLast.getTimeInMillis());
+        }
         outState.putParcelable(STATE_VALUE_KEY, value);
     }
 
@@ -135,15 +168,21 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
             } else {
                 finish();
             }
-        } else if (id == R.id.date) {
-            DialogFragment frag = new DatePickerFragment();
+        } else if (id == R.id.date_first || id == R.id.date_last) {
+            DialogFragment frag = new DatePickerFragment(id);
             Bundle bundle = new Bundle();
-            bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, timeFirst.getTimeInMillis());
+            long time = (id == R.id.date_first ? timeFirst : timeLast).getTimeInMillis();
+            bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, time);
             frag.setArguments(bundle);
             frag.show(getFragmentManager(), "datePicker");
-
             ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).
                     hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+        } else if (id == R.id.date_last_indef_button) {
+            isLastIndefinite = false;
+            updateLastTimeInput();
+        } else if (id == R.id.date_last_clear_button) {
+            isLastIndefinite = true;
+            updateLastTimeInput();
         }
     }
 
@@ -164,16 +203,33 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     }
 
     @Override
-    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-        timeFirst.set(Calendar.YEAR, year);
-        timeFirst.set(Calendar.MONTH, monthOfYear);
-        timeFirst.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+    public void onDateSet(int id, int year, int monthOfYear, int dayOfMonth) {
+        Calendar dst = id == R.id.date_first ? timeFirst : timeLast;
+        dst.set(Calendar.YEAR, year);
+        dst.set(Calendar.MONTH, monthOfYear);
+        dst.set(Calendar.DAY_OF_MONTH, dayOfMonth);
         updateTimeViews();
     }
 
     private void updateTimeViews() {
-        long time = timeFirst.getTimeInMillis();
-        dateView.setTime(time);
+        dateFirstView.setTime(timeFirst.getTimeInMillis());
+        if (timeLast != null) {
+            dateLastView.setTime(timeLast.getTimeInMillis());
+        }
+    }
+
+    private void updateLastTimeInput() {
+        if (isLastIndefinite) {
+            dateLastIndefButton.setVisibility(View.VISIBLE);
+            dateLastContainer.setVisibility(View.GONE);
+        } else {
+            dateLastIndefButton.setVisibility(View.GONE);
+            dateLastContainer.setVisibility(View.VISIBLE);
+            if (timeLast == null) {
+                timeLast = new GregorianCalendar();
+            }
+            dateLastView.setTime(timeLast.getTimeInMillis());
+        }
     }
 
     private RegularModel getRegular() {
@@ -192,12 +248,11 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         }
 
         Value cv = valueWidget.getValue();
-        if (BuildConfig.DEBUG) {
-            logger.trace("value: {}", cv);
-        }
 
-        return new RegularModel(dateView.getTime(), -1, periodType, periodMultiplier, false,
-                !enabledSwitch.isChecked(), cv.amount, cv.currencyCode, descriptionView.getText().toString());
+        return new RegularModel(timeFirst.getTimeInMillis(),
+                isLastIndefinite || timeLast == null ? -1 : timeLast.getTimeInMillis(),
+                periodType, periodMultiplier, false, !enabledSwitch.isChecked(),
+                cv.amount, cv.currencyCode, descriptionView.getText().toString());
     }
 
     @Override
