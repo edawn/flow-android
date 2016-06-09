@@ -171,8 +171,14 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         } else if (id == R.id.date_first || id == R.id.date_last) {
             DialogFragment frag = new DatePickerFragment(id);
             Bundle bundle = new Bundle();
-            long time = (id == R.id.date_first ? timeFirst : timeLast).getTimeInMillis();
-            bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, time);
+            Calendar time;
+            if (id == R.id.date_first) {
+                time = timeFirst;
+            } else {
+                time = timeLast;
+                bundle.putLong(DatePickerFragment.ARG_MIN_DATE, timeFirst.getTimeInMillis());
+            }
+            bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, time.getTimeInMillis());
             frag.setArguments(bundle);
             frag.show(getFragmentManager(), "datePicker");
             ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).
@@ -214,6 +220,9 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     private void updateTimeViews() {
         dateFirstView.setTime(timeFirst.getTimeInMillis());
         if (timeLast != null) {
+            if (!timeFirst.before(timeLast)) {
+                timeLast.setTimeInMillis(timeFirst.getTimeInMillis() + 1);
+            }
             dateLastView.setTime(timeLast.getTimeInMillis());
         }
     }
@@ -227,6 +236,9 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
             dateLastContainer.setVisibility(View.VISIBLE);
             if (timeLast == null) {
                 timeLast = new GregorianCalendar();
+                if (!timeFirst.before(timeLast)) {
+                    timeLast.setTimeInMillis(timeFirst.getTimeInMillis() + 1);
+                }
             }
             dateLastView.setTime(timeLast.getTimeInMillis());
         }

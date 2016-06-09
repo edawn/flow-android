@@ -10,6 +10,12 @@ import java.util.Calendar;
 
 public class DatePickerFragment extends TimeDatePickerDialogFragment implements DatePickerDialog.OnDateSetListener {
 
+    /**
+     * The key of an optional argument to be passed to this fragment, containing the unix time (in ms)
+     * of the first date to be shown in the picker
+     */
+    public static final String ARG_MIN_DATE = "minDate";
+
     private final int id;
 
     /**
@@ -23,8 +29,13 @@ public class DatePickerFragment extends TimeDatePickerDialogFragment implements 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Calendar calendar = getCalendarFromArguments();
-        return new DatePickerDialog(getActivity(), this, calendar.get(Calendar.YEAR),
+        DatePickerDialog dialog = new DatePickerDialog(getActivity(), this, calendar.get(Calendar.YEAR),
                 calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        Bundle args = getArguments();
+        if (args != null && args.containsKey(ARG_MIN_DATE)) {
+            dialog.getDatePicker().setMinDate(args.getLong(ARG_MIN_DATE));
+        }
+        return dialog;
     }
 
     @Override
