@@ -222,6 +222,12 @@ public class DBHelper extends SQLiteOpenHelper {
             "SELECT * FROM " + EDITS_TABLE_NAME + " WHERE " + EDITS_KEY_TRANSACTION + " = ?";
 
     /**
+     * Returns all regular transactions
+     */
+    public static final String REGULARS_QUERY =
+            "SELECT * FROM " + REGULARS_TABLE_NAME;
+
+    /**
      * Returns all active regular transactions
      */
     public static final String ACTIVE_REGULARS_QUERY =
@@ -255,8 +261,16 @@ public class DBHelper extends SQLiteOpenHelper {
      * @see DBHelper#ACTIVE_REGULARS_QUERY
      */
     public static ArrayList<RegularModel> queryRegulars(DBHelper dbHelper) {
+        return queryRegulars(dbHelper, false);
+    }
+
+    /**
+     * Query the database for regular transactions
+     * @see DBHelper#ACTIVE_REGULARS_QUERY
+     */
+    public static ArrayList<RegularModel> queryRegulars(DBHelper dbHelper, boolean includeDisabled) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery(DBHelper.ACTIVE_REGULARS_QUERY, null);
+        Cursor cursor = db.rawQuery(includeDisabled ? REGULARS_QUERY : ACTIVE_REGULARS_QUERY, null);
 
         ArrayList<RegularModel> regulars = new ArrayList<>(cursor.getCount());
         while (cursor.moveToNext()) {

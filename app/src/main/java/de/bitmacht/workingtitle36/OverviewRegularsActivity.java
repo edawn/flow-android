@@ -149,7 +149,7 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
         @Override
         public ArrayList<RegularModel> loadInBackground() {
-            return DBHelper.queryRegulars(dbHelper);
+            return DBHelper.queryRegulars(dbHelper, true);
         }
 
         @Override

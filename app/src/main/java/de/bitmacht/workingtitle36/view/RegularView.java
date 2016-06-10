@@ -36,6 +36,7 @@ public class RegularView extends BaseTransactionView {
         setValue(regularModel.getValue());
         periodView.setText(getPeriodText(regularModel));
         setDescription(regularModel.description);
+        setAlpha(regularModel.isDisabled ? 0.6f : 1.0f);
     }
 
     private CharSequence getPeriodText(RegularModel regularModel) {
