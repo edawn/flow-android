@@ -22,7 +22,7 @@
     </style>
 
     <style name="TransactionEditorItemIcon" parent="TransactionEditorItem">
-        <item name="android:id">@+id/icon</item>
+        <item name="android:id">@id/icon</item>
         <item name="android:layout_alignParentLeft">true</item>
         <!-- should be more like ?android:attr/textColorSecondary with tintMode src_in ... -->
         <item name="android:tint">@color/itemIcon</item>
