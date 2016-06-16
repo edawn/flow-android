@@ -78,6 +78,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         descriptionView = (EditText) findViewById(R.id.description);
 
         setSupportActionBar(toolbar);
+        //noinspection ConstantConditions
         getSupportActionBar().setDisplayShowTitleEnabled(false);
 
         cancelButton.setOnClickListener(this);

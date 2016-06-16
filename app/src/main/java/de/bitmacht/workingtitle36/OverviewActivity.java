@@ -11,7 +11,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
@@ -60,22 +59,26 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     public static final int PERIOD_NEXT = 2;
     public static final int PERIOD_UNCHANGED = 3;
 
+    private DBHelper dbHelper;
+
+    private Toolbar toolbar;
+    private DrawerLayout drawerLayout;
+    private ImageButton monthBeforeBtn;
+    private ImageButton monthNextBtn;
+    private TextView monthView;
+    private RecyclerView monthRecycler;
     private TextView dayLabel;
+    private TextView dayView;
     private ImageButton dayBeforeBtn;
     private ImageButton dayNextBtn;
+    private RecyclerView dayRecycler;
+    private NavigationView navBar;
 
     @IntDef({PERIOD_NOW, PERIOD_BEFORE, PERIOD_NEXT, PERIOD_UNCHANGED})
     @Retention(RetentionPolicy.SOURCE)
     public @interface PeriodModifier {}
 
-    private ImageButton monthBeforeBtn;
-    private ImageButton monthNextBtn;
-    private DrawerLayout drawerLayout;
     private ActionBarDrawerToggle drawerToggle;
-    private NavigationView navBar;
-    private DBHelper dbHelper;
-    private TextView monthView;
-    private TextView dayView;
 
     /** this defines the current balancing period */
     DateTime periodStart = null;
@@ -87,10 +90,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private ArrayList<RegularModel> regulars = null;
     private ArrayList<TransactionsModel> transactions = null;
 
-    private RecyclerView monthRecycler;
     private TransactionsArrayAdapter adapter;
-
-    private RecyclerView dayRecycler;
 
     /**
      * Value of the transactions between the start of the accounting period (including) and
@@ -104,53 +104,36 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        dbHelper = new DBHelper(this);
+
         setContentView(R.layout.activity_overview);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        monthBeforeBtn = (ImageButton) findViewById(R.id.before_button);
-        monthBeforeBtn.setOnClickListener(this);
-        monthNextBtn = (ImageButton) findViewById(R.id.next_button);
-        monthNextBtn.setOnClickListener(this);
-
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close) {};
+        monthBeforeBtn = (ImageButton) findViewById(R.id.before_button);
+        monthNextBtn = (ImageButton) findViewById(R.id.next_button);
+        monthView = (TextView) findViewById(R.id.month);
+        monthRecycler = (RecyclerView) findViewById(R.id.transactions_month);
+        dayLabel = (TextView) findViewById(R.id.dayLabel);
+        dayView = (TextView) findViewById(R.id.day);
+        dayBeforeBtn = (ImageButton) findViewById(R.id.day_before_button);
+        dayNextBtn = (ImageButton) findViewById(R.id.day_next_button);
+        dayRecycler = (RecyclerView) findViewById(R.id.transactions_day);
+        navBar = (NavigationView) findViewById(R.id.navigation);
 
+        setSupportActionBar(toolbar);
+        //noinspection ConstantConditions
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.drawer_open, R.string.drawer_close) {};
         drawerLayout.addDrawerListener(drawerToggle);
 
-        navBar = (NavigationView) findViewById(R.id.navigation);
-        navBar.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(MenuItem item) {
-                int id = item.getItemId();
-                if (id == R.id.menu_regular_transactions) {
-                    drawerLayout.closeDrawer(navBar);
-                    startActivityForResult(new Intent(OverviewActivity.this, OverviewRegularsActivity.class), REQUEST_REGULARS_OVERVIEW);
-                    return true;
-                } else if (id == R.id.menu_settings) {
-                    drawerLayout.closeDrawer(navBar);
-                    startActivityForResult(new Intent(OverviewActivity.this, SettingsActivity.class), REQUEST_SETTINGS);
-                    return true;
-                } else if (id == R.id.menu_about) {
-                    return true;
-                }
-                return false;
-            }
-        });
+        monthBeforeBtn.setOnClickListener(this);
+        monthNextBtn.setOnClickListener(this);
 
-        monthView = (TextView) findViewById(R.id.month);
         monthView.setOnClickListener(this);
-        dayView = (TextView) findViewById(R.id.day);
-        dayView.setOnClickListener(this);
 
-        dayLabel = (TextView) findViewById(R.id.dayLabel);
-        dayBeforeBtn = (ImageButton) findViewById(R.id.day_before_button);
-        dayBeforeBtn.setOnClickListener(this);
-        dayNextBtn = (ImageButton) findViewById(R.id.day_next_button);
-        dayNextBtn.setOnClickListener(this);
-
-        monthRecycler = (RecyclerView) findViewById(R.id.transactions_month);
         monthRecycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TransactionsArrayAdapter();
         monthRecycler.setAdapter(adapter);
@@ -158,7 +141,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         lp.leftMargin = lp.rightMargin = monthView.getCompoundPaddingLeft();
         monthRecycler.setLayoutParams(lp);
 
-        dayRecycler = (RecyclerView) findViewById(R.id.transactions_day);
+        dayView.setOnClickListener(this);
+        dayBeforeBtn.setOnClickListener(this);
+        dayNextBtn.setOnClickListener(this);
+
         dayRecycler.setLayoutManager(new LinearLayoutManager(this));
         dayRecycler.setAdapter(adapter.getSubAdapter());
         lp = (ViewGroup.MarginLayoutParams) dayRecycler.getLayoutParams();
@@ -223,7 +209,32 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     }
                 }).attachToRecyclerView(dayRecycler);
 
-        dbHelper = new DBHelper(this);
+        //noinspection ConstantConditions
+        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivityForResult(new Intent(v.getContext(), TransactionEditActivity.class), REQUEST_TRANSACTION_NEW);
+            }
+        });
+
+        navBar.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(MenuItem item) {
+                int id = item.getItemId();
+                if (id == R.id.menu_regular_transactions) {
+                    drawerLayout.closeDrawer(navBar);
+                    startActivityForResult(new Intent(OverviewActivity.this, OverviewRegularsActivity.class), REQUEST_REGULARS_OVERVIEW);
+                    return true;
+                } else if (id == R.id.menu_settings) {
+                    drawerLayout.closeDrawer(navBar);
+                    startActivityForResult(new Intent(OverviewActivity.this, SettingsActivity.class), REQUEST_SETTINGS);
+                    return true;
+                } else if (id == R.id.menu_about) {
+                    return true;
+                }
+                return false;
+            }
+        });
 
         if (savedInstanceState != null) {
             periodStart = new DateTime(savedInstanceState.getLong(STATE_PERIOD_START));
@@ -233,17 +244,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             if (savedInstanceState.getBoolean(STATE_DAY_RECYCLER_VISIBLE)) {
                 dayRecycler.setVisibility(View.VISIBLE);
             }
+            //noinspection unchecked
             selectedDayForPeriod = (HashMap<Long, Long>) savedInstanceState.getSerializable(STATE_SELECTED_DAY_FOR_PERIOD);
         }
         changePeriod(PERIOD_UNCHANGED);
-
-        FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivityForResult(new Intent(v.getContext(), TransactionEditActivity.class), REQUEST_TRANSACTION_NEW);
-            }
-        });
     }
 
     @Override

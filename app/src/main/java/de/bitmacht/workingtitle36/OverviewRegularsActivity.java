@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -29,23 +28,27 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
     private static final String REGULARS_MODIFIED_KEY = "regulars_modified";
 
+    private DBHelper dbHelper;
+
     private RecyclerView regularsRecycler;
     private RegularsAdapter regularsAdapter;
-
-    private DBHelper dbHelper;
 
     private boolean regularsModified = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        dbHelper = new DBHelper(this);
+
         setContentView(R.layout.activity_regulars_overview);
 
         regularsRecycler = (RecyclerView) findViewById(R.id.regulars);
         regularsRecycler.setLayoutManager(new LinearLayoutManager(this));
         regularsAdapter = new RegularsAdapter();
         regularsRecycler.setAdapter(regularsAdapter);
-        ItemTouchHelper itemSwipeHelper = new ItemTouchHelper(
+
+        new ItemTouchHelper(
             new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
 
                 @Override
@@ -63,8 +66,8 @@ public class OverviewRegularsActivity extends AppCompatActivity {
                     Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG).
                             setAction(R.string.snackbar_undo, new UndoClickListener(regular)).show();
                 }
-        });
-        itemSwipeHelper.attachToRecyclerView(regularsRecycler);
+        }).attachToRecyclerView(regularsRecycler);
+
         regularsAdapter.setOnItemClickListener(new BaseTransactionsAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(BaseTransactionsAdapter adapter, int position) {
@@ -81,17 +84,15 @@ public class OverviewRegularsActivity extends AppCompatActivity {
             }
         });
 
-        dbHelper = new DBHelper(this);
-
-        getLoaderManager().initLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
-
-        FloatingActionButton floatingActionButton = (FloatingActionButton) findViewById(R.id.fab);
-        floatingActionButton.setOnClickListener(new View.OnClickListener() {
+        //noinspection ConstantConditions
+        findViewById(R.id.fab).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivityForResult(new Intent(v.getContext(), RegularEditActivity.class), REQUEST_REGULAR_EDIT);
             }
         });
+
+        getLoaderManager().initLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
 
         if (savedInstanceState != null) {
             if (savedInstanceState.getBoolean(REGULARS_MODIFIED_KEY)) {
