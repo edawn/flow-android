@@ -169,8 +169,9 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
                 finish();
             }
         } else if (id == R.id.date_first || id == R.id.date_last) {
-            DialogFragment frag = new DatePickerFragment(id);
+            DialogFragment frag = new DatePickerFragment();
             Bundle bundle = new Bundle();
+            bundle.putInt(DatePickerFragment.ARG_ID, id);
             Calendar time;
             if (id == R.id.date_first) {
                 time = timeFirst;

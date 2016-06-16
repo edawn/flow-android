@@ -150,7 +150,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
             }
 
         } else if (id == R.id.time || id == R.id.date) {
-            DialogFragment frag = id == R.id.time ? new TimePickerFragment() : new DatePickerFragment(0);
+            DialogFragment frag = id == R.id.time ? new TimePickerFragment() : new DatePickerFragment();
             Bundle bundle = new Bundle();
             bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, transactionTime.getTimeInMillis());
             frag.setArguments(bundle);
