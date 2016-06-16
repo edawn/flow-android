@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 24
+    buildToolsVersion "24"
 
     defaultConfig {
         applicationId "de.bitmacht.workingtitle36"
         minSdkVersion 14
-        targetSdkVersion 23
+        targetSdkVersion 24
         versionCode 1
         versionName "1.0"
     }
@@ -20,13 +20,13 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:recyclerview-v7:23.4.0'
-    compile 'com.android.support:preference-v7:23.4.0'
-    compile 'com.android.support:design:23.4.0'
+    compile 'com.android.support:appcompat-v7:24.0.0'
+    compile 'com.android.support:recyclerview-v7:24.0.0'
+    compile 'com.android.support:preference-v7:24.0.0'
+    compile 'com.android.support:design:24.0.0'
     compile 'com.github.tony19:logback-android-classic:1.1.1-5'
     compile 'com.github.tony19:logback-android-core:1.1.1-5'
-    compile 'joda-time:joda-time:2.9.3'
+    compile 'joda-time:joda-time:2.9.4'
     compile 'org.slf4j:slf4j-api:1.7.21'
     androidTestCompile 'junit:junit:4.12'
 }
