@@ -236,17 +236,23 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             }
         });
 
+        int monthTwisty = R.drawable.ic_navigate_next_black_24dp;
+        int dayTwisty = R.drawable.ic_navigate_next_black_24dp;
         if (savedInstanceState != null) {
             periodStart = new DateTime(savedInstanceState.getLong(STATE_PERIOD_START));
             if (savedInstanceState.getBoolean(STATE_MONTH_RECYCLER_VISIBLE)) {
+                monthTwisty = R.drawable.ic_keyboard_arrow_down_black_24dp;
                 monthRecycler.setVisibility(View.VISIBLE);
             }
             if (savedInstanceState.getBoolean(STATE_DAY_RECYCLER_VISIBLE)) {
+                dayTwisty = R.drawable.ic_keyboard_arrow_down_black_24dp;
                 dayRecycler.setVisibility(View.VISIBLE);
             }
             //noinspection unchecked
             selectedDayForPeriod = (HashMap<Long, Long>) savedInstanceState.getSerializable(STATE_SELECTED_DAY_FOR_PERIOD);
         }
+        monthView.setCompoundDrawablesWithIntrinsicBounds(monthTwisty, 0, 0, 0);
+        dayView.setCompoundDrawablesWithIntrinsicBounds(dayTwisty, 0, 0, 0);
         changePeriod(PERIOD_UNCHANGED);
     }
 
@@ -537,6 +543,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View v) {
         final int id = v.getId();
         if (id == R.id.month || id == R.id.day) {
+            TextView balanceView = id == R.id.month ? monthView : dayView;
             RecyclerView recyclerView = id == R.id.month ? monthRecycler : dayRecycler;
             int newVisibility = recyclerView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
             recyclerView.setVisibility(newVisibility);
@@ -545,6 +552,9 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
                 args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
                 getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
+                balanceView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_keyboard_arrow_down_black_24dp, 0, 0, 0);
+            } else {
+                balanceView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_navigate_next_black_24dp, 0, 0, 0);
             }
         } else if (id == R.id.before_button) {
             changePeriod(PERIOD_BEFORE);
