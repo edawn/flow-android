@@ -88,9 +88,9 @@ public class ValueModifyView extends LinearLayout implements View.OnTouchListene
     public interface OnValueChangeListener {
         /**
          * This will be called when the amount changes
-         * @param value The amount change
+         * @param difference The amount change
          */
-        void onValueChange(Value value);
+        void onValueChange(Value difference);
     }
 
     private Handler handler = new Handler() {

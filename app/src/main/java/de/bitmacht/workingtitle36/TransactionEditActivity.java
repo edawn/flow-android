@@ -20,8 +20,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import de.bitmacht.workingtitle36.view.TimeView;
+import de.bitmacht.workingtitle36.view.ValueEditText;
 import de.bitmacht.workingtitle36.view.ValueModifyView;
-import de.bitmacht.workingtitle36.view.ValueWidget;
 
 public class TransactionEditActivity extends AppCompatActivity implements View.OnClickListener,
         ValueModifyView.OnValueChangeListener, TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener, TransactionsUpdateTask.UpdateFinishedCallback {
@@ -38,14 +38,13 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private Long transactionId = null;
     private Long parentId = null;
     private Calendar transactionTime = new GregorianCalendar();
-    private Value value;
 
     private Toolbar toolbar;
     private ImageButton cancelButton;
     private ImageButton acceptButton;
     private TimeView timeView;
     private TimeView dateView;
-    private ValueWidget valueWidget;
+    private ValueEditText valueEditText;
     private ValueModifyView valueModMoreView;
     private ValueModifyView valueModLessView;
     private EditText descriptionView;
@@ -62,7 +61,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         acceptButton = (ImageButton) findViewById(R.id.accept_button);
         timeView = (TimeView) findViewById(R.id.time);
         dateView = (TimeView) findViewById(R.id.date);
-        valueWidget = (ValueWidget) findViewById(R.id.value);
+        valueEditText = (ValueEditText) findViewById(R.id.value);
         valueModMoreView = (ValueModifyView) findViewById(R.id.value_modify_more);
         valueModLessView = (ValueModifyView) findViewById(R.id.value_modify_less);
         descriptionView = (EditText) findViewById(R.id.description);
@@ -78,6 +77,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         timeView.setOnClickListener(this);
         dateView.setOnClickListener(this);
 
+        Value value = null;
         if (savedInstanceState == null) {
             Intent intent = getIntent();
             if (intent.hasExtra(EXTRA_TRANSACTION)) {
@@ -110,7 +110,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         if (value == null) {
             value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
         }
-        valueWidget.setValue(value);
+        valueEditText.setValue(value);
 
         valueModLessView.setValue(value.withAmount(10));
         valueModMoreView.setOnValueChangeListener(this);
@@ -128,7 +128,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
             outState.putLong(DBHelper.EDITS_KEY_PARENT, parentId);
         }
         outState.putLong(DBHelper.EDITS_KEY_TRANSACTION_TIME, transactionTime.getTimeInMillis());
-        outState.putParcelable(STATE_VALUE_KEY, value);
+        outState.putParcelable(STATE_VALUE_KEY, valueEditText.getValue());
     }
 
     @Override
@@ -161,15 +161,16 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     }
 
     @Override
-    public void onValueChange(Value value) {
+    public void onValueChange(Value difference) {
+        Value value = valueEditText.getValue();
         try {
-            this.value = this.value.add(value);
+            value = value.add(difference);
+            valueEditText.setValue(value);
         } catch (Value.CurrencyMismatchException e) {
             if (BuildConfig.DEBUG) {
                 logger.trace("unable to change amount", e);
             }
         }
-        valueWidget.setValue(this.value);
     }
 
     @Override
@@ -198,7 +199,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
      */
     private Edit getEdit() {
         return new Edit(parentId, transactionId, transactionTime.getTimeInMillis(),
-                descriptionView.getText().toString(), locationView.getText().toString(), value);
+                descriptionView.getText().toString(), locationView.getText().toString(), valueEditText.getValue());
     }
 
     @Override

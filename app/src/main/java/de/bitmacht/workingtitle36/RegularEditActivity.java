@@ -195,13 +195,13 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
     }
 
     @Override
-    public void onValueChange(Value value) {
+    public void onValueChange(Value difference) {
         if (BuildConfig.DEBUG) {
-            logger.trace("value change: {}", value);
+            logger.trace("value change: {}", difference);
         }
 
         try {
-            this.value = this.value.add(value);
+            this.value = this.value.add(difference);
             valueWidget.setValue(this.value);
         } catch (Value.CurrencyMismatchException e) {
             if (BuildConfig.DEBUG) {

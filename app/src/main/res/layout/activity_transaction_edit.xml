@@ -66,7 +66,7 @@
 
                 <LinearLayout style="@style/TransactionEditorItemActionValue">
 
-                    <de.bitmacht.workingtitle36.view.ValueTextView
+                    <de.bitmacht.workingtitle36.view.ValueEditText
                         android:id="@+id/value"
                         style="@style/TextAppearance.AppCompat.Large"
                         android:layout_width="wrap_content"

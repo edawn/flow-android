@@ -1,6 +1,7 @@
 package de.bitmacht.workingtitle36.view;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.AppCompatEditText;
 import android.text.Editable;
 import android.text.InputFilter;
@@ -58,6 +59,7 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
     }
 
     @Override
+    @NonNull
     public Value getValue() {
         String text = getText().toString();
 
@@ -88,7 +90,8 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
     }
 
     @Override
-    public String setValue(Value value) {
+    @NonNull
+    public String setValue(@NonNull Value value) {
         currencyCode = value.currencyCode;
         if (!inf.getCurrency().getCurrencyCode().equals(currencyCode)) {
             inf = new ValueInputFilter(Currency.getInstance(currencyCode));
