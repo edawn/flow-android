@@ -1,0 +1,27 @@
+<resources>
+    <string name="transaction_edit_description_hint">Beschreibung</string>
+    <string name="active">Aktiv</string>
+    <string name="regular_first_time">Start</string>
+    <string name="regular_last_time">Ende</string>
+    <string name="regular_last_time_indefinite">unbegrenzt</string>
+    <string name="regular_repetition">Wiederholung</string>
+    <string name="overview_title">%1$tB %1$tY</string>
+    <string name="overview_month">Dieser Monat</string>
+    <string name="overview_day">Tag %1$d</string>
+    <string name="overview_today">Heute</string>
+    <string name="overview_budget_minus_template">%1$s - %2$s = %3$s</string>
+    <string name="overview_budget_plus_template">%1$s + %2$s = %3$s</string>
+    <string name="menu_regular_transactions">Regelmäßige Transaktionen</string>
+    <string name="menu_settings">Einstellungen</string>
+    <string name="menu_about">Info</string>
+    <string name="drawer_open">Öffne Seitenleiste</string>
+    <string name="drawer_close">Schließe Seitenleiste</string>
+    <string name="currency_list_item">%1$s</string>
+    <string name="pref_currency_title">Währung</string>
+    <string name="pref_currency_summary">%s</string>
+    <string name="value">Wert</string>
+    <string name="snackbar_transaction_removed">Transaktion entfernt</string>
+    <string name="snackbar_undo">RÜCKGÄNGIG</string>
+    <string name="time">Zeit</string>
+    <string name="transaction_edit_location_hint">Ort</string>
+</resources>

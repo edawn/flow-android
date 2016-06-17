@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Working Title 36</string>
+    <string name="app_name" translatable="false">Working Title 36</string>
     <string name="transaction_edit_description_hint">Description</string>
     <string name="active">Active</string>
     <string name="regular_first_time">Start</string>
