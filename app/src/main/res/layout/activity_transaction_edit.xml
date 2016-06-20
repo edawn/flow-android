@@ -70,7 +70,8 @@
                         android:id="@+id/value"
                         style="@style/TextAppearance.AppCompat.Large"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
+                        android:layout_height="wrap_content"
+                        android:selectAllOnFocus="true" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
