@@ -41,4 +41,10 @@
     <string name="snackbar_undo">UNDO</string>
     <string name="time">Time</string>
     <string name="transaction_edit_location_hint">Location</string>
+    <string name="about_title">About %1$s</string>
+    <string name="about_message">
+        &lt;p&gt;Copyright 2016 by &lt;a href=\&quot;mailto:kamil@kugelhaufen.de\&quot;&gt;Kamil Sartys&lt;/a&gt;&lt;/p&gt;
+        %1$s uses the following libraries and resources:&lt;br&gt;
+    </string>
+    <string name="about_accept">OK</string>
 </resources>

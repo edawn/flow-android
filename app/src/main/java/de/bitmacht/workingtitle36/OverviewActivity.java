@@ -246,6 +246,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     startActivityForResult(new Intent(OverviewActivity.this, SettingsActivity.class), REQUEST_SETTINGS);
                     return true;
                 } else if (id == R.id.menu_about) {
+                    new AboutDialogFragment().show(getSupportFragmentManager(), null);
                     return true;
                 }
                 return false;
