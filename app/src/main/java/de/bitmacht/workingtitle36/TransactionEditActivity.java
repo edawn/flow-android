@@ -37,10 +37,9 @@ import java.util.GregorianCalendar;
 
 import de.bitmacht.workingtitle36.view.TimeView;
 import de.bitmacht.workingtitle36.view.ValueEditText;
-import de.bitmacht.workingtitle36.view.ValueModifyView;
 
 public class TransactionEditActivity extends AppCompatActivity implements View.OnClickListener,
-        ValueModifyView.OnValueChangeListener, TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener, TransactionsUpdateTask.UpdateFinishedCallback {
+        TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener, TransactionsUpdateTask.UpdateFinishedCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionEditActivity.class);
 
@@ -61,8 +60,6 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private TimeView timeView;
     private TimeView dateView;
     private ValueEditText valueEditText;
-    private ValueModifyView valueModMoreView;
-    private ValueModifyView valueModLessView;
     private EditText descriptionView;
     private EditText locationView;
 
@@ -78,8 +75,6 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         timeView = (TimeView) findViewById(R.id.time);
         dateView = (TimeView) findViewById(R.id.date);
         valueEditText = (ValueEditText) findViewById(R.id.value);
-        valueModMoreView = (ValueModifyView) findViewById(R.id.value_modify_more);
-        valueModLessView = (ValueModifyView) findViewById(R.id.value_modify_less);
         descriptionView = (EditText) findViewById(R.id.description);
         locationView = (EditText) findViewById(R.id.location);
 
@@ -127,12 +122,6 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
             value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
         }
         valueEditText.setValue(value);
-
-        valueModLessView.setValue(value.withAmount(10));
-        valueModMoreView.setOnValueChangeListener(this);
-
-        valueModMoreView.setValue(value.withAmount(100));
-        valueModLessView.setOnValueChangeListener(this);
     }
 
     @Override
@@ -173,19 +162,6 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
 
             ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE)).
                     hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
-        }
-    }
-
-    @Override
-    public void onValueChange(Value difference) {
-        Value value = valueEditText.getValue();
-        try {
-            value = value.add(difference);
-            valueEditText.setValue(value);
-        } catch (Value.CurrencyMismatchException e) {
-            if (BuildConfig.DEBUG) {
-                logger.trace("unable to change amount", e);
-            }
         }
     }
 

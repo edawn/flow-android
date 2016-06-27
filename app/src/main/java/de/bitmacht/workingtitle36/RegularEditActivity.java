@@ -39,11 +39,10 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import de.bitmacht.workingtitle36.view.TimeView;
-import de.bitmacht.workingtitle36.view.ValueModifyView;
 import de.bitmacht.workingtitle36.view.ValueWidget;
 
 public class RegularEditActivity extends AppCompatActivity implements View.OnClickListener,
-        ValueModifyView.OnValueChangeListener, DatePickerFragment.OnDateSetListener, RegularsUpdateTask.UpdateFinishedCallback {
+        DatePickerFragment.OnDateSetListener, RegularsUpdateTask.UpdateFinishedCallback {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularEditActivity.class);
 
@@ -207,22 +206,6 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         } else if (id == R.id.date_last_clear_button) {
             isLastIndefinite = true;
             updateLastTimeInput();
-        }
-    }
-
-    @Override
-    public void onValueChange(Value difference) {
-        if (BuildConfig.DEBUG) {
-            logger.trace("value change: {}", difference);
-        }
-
-        try {
-            this.value = this.value.add(difference);
-            valueWidget.setValue(this.value);
-        } catch (Value.CurrencyMismatchException e) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("Unable to change amount", e);
-            }
         }
     }
 

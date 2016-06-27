@@ -80,35 +80,15 @@
                     style="@style/TransactionEditorItemLabel"
                     android:text="@string/value" />
 
-                <LinearLayout style="@style/TransactionEditorItemActionValue">
 
-                    <de.bitmacht.workingtitle36.view.ValueEditText
-                        android:id="@+id/value"
-                        style="@style/TextAppearance.AppCompat.Large"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:selectAllOnFocus="true" />
+                <de.bitmacht.workingtitle36.view.ValueEditText
+                    android:id="@+id/value"
+                    style="@style/TransactionEditorItemActionValue"
+                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:selectAllOnFocus="true" />
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical">
-
-                        <de.bitmacht.workingtitle36.view.ValueModifyView
-                            android:id="@+id/value_modify_more"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical" />
-
-                        <de.bitmacht.workingtitle36.view.ValueModifyView
-                            android:id="@+id/value_modify_less"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:gravity="center_vertical" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
 
             </RelativeLayout>
 
