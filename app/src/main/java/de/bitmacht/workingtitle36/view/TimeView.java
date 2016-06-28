@@ -21,14 +21,21 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Build;
 import android.support.annotation.IntDef;
+import android.text.format.DateFormat;
 import android.util.AttributeSet;
 import android.widget.TextView;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.locks.ReentrantLock;
 
+import de.bitmacht.workingtitle36.BuildConfig;
 import de.bitmacht.workingtitle36.R;
 
 /**
@@ -36,17 +43,31 @@ import de.bitmacht.workingtitle36.R;
  */
 public class TimeView extends TextView {
 
+    private static final Logger logger = LoggerFactory.getLogger(TimeView.class);
 
-    @IntDef({TIME_FORMAT_TIME, TIME_FORMAT_DATE, TIME_FORMAT_TIMEDATE, TIME_FORMAT_TIMEDATE_SHORT})
+
+    @IntDef({TIME_FORMAT_TIME, TIME_FORMAT_DATE, TIME_FORMAT_TIMEDATE_SHORT})
     @Retention(RetentionPolicy.SOURCE)
     public @interface TimeFormat {}
 
     public static final int TIME_FORMAT_TIME = 0;
     public static final int TIME_FORMAT_DATE = 1;
-    public static final int TIME_FORMAT_TIMEDATE = 2;
-    public static final int TIME_FORMAT_TIMEDATE_SHORT = 3;
+    public static final int TIME_FORMAT_TIMEDATE_SHORT = 2;
 
-    private static final String[] TIME_FORMATS = {"HH:mm", "yyyy-MM-dd", "yyyy-MM-dd HH:mm", "MM-dd HH:mm"};
+    private static final String[] TIME_FORMATS = {"Hm", "yMd", "MMddHm"};
+    /**
+     * 12-hour-cycle formats
+     */
+    private static final String[] TIME_FORMATS_12 = {"hma", "yMd", "MMddhma"};
+    /**
+     * Fallback for api levels before 18. See {@link android.text.format.DateFormat#getBestDateTimePattern}
+     */
+    private static final String[] TIME_FORMATS_OLD_API = {"HH:mm", "yyyy-MM-dd", "MM-dd HH:mm"};
+
+    private static final ReentrantLock lock = new ReentrantLock();
+    private static Long lastThreadId = null;
+    private static Integer lastContextHash = null;
+    private static SimpleDateFormat[] timeFormats = null;
 
     private int timeFormatStyle = TIME_FORMAT_TIME;
     private SimpleDateFormat timeFormat;
@@ -55,26 +76,26 @@ public class TimeView extends TextView {
 
     public TimeView(Context context) {
         super(context);
-        initAttrs(context, null, 0, 0);
+        init(context, null, 0, 0);
     }
 
     public TimeView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        initAttrs(context, attrs, 0, 0);
+        init(context, attrs, 0, 0);
     }
 
     public TimeView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        initAttrs(context, attrs, defStyleAttr, 0);
+        init(context, attrs, defStyleAttr, 0);
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     public TimeView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        initAttrs(context, attrs, defStyleAttr, defStyleRes);
+        init(context, attrs, defStyleAttr, defStyleRes);
     }
 
-    private void initAttrs(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    private void init(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.TimeView, defStyleAttr, defStyleRes);
 
         try {
@@ -87,8 +108,10 @@ public class TimeView extends TextView {
     }
 
     public void setTimeFormat(@TimeFormat int timeFormatStyle) {
-        this.timeFormatStyle = timeFormatStyle;
-        updateTimeFormat();
+        if (this.timeFormatStyle != timeFormatStyle) {
+            this.timeFormatStyle = timeFormatStyle;
+            updateTimeFormat();
+        }
     }
 
     @TimeFormat
@@ -97,7 +120,57 @@ public class TimeView extends TextView {
     }
 
     private void updateTimeFormat() {
-        timeFormat = new SimpleDateFormat(TIME_FORMATS[timeFormatStyle]);
+        lock.lock();
+        try {
+            boolean update = false;
+            long threadId = Thread.currentThread().getId();
+            if (lastThreadId == null || threadId != lastThreadId) {
+                update = true;
+                lastThreadId = threadId;
+                if (BuildConfig.DEBUG) {
+                    logger.debug("thread updated; new tid: {}", threadId);
+                }
+            }
+            int contextHash = getContext().hashCode();
+            if (lastContextHash == null || contextHash != lastContextHash) {
+                update = true;
+                lastContextHash = contextHash;
+                if (BuildConfig.DEBUG) {
+                    logger.debug("context updated; new context hash: {}", contextHash);
+                }
+            }
+
+            if (update) {
+                timeFormats = new SimpleDateFormat[TIME_FORMATS.length];
+            }
+
+            timeFormat = timeFormats[timeFormatStyle];
+
+            if (timeFormat == null) {
+                String pattern;
+                Locale locale = Locale.getDefault();
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                    pattern = DateFormat.is24HourFormat(getContext()) ?
+                            TIME_FORMATS[timeFormatStyle] : TIME_FORMATS_12[timeFormatStyle];
+                    if (BuildConfig.DEBUG) {
+                        logger.debug("locale: {} raw pattern: {}", locale, pattern);
+                    }
+                    pattern = DateFormat.getBestDateTimePattern(locale, pattern);
+                } else {
+                    pattern = TIME_FORMATS_OLD_API[timeFormatStyle];
+                }
+
+                if (BuildConfig.DEBUG) {
+                    logger.debug("pattern: {}", pattern);
+                }
+                timeFormat = new SimpleDateFormat(pattern, locale);
+                timeFormats[timeFormatStyle] = timeFormat;
+            }
+        } finally {
+            lock.unlock();
+        }
+
         update();
     }
 
