@@ -21,4 +21,8 @@
         <item name="android:gravity">center_vertical</item>
     </style>
 
+    <style name="TransactionEditorItemActionDateTime" parent="TransactionEditorItemActionTime">
+        <item name="android:orientation">horizontal</item>
+    </style>
+
 </resources>

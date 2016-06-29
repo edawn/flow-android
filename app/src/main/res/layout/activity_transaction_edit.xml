@@ -48,16 +48,12 @@
                     style="@style/TransactionEditorItemLabel"
                     android:text="@string/time" />
 
-                <LinearLayout style="@style/TransactionEditorItemActionTime">
+                <LinearLayout style="@style/TransactionEditorItemActionDateTime">
 
                     <de.bitmacht.workingtitle36.view.TimeView
                         android:id="@+id/date"
                         style="@style/TimeView_Button"
                         app:timeFormat="date" />
-
-                    <Space
-                        android:layout_width="8dp"
-                        android:layout_height="0px" />
 
                     <de.bitmacht.workingtitle36.view.TimeView
                         android:id="@+id/time"
