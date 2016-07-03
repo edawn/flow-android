@@ -77,14 +77,13 @@
                     android:text="@string/value" />
 
 
-                <de.bitmacht.workingtitle36.view.ValueEditText
-                    android:id="@+id/value"
-                    style="@style/TransactionEditorItemActionValue"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Large"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:selectAllOnFocus="true" />
+                <FrameLayout style="@style/TransactionEditorItemActionValueContainer">
 
+                    <de.bitmacht.workingtitle36.view.ValueEditText
+                        android:id="@+id/value"
+                        style="@style/TransactionEditorItemActionValue" />
+
+                </FrameLayout>
 
             </RelativeLayout>
 
@@ -97,7 +96,7 @@
                     android:src="@drawable/ic_local_offer_black_24dp" />
 
                 <android.support.design.widget.TextInputLayout
-                    style="@style/TransactionEditorItemAction"
+                    style="@style/TransactionEditorItemActionTextContainer"
                     android:layout_toEndOf="@id/icon"
                     android:layout_toRightOf="@id/icon">
 
@@ -120,7 +119,7 @@
                     android:src="@drawable/ic_place_black_24dp" />
 
                 <android.support.design.widget.TextInputLayout
-                    style="@style/TransactionEditorItemAction"
+                    style="@style/TransactionEditorItemActionTextContainer"
                     android:layout_toEndOf="@id/icon"
                     android:layout_toRightOf="@id/icon">
 

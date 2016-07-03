@@ -28,9 +28,12 @@
         <item name="windowNoTitle">true</item>
     </style>
 
-    <style name="TransactionEditorItem">
+    <style name="Wrap">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
+    </style>
+
+    <style name="TransactionEditorItem" parent="Wrap">
         <item name="android:paddingTop">18dp</item>
         <item name="android:paddingLeft">18dp</item>
         <item name="android:paddingRight">18dp</item>
@@ -52,9 +55,15 @@
         <item name="android:layout_alignParentRight">true</item>
     </style>
 
-    <style name="TransactionEditorItemActionValue" parent="TransactionEditorItemAction">
-        <item name="android:orientation">vertical</item>
-        <item name="android:gravity">center_horizontal</item>
+    <style name="TransactionEditorItemActionValueContainer" parent="TransactionEditorItemAction">
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
+    </style>
+
+    <style name="TransactionEditorItemActionValue" parent="Wrap">
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large</item>
+        <item name="android:selectAllOnFocus">true</item>
     </style>
 
     <style name="TransactionEditorItemActionTime" parent="TransactionEditorItemAction">
@@ -66,6 +75,12 @@
 
     <style name="TransactionEditorItemActionDateTime" parent="TransactionEditorItemActionTime">
         <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="TransactionEditorItemActionTextContainer" parent="TransactionEditorItemAction">
+        <item name="android:layout_centerVertical">true</item>
+        <item name="android:paddingTop">0dp</item>
+        <item name="android:paddingBottom">0dp</item>
     </style>
 
     <style name="TransactionItem">
