@@ -126,7 +126,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
                     timeLast.setTimeInMillis(regular.timeLast);
                 }
 
-                int pos = 0;
+                int pos = 2;
                 if (regular.periodType == DBHelper.REGULARS_PERIOD_TYPE_DAILY) {
                     if (regular.periodMultiplier == DateTimeConstants.DAYS_PER_WEEK) {
                         pos = 1;
@@ -142,6 +142,8 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
                 descriptionView.setText(regular.description);
             } else {
                 value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
+                // corresponds to 'Monthly' in R.array.interval_names
+                repetitionSpinner.setSelection(2);
             }
         } else {
             regularId = savedInstanceState.containsKey(DBHelper.REGULARS_KEY_ID) ?
