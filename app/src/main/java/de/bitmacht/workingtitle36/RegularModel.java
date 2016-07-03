@@ -17,6 +17,7 @@
 package de.bitmacht.workingtitle36;
 
 import android.content.ContentValues;
+import android.content.Context;
 import android.database.Cursor;
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -24,6 +25,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeConstants;
 import org.joda.time.Days;
 import org.joda.time.Months;
 import org.joda.time.Period;
@@ -195,6 +197,46 @@ public class RegularModel implements Parcelable {
 
     public Value getValue() {
         return new Value(currency, amount);
+    }
+
+    /**
+     * Return a textual representation of this period
+     */
+    public String getPeriodString(Context context) {
+        int i = getPeriodIndex();
+        if (i == -1) {
+            //TODO return something like "every n days/months"
+            return String.valueOf(periodType) + ":" + String.valueOf(periodMultiplier);
+        } else {
+            return context.getResources().getStringArray(R.array.interval_names)[i];
+        }
+    }
+
+    /**
+     * Return the index corresponding to {@link R.array#interval_names} and representing this period
+     * @return An index; if the stored period number does not have a corresponding entry in
+     * {@link R.array#interval_names}, -1 will be returned.
+     */
+    public int getPeriodIndex() {
+        int i = -1;
+        if (periodType == DBHelper.REGULARS_PERIOD_TYPE_DAILY) {
+            if (periodMultiplier == 1) {
+                // daily
+                i = 0;
+            } else if (periodMultiplier == 7) {
+                // weekly
+                i = 1;
+            }
+        } else if (periodType == DBHelper.REGULARS_PERIOD_TYPE_MONTHLY) {
+            if (periodMultiplier == 1) {
+                // monthly
+                i = 2;
+            } else if (periodMultiplier == 12) {
+                // yearly
+                i = 3;
+            }
+        }
+        return i;
     }
 
     /**

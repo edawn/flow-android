@@ -50,12 +50,8 @@ public class RegularView extends BaseTransactionView {
 
     public void setData(RegularModel regularModel) {
         setValue(regularModel.getValue());
-        periodView.setText(getPeriodText(regularModel));
+        periodView.setText(regularModel.getPeriodString(getContext()));
         setDescription(regularModel.description);
         setAlpha(regularModel.isDisabled ? 0.6f : 1.0f);
-    }
-
-    private CharSequence getPeriodText(RegularModel regularModel) {
-        return String.valueOf(regularModel.periodType) + ":" + String.valueOf(regularModel.periodMultiplier);
     }
 }

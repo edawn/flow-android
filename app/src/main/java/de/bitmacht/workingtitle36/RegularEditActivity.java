@@ -126,19 +126,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
                     timeLast.setTimeInMillis(regular.timeLast);
                 }
 
-                int pos = 2;
-                if (regular.periodType == DBHelper.REGULARS_PERIOD_TYPE_DAILY) {
-                    if (regular.periodMultiplier == DateTimeConstants.DAYS_PER_WEEK) {
-                        pos = 1;
-                    }
-                } else {
-                    if (regular.periodMultiplier == 1) {
-                        pos = 2;
-                    } else if (regular.periodMultiplier == 12) {
-                        pos = 3;
-                    }
-                }
-                repetitionSpinner.setSelection(pos);
+                repetitionSpinner.setSelection(regular.getPeriodIndex());
                 descriptionView.setText(regular.description);
             } else {
                 value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
