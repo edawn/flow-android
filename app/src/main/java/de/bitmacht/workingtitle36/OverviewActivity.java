@@ -38,7 +38,6 @@ import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -153,9 +152,6 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         monthRecycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TransactionsArrayAdapter();
         monthRecycler.setAdapter(adapter);
-        ViewGroup.MarginLayoutParams lp = (ViewGroup.MarginLayoutParams) monthRecycler.getLayoutParams();
-        lp.leftMargin = lp.rightMargin = monthView.getCompoundPaddingLeft();
-        monthRecycler.setLayoutParams(lp);
 
         dayView.setOnClickListener(this);
         dayBeforeBtn.setOnClickListener(this);
@@ -163,9 +159,6 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
         dayRecycler.setLayoutManager(new LinearLayoutManager(this));
         dayRecycler.setAdapter(adapter.getSubAdapter());
-        lp = (ViewGroup.MarginLayoutParams) dayRecycler.getLayoutParams();
-        lp.leftMargin = lp.rightMargin = dayView.getCompoundPaddingLeft();
-        dayRecycler.setLayoutParams(lp);
 
         BaseTransactionsAdapter.OnItemClickListener itemClickListener = new BaseTransactionsAdapter.OnItemClickListener() {
             @Override

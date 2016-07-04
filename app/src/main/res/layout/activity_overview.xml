@@ -61,21 +61,11 @@
 
         <android.support.design.widget.CoordinatorLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:paddingBottom="@dimen/activity_vertical_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin">
+            android:layout_height="match_parent">
 
             <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:layout_marginEnd="16dp"
-                android:layout_marginLeft="16dp"
-                android:layout_marginRight="16dp"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
+                android:layout_height="match_parent"
                 android:fillViewport="true">
 
                 <LinearLayout
@@ -83,82 +73,112 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/overview_month"
-                        android:textAppearance="?android:attr/textAppearanceMedium" />
+                    <Space
+                        android:layout_width="1dp"
+                        android:layout_height="8dp" />
 
-                    <TextView
-                        android:id="@+id/month"
-                        style="?attr/borderlessButtonStyle"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textAppearance="?android:attr/textAppearanceLarge"
-                        android:drawablePadding="5dp"
-                        />
-
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/transactions_month"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@color/overviewTransactionsBackground"
-                        android:visibility="gone" />
-
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content">
+                    <LinearLayout style="@style/OverviewPeriodContainer">
 
                         <TextView
-                            android:id="@+id/dayLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?android:attr/textAppearanceMedium"
-                            android:layout_alignParentLeft="true"
-                            android:layout_alignParentStart="true"
-                            android:layout_alignParentTop="true"
-                            />
+                            android:text="@string/overview_month"
+                            android:textAppearance="?android:attr/textAppearanceMedium" />
 
                         <TextView
-                            android:id="@+id/day"
+                            android:id="@+id/month"
                             style="?attr/borderlessButtonStyle"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:textAppearance="?android:attr/textAppearanceLarge"
-                            android:layout_alignParentLeft="true"
-                            android:layout_alignParentStart="true"
-                            android:layout_below="@id/dayLabel"
-                            android:drawablePadding="5dp"
-                            />
+                            android:drawablePadding="5dp"/>
 
-                        <ImageButton
-                            android:id="@+id/day_before_button"
-                            style="?android:attr/borderlessButtonStyle"
-                            android:layout_width="wrap_content"
+                        <android.support.v7.widget.RecyclerView
+                            android:id="@+id/transactions_month"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:src="@drawable/ic_navigate_before_black_24dp"
-                            android:layout_toLeftOf="@+id/day_next_button"
-                            android:layout_toStartOf="@+id/day_next_button"
-                            />
+                            android:visibility="gone" />
 
-                        <ImageButton
-                            android:id="@+id/day_next_button"
-                            style="?android:attr/borderlessButtonStyle"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:src="@drawable/ic_navigate_next_black_24dp"
-                            android:layout_alignParentRight="true"
-                            android:layout_alignParentEnd="true"
-                            />
+                    </LinearLayout>
 
-                    </RelativeLayout>
+                    <Space
+                        android:layout_width="1dp"
+                        android:layout_height="8dp" />
 
-                    <android.support.v7.widget.RecyclerView
-                        android:id="@+id/transactions_day"
+                    <View
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:background="@color/overviewTransactionsBackground"
-                        android:visibility="gone" />
+                        android:layout_height="1dp"
+                        android:background="#1f000000"
+                        />
+
+                    <Space
+                        android:layout_width="1dp"
+                        android:layout_height="8dp" />
+
+                    <LinearLayout
+                        style="@style/OverviewPeriodContainer"
+                        >
+
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <TextView
+                                android:id="@+id/dayLabel"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceMedium"
+                                android:layout_alignParentLeft="true"
+                                android:layout_alignParentStart="true"
+                                android:layout_alignParentTop="true" />
+
+                            <TextView
+                                android:id="@+id/day"
+                                style="?attr/borderlessButtonStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textAppearance="?android:attr/textAppearanceLarge"
+                                android:layout_alignParentLeft="true"
+                                android:layout_alignParentStart="true"
+                                android:layout_below="@id/dayLabel"
+                                android:drawablePadding="5dp" />
+
+                            <ImageButton
+                                android:id="@+id/day_before_button"
+                                style="?android:attr/borderlessButtonStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_navigate_before_black_24dp"
+                                android:layout_toLeftOf="@+id/day_next_button"
+                                android:layout_toStartOf="@+id/day_next_button" />
+
+                            <ImageButton
+                                android:id="@+id/day_next_button"
+                                style="?android:attr/borderlessButtonStyle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/ic_navigate_next_black_24dp"
+                                android:layout_alignParentRight="true"
+                                android:layout_alignParentEnd="true" />
+
+                        </RelativeLayout>
+
+                        <android.support.v7.widget.RecyclerView
+                            android:id="@+id/transactions_day"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
+                    <Space
+                        android:layout_width="1dp"
+                        android:layout_height="8dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="#1f000000"
+                        />
 
                 </LinearLayout>
 
