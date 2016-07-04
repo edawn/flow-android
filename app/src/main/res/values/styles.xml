@@ -83,7 +83,13 @@
         <item name="android:paddingBottom">0dp</item>
     </style>
 
-    <style name="TransactionItem">
+    <style name="TimeView_Button" parent="@style/Widget.AppCompat.Button.Borderless">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large</item>
+    </style>
+
+    <style name="Transaction">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:paddingBottom">5dp</item>
@@ -93,10 +99,31 @@
         <item name="android:background">?attr/selectableItemBackground</item>
     </style>
 
-    <style name="TimeView_Button" parent="@style/Widget.AppCompat.Button.Borderless">
-        <item name="android:layout_width">wrap_content</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large</item>
+    <style name="TransactionElement" parent="Wrap">
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+    <style name="TransactionItemTime" parent="TransactionElement">
+        <item name="android:layout_marginEnd">5dp</item>
+        <item name="android:layout_marginRight">5dp</item>
+        <item name="android:typeface">monospace</item>
+    </style>
+
+    <style name="TransactionItemValue" parent="TransactionElement">
+        <item name="android:layout_marginEnd">5dp</item>
+        <item name="android:layout_marginRight">5dp</item>
+        <item name="android:gravity">end</item>
+        <item name="android:typeface">monospace</item>
+    </style>
+
+    <style name="TransactionItemPeriod" parent="TransactionElement">
+        <item name="android:layout_marginEnd">5dp</item>
+        <item name="android:layout_marginRight">5dp</item>
+    </style>
+
+    <style name="TransactionItemDescription" parent="TransactionElement">
+        <item name="android:lines">1</item>
+        <item name="android:ellipsize">end</item>
     </style>
 
 </resources>
