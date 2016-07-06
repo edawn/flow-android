@@ -61,11 +61,6 @@
         <item name="android:paddingBottom">0dp</item>
     </style>
 
-    <style name="TransactionEditorItemActionValue" parent="Wrap">
-        <item name="android:textAppearance">@style/TextAppearance.AppCompat.Large</item>
-        <item name="android:selectAllOnFocus">true</item>
-    </style>
-
     <style name="TransactionEditorItemActionTime" parent="TransactionEditorItemAction">
         <item name="android:layout_centerVertical">true</item>
         <item name="android:paddingTop">0dp</item>

@@ -76,14 +76,9 @@
                     style="@style/TransactionEditorItemLabel"
                     android:text="@string/value" />
 
-
-                <FrameLayout style="@style/TransactionEditorItemActionValueContainer">
-
-                    <de.bitmacht.workingtitle36.view.ValueEditText
-                        android:id="@+id/value"
-                        style="@style/TransactionEditorItemActionValue" />
-
-                </FrameLayout>
+                <de.bitmacht.workingtitle36.view.ValueInput
+                    android:id="@+id/value"
+                     style="@style/TransactionEditorItemActionValueContainer" />
 
             </RelativeLayout>
 

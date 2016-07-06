@@ -36,7 +36,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import de.bitmacht.workingtitle36.view.TimeView;
-import de.bitmacht.workingtitle36.view.ValueEditText;
+import de.bitmacht.workingtitle36.view.ValueInput;
+import de.bitmacht.workingtitle36.view.ValueWidget;
 
 public class TransactionEditActivity extends AppCompatActivity implements View.OnClickListener,
         TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener, TransactionsUpdateTask.UpdateFinishedCallback {
@@ -59,7 +60,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private ImageButton acceptButton;
     private TimeView timeView;
     private TimeView dateView;
-    private ValueEditText valueEditText;
+    private ValueWidget valueWidget;
     private EditText descriptionView;
     private EditText locationView;
 
@@ -74,7 +75,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         acceptButton = (ImageButton) findViewById(R.id.accept_button);
         timeView = (TimeView) findViewById(R.id.time);
         dateView = (TimeView) findViewById(R.id.date);
-        valueEditText = (ValueEditText) findViewById(R.id.value);
+        valueWidget = (ValueWidget) findViewById(R.id.value);
         descriptionView = (EditText) findViewById(R.id.description);
         locationView = (EditText) findViewById(R.id.location);
 
@@ -121,7 +122,10 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         if (value == null) {
             value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
         }
-        valueEditText.setValue(value);
+
+        if (valueWidget instanceof ValueInput) {
+            ((ValueInput) valueWidget).setValue(value, true);
+        }
     }
 
     @Override
@@ -133,7 +137,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
             outState.putLong(DBHelper.EDITS_KEY_PARENT, parentId);
         }
         outState.putLong(DBHelper.EDITS_KEY_TRANSACTION_TIME, transactionTime.getTimeInMillis());
-        outState.putParcelable(STATE_VALUE_KEY, valueEditText.getValue());
+        outState.putParcelable(STATE_VALUE_KEY, valueWidget.getValue());
     }
 
     @Override
@@ -191,7 +195,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
      */
     private Edit getEdit() {
         return new Edit(parentId, transactionId, transactionTime.getTimeInMillis(),
-                descriptionView.getText().toString(), locationView.getText().toString(), valueEditText.getValue());
+                descriptionView.getText().toString(), locationView.getText().toString(), valueWidget.getValue());
     }
 
     @Override

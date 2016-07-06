@@ -81,12 +81,12 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
         Currency currency = Currency.getInstance(currencyCode);
         int fractionDigits = currency.getDefaultFractionDigits();
-        text = text.replaceAll("[^0-9.,+-]+","");
+        text = text.replaceAll("[^0-9.,]+","");
 
         char separator = DecimalFormatSymbols.getInstance().getMonetaryDecimalSeparator();
         String[] splits = text.split("[" + separator +"]", 2);
 
-        String major = splits[0].replaceAll("[^0-9+-]+", "");
+        String major = splits[0].replaceAll("[^0-9]+", "");
         String minor = splits.length == 2 ? splits[1].replaceAll("[^0-9]+","") : "";
 
         if (fractionDigits == 0) {
@@ -155,9 +155,9 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
             fracts = currency.getDefaultFractionDigits();
             symbol = currency.getSymbol();
             if (fracts > 0) {
-                pattern = Pattern.compile("-?(?:0|[1-9]+[0-9]*)?(?:\\Q" + separator + "\\E[0-9]{0," + fracts + "})?\\Q" + symbol + "\\E");
+                pattern = Pattern.compile("(?:0|[1-9]+[0-9]*)?(?:\\Q" + separator + "\\E[0-9]{0," + fracts + "})?\\Q" + symbol + "\\E");
             } else {
-                pattern = Pattern.compile("-?(?:0|[1-9]+[0-9]*)?\\Q" + symbol + "\\E");
+                pattern = Pattern.compile("(?:0|[1-9]+[0-9]*)?\\Q" + symbol + "\\E");
             }
         }
 
