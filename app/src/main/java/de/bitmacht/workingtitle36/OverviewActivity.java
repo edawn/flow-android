@@ -38,6 +38,7 @@ import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -80,12 +81,18 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private DrawerLayout drawerLayout;
     private ImageButton monthBeforeBtn;
     private ImageButton monthNextBtn;
-    private TextView monthView;
+    private TextView monthRemain;
+    private TextView monthSpent;
+    private TextView monthAvailable;
+    private Button monthTransactionsButton;
     private RecyclerView monthRecycler;
     private TextView dayLabel;
-    private TextView dayView;
     private ImageButton dayBeforeBtn;
     private ImageButton dayNextBtn;
+    private TextView dayRemain;
+    private TextView daySpent;
+    private TextView dayAvailable;
+    private Button dayTransactionsButton;
     private RecyclerView dayRecycler;
     private NavigationView navBar;
 
@@ -103,7 +110,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private DateTime startOfDay = null;
 
     private ArrayList<RegularModel> regulars = null;
+    /** The transactions for the currently selected month*/
     private ArrayList<TransactionsModel> transactions = null;
+    private boolean hasTransactionsMonth = false;
+    private boolean hasTransactionsDay = false;
 
     private TransactionsArrayAdapter adapter;
 
@@ -128,12 +138,18 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         drawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         monthBeforeBtn = (ImageButton) findViewById(R.id.before_button);
         monthNextBtn = (ImageButton) findViewById(R.id.next_button);
-        monthView = (TextView) findViewById(R.id.month);
+        monthRemain = (TextView) findViewById(R.id.month_balance_remain_value);
+        monthSpent = (TextView) findViewById(R.id.month_balance_spent_value);
+        monthAvailable = (TextView) findViewById(R.id.month_balance_available_value);
+        monthTransactionsButton = (Button) findViewById(R.id.month_transactions_button);
         monthRecycler = (RecyclerView) findViewById(R.id.transactions_month);
         dayLabel = (TextView) findViewById(R.id.dayLabel);
-        dayView = (TextView) findViewById(R.id.day);
         dayBeforeBtn = (ImageButton) findViewById(R.id.day_before_button);
         dayNextBtn = (ImageButton) findViewById(R.id.day_next_button);
+        dayRemain = (TextView) findViewById(R.id.day_balance_remain_value);
+        daySpent = (TextView) findViewById(R.id.day_balance_spent_value);
+        dayAvailable = (TextView) findViewById(R.id.day_balance_available_value);
+        dayTransactionsButton = (Button) findViewById(R.id.day_transactions_button);
         dayRecycler = (RecyclerView) findViewById(R.id.transactions_day);
         navBar = (NavigationView) findViewById(R.id.navigation);
 
@@ -147,13 +163,13 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         monthBeforeBtn.setOnClickListener(this);
         monthNextBtn.setOnClickListener(this);
 
-        monthView.setOnClickListener(this);
+        monthTransactionsButton.setOnClickListener(this);
+        dayTransactionsButton.setOnClickListener(this);
 
         monthRecycler.setLayoutManager(new LinearLayoutManager(this));
         adapter = new TransactionsArrayAdapter();
         monthRecycler.setAdapter(adapter);
 
-        dayView.setOnClickListener(this);
         dayBeforeBtn.setOnClickListener(this);
         dayNextBtn.setOnClickListener(this);
 
@@ -246,23 +262,17 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             }
         });
 
-        int monthTwisty = R.drawable.ic_navigate_next_black_24dp;
-        int dayTwisty = R.drawable.ic_navigate_next_black_24dp;
         if (savedInstanceState != null) {
             periodStart = new DateTime(savedInstanceState.getLong(STATE_PERIOD_START));
             if (savedInstanceState.getBoolean(STATE_MONTH_RECYCLER_VISIBLE)) {
-                monthTwisty = R.drawable.ic_keyboard_arrow_down_black_24dp;
                 monthRecycler.setVisibility(View.VISIBLE);
             }
             if (savedInstanceState.getBoolean(STATE_DAY_RECYCLER_VISIBLE)) {
-                dayTwisty = R.drawable.ic_keyboard_arrow_down_black_24dp;
                 dayRecycler.setVisibility(View.VISIBLE);
             }
             //noinspection unchecked
             selectedDayForPeriod = (HashMap<Long, Long>) savedInstanceState.getSerializable(STATE_SELECTED_DAY_FOR_PERIOD);
         }
-        monthView.setCompoundDrawablesWithIntrinsicBounds(monthTwisty, 0, 0, 0);
-        dayView.setCompoundDrawablesWithIntrinsicBounds(dayTwisty, 0, 0, 0);
         changePeriod(PERIOD_UNCHANGED);
     }
 
@@ -440,6 +450,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         String currencyCode = MyApplication.getCurrency().getCurrencyCode();
         Value valueBeforeDay = new Value(currencyCode, 0);
         Value valueDay = new Value(currencyCode, 0);
+        hasTransactionsMonth = !transactions.isEmpty();
+        hasTransactionsDay = false;
         for (TransactionsModel transact : transactions) {
             long transactionTime = transact.mostRecentEdit.transactionTime;
             if (transactionTime < startOfDayMillis) {
@@ -453,6 +465,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             } else if (transactionTime < endOfDayMillis) {
                 try {
                     valueDay = valueDay.add(transact.mostRecentEdit.getValue());
+                    hasTransactionsDay = true;
                 } catch (Value.CurrencyMismatchException e) {
                     if (BuildConfig.DEBUG) {
                         logger.warn("unable to add: {}", transact.mostRecentEdit);
@@ -524,13 +537,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             logger.trace("regsum: {} trsum: {} rem: {}", regularsSum, transactionsSum, regularsSum);
         }
 
-        int templateRes = R.string.overview_budget_plus_template;
-        if (transactionsSum.amount < 0) {
-            templateRes = R.string.overview_budget_minus_template;
-            transactionsSum = transactionsSum.withAmount(Math.abs(transactionsSum.amount));
-        }
-
-        monthView.setText(getString(templateRes, regularsSum.getString(), transactionsSum.getString(), remaining.getString()));
+        monthRemain.setText(remaining.getString());
+        monthSpent.setText(transactionsSum.withAmount(-transactionsSum.amount).getString());
+        monthAvailable.setText(regularsSum.getString());
+        adjustExpandButton(monthTransactionsButton, hasTransactionsMonth, monthRecycler);
 
         int daysTotal = Days.daysBetween(periodStart, periodEnd).getDays();
         int daysBefore = Days.daysBetween(periodStart, startOfDay).getDays();
@@ -539,9 +549,11 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             Value remainingFromDay = regularsSum.add(spentBeforeDay);
             Value remFromDayPerDay = remainingFromDay.withAmount(remainingFromDay.amount / (daysTotal - daysBefore));
             Value remainingDay = remFromDayPerDay.add(spentDay);
-            templateRes = spentDay.amount < 0 ? R.string.overview_budget_minus_template : R.string.overview_budget_plus_template;
-            dayView.setText(getString(templateRes, remFromDayPerDay.getString(),
-                    spentDay.withAmount(Math.abs(spentDay.amount)).getString(), remainingDay.getString()));
+
+            dayRemain.setText(remainingDay.getString());
+            daySpent.setText(spentDay.withAmount(-spentDay.amount).getString());
+            dayAvailable.setText(remFromDayPerDay.getString());
+            adjustExpandButton(dayTransactionsButton, hasTransactionsDay, dayRecycler);
         } catch (Value.CurrencyMismatchException e) {
             if (BuildConfig.DEBUG) {
                 logger.warn("unable to add", e);
@@ -549,12 +561,22 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    private void adjustExpandButton(Button expandButton, boolean isEnabled, View expandedView) {
+        if (isEnabled) {
+            expandButton.setEnabled(true);
+            expandButton.setText(expandedView.getVisibility() == View.VISIBLE ?
+                    R.string.overview_transactions_hide : R.string.overview_transactions_show);
+        } else {
+            expandButton.setEnabled(false);
+            expandButton.setText(R.string.overview_transactions_no);
+        }
+    }
+
     @Override
     public void onClick(View v) {
         final int id = v.getId();
-        if (id == R.id.month || id == R.id.day) {
-            TextView balanceView = id == R.id.month ? monthView : dayView;
-            RecyclerView recyclerView = id == R.id.month ? monthRecycler : dayRecycler;
+        if (id == R.id.month_transactions_button || id == R.id.day_transactions_button) {
+            RecyclerView recyclerView = id == R.id.month_transactions_button ? monthRecycler : dayRecycler;
             int newVisibility = recyclerView.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE;
             recyclerView.setVisibility(newVisibility);
             if (newVisibility == View.VISIBLE) {
@@ -562,9 +584,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
                 args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
                 getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
-                balanceView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_keyboard_arrow_down_black_24dp, 0, 0, 0);
             } else {
-                balanceView.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_navigate_next_black_24dp, 0, 0, 0);
+                ((Button) v).setText(R.string.overview_transactions_show);
             }
         } else if (id == R.id.before_button) {
             changePeriod(PERIOD_BEFORE);

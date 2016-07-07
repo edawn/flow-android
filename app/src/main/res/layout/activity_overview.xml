@@ -85,13 +85,61 @@
                             android:text="@string/overview_month"
                             android:textAppearance="?android:attr/textAppearanceMedium" />
 
-                        <TextView
-                            android:id="@+id/month"
-                            style="?attr/borderlessButtonStyle"
+                        <GridLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:textAppearance="?android:attr/textAppearanceLarge"
-                            android:drawablePadding="5dp"/>
+                            android:useDefaultMargins="true"
+                            android:alignmentMode="alignBounds"
+                            android:columnOrderPreserved="false"
+                            android:columnCount="2">
+
+                            <TextView
+                                android:id="@+id/month_balance_remain_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/overview_month_remaining"
+                                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                            <TextView
+                                android:id="@+id/month_balance_spent_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/overview_month_spent"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                            <TextView
+                                android:id="@+id/month_balance_available_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/overview_month_available"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                        </GridLayout>
+
+                        <Button
+                            android:id="@+id/month_transactions_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="?attr/borderlessButtonStyle"
+                            />
 
                         <android.support.v7.widget.RecyclerView
                             android:id="@+id/transactions_month"
@@ -132,17 +180,6 @@
                                 android:layout_alignParentStart="true"
                                 android:layout_alignParentTop="true" />
 
-                            <TextView
-                                android:id="@+id/day"
-                                style="?attr/borderlessButtonStyle"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:textAppearance="?android:attr/textAppearanceLarge"
-                                android:layout_alignParentLeft="true"
-                                android:layout_alignParentStart="true"
-                                android:layout_below="@id/dayLabel"
-                                android:drawablePadding="5dp" />
-
                             <ImageButton
                                 android:id="@+id/day_before_button"
                                 style="?android:attr/borderlessButtonStyle"
@@ -163,11 +200,68 @@
 
                         </RelativeLayout>
 
+                        <GridLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:useDefaultMargins="true"
+                            android:alignmentMode="alignBounds"
+                            android:columnOrderPreserved="false"
+                            android:columnCount="2">
+
+                            <TextView
+                                android:id="@+id/day_balance_remain_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/overview_month_remaining"
+                                android:textAppearance="?android:attr/textAppearanceLarge" />
+
+                            <TextView
+                                android:id="@+id/day_balance_spent_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/overview_month_spent"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                            <TextView
+                                android:id="@+id/day_balance_available_value"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="end"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/overview_month_available"
+                                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+                        </GridLayout>
+
+                        <Button
+                            android:id="@+id/day_transactions_button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="?attr/borderlessButtonStyle"
+                            />
+
                         <android.support.v7.widget.RecyclerView
                             android:id="@+id/transactions_day"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:visibility="gone" />
+
                     </LinearLayout>
 
                     <Space
