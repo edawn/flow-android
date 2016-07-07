@@ -31,7 +31,7 @@
     <string name="overview_transactions_show">Zeige Umsätze</string>
     <string name="overview_transactions_hide">Verstecke Umsätze</string>
     <string name="overview_transactions_no">Keine Umsätze vorhanden</string>
-    <string name="menu_regular_transactions">Regelmäßige Transaktionen</string>
+    <string name="menu_regular_transactions">Regelmäßige Umsätze</string>
     <string name="menu_settings">Einstellungen</string>
     <string name="menu_about">Info</string>
     <string name="drawer_open">Öffne Seitenleiste</string>
@@ -40,7 +40,7 @@
     <string name="pref_currency_title">Währung</string>
     <string name="pref_currency_summary">%s</string>
     <string name="value">Wert</string>
-    <string name="snackbar_transaction_removed">Transaktion entfernt</string>
+    <string name="snackbar_transaction_removed">Umsatz entfernt</string>
     <string name="snackbar_undo">RÜCKGÄNGIG</string>
     <string name="time">Zeit</string>
     <string name="transaction_edit_location_hint">Ort</string>
