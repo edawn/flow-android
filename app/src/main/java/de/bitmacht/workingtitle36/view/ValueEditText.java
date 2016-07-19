@@ -145,13 +145,16 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
         private final Currency currency;
         private final char separator;
+        private final String separatorString;
         private final int fracts;
         private final String symbol;
         private final Pattern pattern;
+        private final Pattern separatorReplacePattern;
 
         public ValueInputFilter(Currency currency) {
             this.currency = currency;
             separator = DecimalFormatSymbols.getInstance().getMonetaryDecimalSeparator();
+            separatorString = Character.toString(separator);
             fracts = currency.getDefaultFractionDigits();
             symbol = currency.getSymbol();
             if (fracts > 0) {
@@ -159,16 +162,18 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
             } else {
                 pattern = Pattern.compile("(?:0|[1-9]+[0-9]*)?\\Q" + symbol + "\\E");
             }
+            separatorReplacePattern = Pattern.compile("[,.]");
         }
 
         @Override
         public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-            String result = dest.subSequence(0, dstart) + source.toString() + dest.subSequence(dend, dest.length());
-            Matcher matcher = pattern.matcher(result);
-            if (!matcher.matches()) {
+            String sourceMod = separatorReplacePattern.matcher(source).replaceAll(separatorString);
+            String result = dest.subSequence(0, dstart) + sourceMod + dest.subSequence(dend, dest.length());
+
+            if (!pattern.matcher(result).matches()) {
                 return dest.subSequence(dstart, dend);
             }
-            return null;
+            return sourceMod;
         }
 
         public Currency getCurrency() {
