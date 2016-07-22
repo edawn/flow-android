@@ -315,7 +315,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             dayBeforeBtn.setAlpha(1.0f);
         }
         boolean isToday = new Interval(DateTime.now().withTimeAtStartOfDay(), Days.ONE).contains(startOfDay);
-        if (!periodEnd.isAfter(startOfDay.plusDays(1)) || isToday) {
+        if (!periodEnd.isAfter(startOfDay.plusDays(1))) {
             dayNextBtn.setEnabled(false);
             dayNextBtn.setAlpha(0.26f);
         } else {
@@ -430,10 +430,6 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             newStartOfDay = periodStart;
         } else if (!newStartOfDay.isBefore(periodEnd)) {
             newStartOfDay = periodEnd.minusDays(1);
-        }
-        // enforce the assumption that there are no transactions in the future
-        if (newStartOfDay.isAfterNow()) {
-            newStartOfDay = DateTime.now();
         }
         setStartOfDay(newStartOfDay.withTimeAtStartOfDay());
         updateTransactions();
