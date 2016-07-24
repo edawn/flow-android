@@ -17,13 +17,9 @@
 package de.bitmacht.workingtitle36;
 
 import android.app.LoaderManager;
-import android.content.AsyncTaskLoader;
-import android.content.Context;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.res.Configuration;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
@@ -621,43 +617,6 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 }
             };
 
-    private static class RegularsLoader extends AsyncTaskLoader<ArrayList<RegularModel>> {
-        private final DBHelper dbHelper;
-        private ArrayList<RegularModel> result;
-
-        RegularsLoader(Context context, DBHelper dbHelper) {
-            super(context);
-            this.dbHelper = dbHelper;
-        }
-
-        @Override
-        public ArrayList<RegularModel> loadInBackground() {
-            return DBHelper.queryRegulars(dbHelper);
-        }
-
-        @Override
-        public void deliverResult(ArrayList<RegularModel> result) {
-            this.result = result;
-            super.deliverResult(result);
-        }
-
-        @Override
-        protected void onStartLoading() {
-            if (result != null) {
-                deliverResult(result);
-            }
-            if (takeContentChanged() || result == null) {
-                forceLoad();
-            }
-        }
-
-        @Override
-        protected void onReset() {
-            super.onReset();
-            result = null;
-        }
-    }
-
     LoaderManager.LoaderCallbacks<ArrayList<TransactionsModel>> transactionsListener =
             new LoaderManager.LoaderCallbacks<ArrayList<TransactionsModel>>() {
                 @Override
@@ -675,66 +634,6 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 @Override
                 public void onLoaderReset(Loader<ArrayList<TransactionsModel>> loader) {}
             };
-
-    private static class TransactionsLoader extends AsyncTaskLoader<ArrayList<TransactionsModel>> {
-        /**
-         * The start of the interval for which the transactions shall be queried (including; in ms since the epoch; default: java.lang.Long.MIN_VALUE)
-         */
-        public static final String ARG_START = "interval_start";
-        /**
-         * The end of the interval for which the transactions shall be queried (excluding; in ms since the epoch; default: java.lang.Long.MAX_VALUE)
-         */
-        public static final String ARG_END = "interval_end";
-
-        private final DBHelper dbHelper;
-        private final Bundle args;
-        private ArrayList<TransactionsModel> result;
-
-        public TransactionsLoader(Context context, DBHelper dbHelper, Bundle args) {
-            super(context);
-            this.dbHelper = dbHelper;
-            this.args = args;
-        }
-
-        @Override
-        public ArrayList<TransactionsModel> loadInBackground() {
-            long start = args.getLong(ARG_START, Long.MIN_VALUE);
-            long end = args.getLong(ARG_END, Long.MAX_VALUE);
-
-            SQLiteDatabase db = dbHelper.getReadableDatabase();
-            Cursor cursor = db.rawQuery(DBHelper.TRANSACTIONS_EDITS_TIME_SPAN_QUERY, new String[]{String.valueOf(start), String.valueOf(end)});
-
-            ArrayList<TransactionsModel> result = new ArrayList<>(cursor.getCount());
-
-            while (cursor.moveToNext()) {
-                result.add(TransactionsModel.getInstanceWithEdit(cursor));
-            }
-
-            return result;
-        }
-
-        @Override
-        public void deliverResult(ArrayList<TransactionsModel> result) {
-            this.result = result;
-            super.deliverResult(result);
-        }
-
-        @Override
-        protected void onStartLoading() {
-            if (result != null) {
-                deliverResult(result);
-            }
-            if (takeContentChanged() || result == null) {
-                forceLoad();
-            }
-        }
-
-        @Override
-        protected void onReset() {
-            super.onReset();
-            result = null;
-        }
-    }
 
     private class UndoClickListener implements View.OnClickListener, TransactionsDeleteTask.UpdateFinishedCallback {
 
