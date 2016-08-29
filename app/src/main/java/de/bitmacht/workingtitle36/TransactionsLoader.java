@@ -24,32 +24,35 @@ import android.os.Bundle;
 
 import java.util.ArrayList;
 
-class TransactionsLoader extends AsyncTaskLoader<ArrayList<TransactionsModel>> {
-    /**
-     * The start of the interval for which the transactions shall be queried (including; in ms since the epoch; default: java.lang.Long.MIN_VALUE)
-     */
-    public static final String ARG_START = "interval_start";
-    /**
-     * The end of the interval for which the transactions shall be queried (excluding; in ms since the epoch; default: java.lang.Long.MAX_VALUE)
-     */
-    public static final String ARG_END = "interval_end";
+public class TransactionsLoader extends AsyncTaskLoader<ArrayList<TransactionsModel>> {
+
+    public static final String ARG_PERIODS = "periods";
 
     private final DBHelper dbHelper;
-    private final Bundle args;
+    private Periods periods;
     private ArrayList<TransactionsModel> result;
 
     public TransactionsLoader(Context context, DBHelper dbHelper, Bundle args) {
         super(context);
         this.dbHelper = dbHelper;
-        this.args = args;
+        periods = args.getParcelable(ARG_PERIODS);
+    }
+
+    public TransactionsLoader(Context context, DBHelper dbHelper, Periods periods) {
+        super(context);
+        this.dbHelper = dbHelper;
+        this.periods = periods;
+    }
+
+    public Periods getPeriods() {
+        return periods;
     }
 
     @Override
     public ArrayList<TransactionsModel> loadInBackground() {
-        long start = args.getLong(ARG_START, Long.MIN_VALUE);
-        long end = args.getLong(ARG_END, Long.MAX_VALUE);
-
         SQLiteDatabase db = dbHelper.getReadableDatabase();
+        long start = periods.getLongStart().getMillis();
+        long end = periods.getLongEnd().getMillis();
         Cursor cursor = db.rawQuery(DBHelper.TRANSACTIONS_EDITS_TIME_SPAN_QUERY, new String[]{String.valueOf(start), String.valueOf(end)});
 
         ArrayList<TransactionsModel> result = new ArrayList<>(cursor.getCount());

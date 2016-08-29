@@ -53,10 +53,13 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     
     private static final Logger logger = LoggerFactory.getLogger(OverviewActivity.class);
 
-    public static final String STATE_PERIOD_START = "periodStart";
+    private static final String STATE_REGULARS = "regulars";
+    private static final String STATE_TRANSACTIONS = "transactions";
+    private static final String STATE_IS_VIEWING_TODAY = "isViewingToday";
+    private static final String STATE_PERIODS = "periods";
     private static final String STATE_MONTH_RECYCLER_VISIBLE = "monthRecyclerVisible";
     private static final String STATE_DAY_RECYCLER_VISIBLE = "dayRecyclerVisible";
-    private static final String STATE_SELECTED_DAY_FOR_PERIOD = "selectedDayForPeriod";
+    private static final String STATE_SHORT_LONG_MAP = "selectedDayForPeriod";
 
     private static final int LOADER_ID_REGULARS = 0;
     private static final int LOADER_ID_TRANSACTIONS = 1;
@@ -66,10 +69,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     public static final int REQUEST_SETTINGS = 2;
     public static final int REQUEST_TRANSACTION_EDIT = 3;
 
-    public static final int PERIOD_NOW = 0;
     public static final int PERIOD_BEFORE = 1;
     public static final int PERIOD_NEXT = 2;
-    public static final int PERIOD_UNCHANGED = 3;
 
     private DBHelper dbHelper;
 
@@ -92,18 +93,11 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private RecyclerView dayRecycler;
     private NavigationView navBar;
 
-    @IntDef({PERIOD_NOW, PERIOD_BEFORE, PERIOD_NEXT, PERIOD_UNCHANGED})
+    @IntDef({PERIOD_BEFORE, PERIOD_NEXT})
     @Retention(RetentionPolicy.SOURCE)
     public @interface PeriodModifier {}
 
     private ActionBarDrawerToggle drawerToggle;
-
-    /** this defines the current balancing period */
-    DateTime periodStart = null;
-    DateTime periodEnd = null;
-
-    /** this defines the start of the start of the day for which more/detailed information will be shown */
-    private DateTime startOfDay = null;
 
     private ArrayList<RegularModel> regulars = null;
     /** The transactions for the currently selected month*/
@@ -114,17 +108,27 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private TransactionsArrayAdapter adapter;
 
     /**
+     * This indicates that the user has chosen to view the current day; it takes precedence over
+     * the short period in {@link #periods}
+     */
+    private boolean isViewingToday = true;
+    private Periods periods = new Periods();
+    /**
      * Value of the transactions between the start of the accounting period (including) and
-     * the selected day (excluding; relates to {@link OverviewActivity#startOfDay})
+     * the selected day
      */
     private Value spentBeforeDay = null;
     private Value spentDay = null;
 
-    private HashMap<Long, Long> selectedDayForPeriod = new HashMap<>();
+    private HashMap<Integer, Periods> shortForLongPeriodMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        if (BuildConfig.DEBUG) {
+            logger.trace("savedInstanceState: {}", savedInstanceState);
+        }
 
         dbHelper = new DBHelper(this);
 
@@ -259,7 +263,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         });
 
         if (savedInstanceState != null) {
-            periodStart = new DateTime(savedInstanceState.getLong(STATE_PERIOD_START));
+            regulars = savedInstanceState.getParcelableArrayList(STATE_REGULARS);
+            transactions = savedInstanceState.getParcelableArrayList(STATE_TRANSACTIONS);
+            isViewingToday = savedInstanceState.getBoolean(STATE_IS_VIEWING_TODAY);
+            periods = isViewingToday ? new Periods() : (Periods) savedInstanceState.getParcelable(STATE_PERIODS);
             if (savedInstanceState.getBoolean(STATE_MONTH_RECYCLER_VISIBLE)) {
                 monthRecycler.setVisibility(View.VISIBLE);
             }
@@ -267,62 +274,40 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 dayRecycler.setVisibility(View.VISIBLE);
             }
             //noinspection unchecked
-            selectedDayForPeriod = (HashMap<Long, Long>) savedInstanceState.getSerializable(STATE_SELECTED_DAY_FOR_PERIOD);
+            shortForLongPeriodMap = (HashMap<Integer, Periods>) savedInstanceState.getSerializable(STATE_SHORT_LONG_MAP);
         }
-        changePeriod(PERIOD_UNCHANGED);
+
+        getLoaderManager().initLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (BuildConfig.DEBUG) {
+            logger.trace("-");
+        }
+
+        Bundle args = new Bundle();
+        args.putParcelable(TransactionsLoader.ARG_PERIODS, periods);
+        getLoaderManager().initLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList(STATE_REGULARS, regulars);
+        outState.putParcelableArrayList(STATE_TRANSACTIONS, transactions);
+        outState.putBoolean(STATE_IS_VIEWING_TODAY, isViewingToday);
         //TODO if the timezone changes after this, a wrong period may be restored
-        outState.putLong(STATE_PERIOD_START, periodStart.getMillis());
+        outState.putParcelable(STATE_PERIODS, periods);
         outState.putBoolean(STATE_MONTH_RECYCLER_VISIBLE, monthRecycler.getVisibility() == View.VISIBLE);
         outState.putBoolean(STATE_DAY_RECYCLER_VISIBLE, dayRecycler.getVisibility() == View.VISIBLE);
-        outState.putSerializable(STATE_SELECTED_DAY_FOR_PERIOD, selectedDayForPeriod);
+        outState.putSerializable(STATE_SHORT_LONG_MAP, shortForLongPeriodMap);
     }
 
-    /**
-     * Update the action bar
-     */
-    private void upDate() {
-        if (periodEnd.isAfterNow()) {
-            monthNextBtn.setEnabled(false);
-            monthNextBtn.setAlpha(0.26f);
-        } else {
-            monthNextBtn.setEnabled(true);
-            monthNextBtn.setAlpha(1.0f);
-        }
-        getSupportActionBar().setTitle(getString(R.string.overview_title, periodStart.toGregorianCalendar()));
-    }
-
-    private void setStartOfDay(DateTime newStartOfDay) {
-        if (newStartOfDay.equals(startOfDay)) {
-            return;
-        }
-        startOfDay = newStartOfDay;
-        selectedDayForPeriod.put(periodStart.getMillis(), startOfDay.getMillis());
-
-        if (periodStart.isAfter(startOfDay.minusDays(1))) {
-            dayBeforeBtn.setEnabled(false);
-            dayBeforeBtn.setAlpha(0.26f);
-        } else {
-            dayBeforeBtn.setEnabled(true);
-            dayBeforeBtn.setAlpha(1.0f);
-        }
-        boolean isToday = new Interval(DateTime.now().withTimeAtStartOfDay(), Days.ONE).contains(startOfDay);
-        if (!periodEnd.isAfter(startOfDay.plusDays(1))) {
-            dayNextBtn.setEnabled(false);
-            dayNextBtn.setAlpha(0.26f);
-        } else {
-            dayNextBtn.setEnabled(true);
-            dayNextBtn.setAlpha(1.0f);
-        }
-        if (isToday) {
-            dayLabel.setText(getString(R.string.overview_today));
-        } else {
-            dayLabel.setText(getString(R.string.overview_day, startOfDay.dayOfMonth().get()));
-        }
+    private void setButtonEnabled(View button, boolean enabled) {
+        button.setEnabled(enabled);
+        button.setAlpha(enabled ? 1.0f : 0.26f);
     }
 
     @Override
@@ -351,8 +336,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         if (requestCode == REQUEST_TRANSACTION_NEW || requestCode == REQUEST_TRANSACTION_EDIT) {
             if (resultCode == RESULT_OK) {
                 Bundle args = new Bundle();
-                args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
-                args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+                args.putParcelable(TransactionsLoader.ARG_PERIODS, periods);
                 getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
             }
         } else if (requestCode == REQUEST_REGULARS_OVERVIEW) {
@@ -363,8 +347,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             //TODO check if settings actually changed before updating
             getLoaderManager().restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
             Bundle args = new Bundle();
-            args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
-            args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+            args.putParcelable(TransactionsLoader.ARG_PERIODS, periods);
             getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
         }
     }
@@ -378,67 +361,62 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    private void changePeriod(@PeriodModifier int periodModifier) {
-        DateTime now;
-        if (periodModifier == PERIOD_NOW || periodStart == null) {
-            now = DateTime.now();
-        } else if (periodModifier == PERIOD_BEFORE) {
-            now = periodStart.minusMonths(1);
-        } else if (periodModifier == PERIOD_NEXT) {
-            now = periodStart.plusMonths(1);
-        } else { // PERIOD_UNCHANGED
-            now = periodStart;
-        }
-        periodStart = now.withDayOfMonth(1).withTimeAtStartOfDay();
-        periodEnd = now.plusMonths(1).withDayOfMonth(1).withTimeAtStartOfDay();
-
-        Long newStartOfDay = selectedDayForPeriod.get(periodStart.getMillis());
-        setStartOfDay(newStartOfDay != null ? new DateTime(newStartOfDay) :
-                periodEnd.isAfterNow() ? DateTime.now().withTimeAtStartOfDay() : now.withTimeAtStartOfDay());
-
-        upDate();
-
-        getLoaderManager().restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
+    private void changeMonth(@PeriodModifier int periodModifier) {
+        Periods newPeriods = periodModifier == PERIOD_BEFORE ? periods.previousLong() : periods.nextLong();
 
         Bundle args = new Bundle();
-        args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
-        args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+        args.putParcelable(TransactionsLoader.ARG_PERIODS, newPeriods);
         getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
     }
 
     private void changeDay(@PeriodModifier int periodModifier) {
-        if (periodStart == null || periodEnd == null || startOfDay == null) {
+        Periods newPeriods =
+                periodModifier == PERIOD_BEFORE ? periods.previousShort() : periods.nextShort();
+
+        if (newPeriods == null) {
             return;
         }
-        DateTime newStartOfDay;
-        if (periodModifier == PERIOD_NOW) {
-            newStartOfDay = DateTime.now();
-        } else if (periodModifier == PERIOD_BEFORE) {
-            newStartOfDay = startOfDay.minusDays(1);
-        } else if (periodModifier == PERIOD_NEXT) {
-            newStartOfDay = startOfDay.plusDays(1);
-        } else { // PERIOD_UNCHANGED
-            newStartOfDay = startOfDay;
-        }
 
-        // stay inside the bounds of the currently selected month
-        if (newStartOfDay.isBefore(periodStart)) {
-            newStartOfDay = periodStart;
-        } else if (!newStartOfDay.isBefore(periodEnd)) {
-            newStartOfDay = periodEnd.minusDays(1);
-        }
-        setStartOfDay(newStartOfDay.withTimeAtStartOfDay());
+        periods = newPeriods;
+
+        onPeriodChanged();
+
         updateTransactions();
-        updateOverview();
     }
 
+    /**
+     * Updates the buttons and labels
+     */
+    private void onPeriodChanged() {
+        DateTime now = DateTime.now();
+        // update the action bar
+        // the next month would be in the future
+        setButtonEnabled(monthNextBtn, !periods.getLongEnd().isAfter(now));
+        getSupportActionBar().setTitle(getString(R.string.overview_title, periods.getLongStart().toGregorianCalendar()));
+
+        // the first day of the month
+        setButtonEnabled(dayBeforeBtn, periods.getShortStart().isAfter(periods.getLongStart()));
+        // the last day of the month
+        setButtonEnabled(dayNextBtn, periods.getLongEnd().isAfter(periods.getShortEnd()));
+
+        isViewingToday = new Interval(periods.getShortStart(), periods.getShortPeriod()).contains(now);
+        dayLabel.setText(isViewingToday ? getString(R.string.overview_today) :
+                getString(R.string.overview_day, periods.getShortStart().dayOfMonth().get()));
+    }
+
+    /**
+     * Call this when the transactions have changed
+     */
     private void updateTransactions() {
         // filter the transactions so we get only the transactions performed on the selected day
         //TODO respect timezone
         //TODO applying to a result that does not include the current day makes only little sense
         //TODO somehow merge this with TransactionsArrayAdapter#setSubRange()
-        long startOfDayMillis = startOfDay.getMillis();
-        long endOfDayMillis = startOfDay.plusDays(1).getMillis();
+        if (transactions == null) {
+            return;
+        }
+        long startOfDayMillis = periods.getShortStart().getMillis();
+        long endOfDayMillis = periods.getShortEnd().getMillis();
         String currencyCode = MyApplication.getCurrency().getCurrencyCode();
         Value valueBeforeDay = new Value(currencyCode, 0);
         Value valueDay = new Value(currencyCode, 0);
@@ -468,10 +446,11 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         adapter.setData(transactions, startOfDayMillis, endOfDayMillis);
         spentDay = valueDay;
         spentBeforeDay = valueBeforeDay;
+        updateOverview();
     }
 
     private void updateOverview() {
-        if (regulars == null || spentDay == null || spentBeforeDay == null) {
+        if (regulars == null || transactions == null || spentDay == null || spentBeforeDay == null) {
             if (BuildConfig.DEBUG) {
                 logger.warn("not initialized yet");
             }
@@ -504,7 +483,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             if (regular.isDisabled) {
                 continue;
             }
-            regularsValues.add(regular.getCumulativeValue(periodStart, periodEnd));
+            regularsValues.add(regular.getCumulativeValue(periods.getLongStart(), periods.getLongEnd()));
         }
 
         Value regularsSum = new Value(currencyCode, 0);
@@ -534,8 +513,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         monthAvailable.setText(regularsSum.getString());
         adjustExpandButton(monthTransactionsButton, hasTransactionsMonth, monthRecycler);
 
-        int daysTotal = Days.daysBetween(periodStart, periodEnd).getDays();
-        int daysBefore = Days.daysBetween(periodStart, startOfDay).getDays();
+        int daysTotal = Days.daysBetween(periods.getLongStart(), periods.getLongEnd()).getDays();
+        int daysBefore = Days.daysBetween(periods.getLongStart(), periods.getShortStart()).getDays();
 
         try {
             Value remainingFromDay = regularsSum.add(spentBeforeDay);
@@ -573,16 +552,15 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             recyclerView.setVisibility(newVisibility);
             if (newVisibility == View.VISIBLE) {
                 Bundle args = new Bundle();
-                args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
-                args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+                args.putParcelable(TransactionsLoader.ARG_PERIODS, periods);
                 getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
             } else {
                 ((Button) v).setText(R.string.overview_transactions_show);
             }
         } else if (id == R.id.before_button) {
-            changePeriod(PERIOD_BEFORE);
+            changeMonth(PERIOD_BEFORE);
         } else if (id == R.id.next_button) {
-            changePeriod(PERIOD_NEXT);
+            changeMonth(PERIOD_NEXT);
         } else if (id == R.id.day_before_button) {
             changeDay(PERIOD_BEFORE);
         } else if (id == R.id.day_next_button) {
@@ -594,26 +572,17 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             new LoaderManager.LoaderCallbacks<ArrayList<RegularModel>>() {
                 @Override
                 public Loader<ArrayList<RegularModel>> onCreateLoader(int id, Bundle args) {
-                    if (BuildConfig.DEBUG) {
-                        logger.trace("-");
-                    }
                     return new RegularsLoader(OverviewActivity.this, dbHelper);
                 }
 
                 @Override
                 public void onLoadFinished(Loader<ArrayList<RegularModel>> loader, ArrayList<RegularModel> data) {
-                    if (BuildConfig.DEBUG) {
-                        logger.trace("-");
-                    }
                     regulars = data;
                     updateOverview();
                 }
 
                 @Override
                 public void onLoaderReset(Loader<ArrayList<RegularModel>> loader) {
-                    if (BuildConfig.DEBUG) {
-                        logger.trace("-");
-                    }
                 }
             };
 
@@ -627,8 +596,9 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 @Override
                 public void onLoadFinished(Loader<ArrayList<TransactionsModel>> loader, ArrayList<TransactionsModel> data) {
                     transactions = data;
+                    periods = ((TransactionsLoader) loader).getPeriods();
+                    onPeriodChanged();
                     updateTransactions();
-                    updateOverview();
                 }
 
                 @Override
@@ -654,8 +624,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         @Override
         public void onUpdateFinished(boolean success) {
             Bundle args = new Bundle();
-            args.putLong(TransactionsLoader.ARG_START, periodStart.getMillis());
-            args.putLong(TransactionsLoader.ARG_END, periodEnd.getMillis());
+            args.putParcelable(TransactionsLoader.ARG_PERIODS, periods);
             getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
         }
     }
