@@ -59,7 +59,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private static final String STATE_PERIODS = "periods";
     private static final String STATE_MONTH_RECYCLER_VISIBLE = "monthRecyclerVisible";
     private static final String STATE_DAY_RECYCLER_VISIBLE = "dayRecyclerVisible";
-    private static final String STATE_SHORT_LONG_MAP = "selectedDayForPeriod";
+    private static final String STATE_PERIOD_HISTORY = "periodHistory";
 
     private static final int LOADER_ID_REGULARS = 0;
     private static final int LOADER_ID_TRANSACTIONS = 1;
@@ -120,7 +120,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private Value spentBeforeDay = null;
     private Value spentDay = null;
 
-    private HashMap<Integer, Periods> shortForLongPeriodMap = new HashMap<>();
+    private HashMap<Long, Periods> periodHistory = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -274,7 +274,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 dayRecycler.setVisibility(View.VISIBLE);
             }
             //noinspection unchecked
-            shortForLongPeriodMap = (HashMap<Integer, Periods>) savedInstanceState.getSerializable(STATE_SHORT_LONG_MAP);
+            periodHistory = (HashMap<Long, Periods>) savedInstanceState.getSerializable(STATE_PERIOD_HISTORY);
         }
 
         getLoaderManager().initLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
@@ -302,7 +302,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         outState.putParcelable(STATE_PERIODS, periods);
         outState.putBoolean(STATE_MONTH_RECYCLER_VISIBLE, monthRecycler.getVisibility() == View.VISIBLE);
         outState.putBoolean(STATE_DAY_RECYCLER_VISIBLE, dayRecycler.getVisibility() == View.VISIBLE);
-        outState.putSerializable(STATE_SHORT_LONG_MAP, shortForLongPeriodMap);
+        outState.putSerializable(STATE_PERIOD_HISTORY, periodHistory);
     }
 
     private void setButtonEnabled(View button, boolean enabled) {
@@ -363,6 +363,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
     private void changeMonth(@PeriodModifier int periodModifier) {
         Periods newPeriods = periodModifier == PERIOD_BEFORE ? periods.previousLong() : periods.nextLong();
+        Periods historicPeriods = periodHistory.get(newPeriods.getLongStart().getMillis());
+        if (historicPeriods != null) {
+            newPeriods = historicPeriods;
+        }
 
         Bundle args = new Bundle();
         args.putParcelable(TransactionsLoader.ARG_PERIODS, newPeriods);
@@ -384,10 +388,9 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         updateTransactions();
     }
 
-    /**
-     * Updates the buttons and labels
-     */
     private void onPeriodChanged() {
+        periodHistory.put(periods.getLongStart().getMillis(), periods);
+
         DateTime now = DateTime.now();
         // update the action bar
         // the next month would be in the future
