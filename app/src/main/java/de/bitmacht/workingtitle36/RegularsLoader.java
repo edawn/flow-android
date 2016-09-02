@@ -21,11 +21,11 @@ import android.content.Context;
 
 import java.util.ArrayList;
 
-class RegularsLoader extends AsyncTaskLoader<ArrayList<RegularModel>> {
+public class RegularsLoader extends AsyncTaskLoader<ArrayList<RegularModel>> {
     private final DBHelper dbHelper;
     private ArrayList<RegularModel> result;
 
-    RegularsLoader(Context context, DBHelper dbHelper) {
+    public RegularsLoader(Context context, DBHelper dbHelper) {
         super(context);
         this.dbHelper = dbHelper;
     }
