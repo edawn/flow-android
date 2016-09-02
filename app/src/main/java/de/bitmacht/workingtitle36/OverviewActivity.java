@@ -483,9 +483,6 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
         ArrayList<Value> regularsValues = new ArrayList<>(regulars.size());
         for (RegularModel regular : regulars) {
-            if (regular.isDisabled) {
-                continue;
-            }
             regularsValues.add(regular.getCumulativeValue(periods.getLongStart(), periods.getLongEnd()));
         }
 
