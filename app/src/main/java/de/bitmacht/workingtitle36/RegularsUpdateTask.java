@@ -19,7 +19,6 @@ package de.bitmacht.workingtitle36;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -28,7 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
 
-public class RegularsUpdateTask extends AsyncTask<Void, Void, Boolean> {
+import de.bitmacht.workingtitle36.widget.WidgetAwareAsyncTask;
+
+public class RegularsUpdateTask extends WidgetAwareAsyncTask {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularsUpdateTask.class);
 
@@ -37,6 +38,7 @@ public class RegularsUpdateTask extends AsyncTask<Void, Void, Boolean> {
     private final RegularModel regular;
 
     public RegularsUpdateTask(@NonNull Context context, @Nullable UpdateFinishedCallback callback, RegularModel regular) {
+        super(context);
         dbHelper = new DBHelper(context);
         callbackRef = new WeakReference<>(callback);
         this.regular = regular;
@@ -68,6 +70,7 @@ public class RegularsUpdateTask extends AsyncTask<Void, Void, Boolean> {
 
     @Override
     protected void onPostExecute(Boolean success) {
+        super.onPostExecute(success);
         UpdateFinishedCallback callback = callbackRef.get();
         if (callback != null) {
             callback.onUpdateFinished(success);

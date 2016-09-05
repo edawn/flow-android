@@ -19,7 +19,6 @@ package de.bitmacht.workingtitle36;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -28,7 +27,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
 
-public class TransactionsDeleteTask extends AsyncTask<Void, Void, Boolean> {
+import de.bitmacht.workingtitle36.widget.WidgetAwareAsyncTask;
+
+public class TransactionsDeleteTask extends WidgetAwareAsyncTask {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionsDeleteTask.class);
 
@@ -37,6 +38,7 @@ public class TransactionsDeleteTask extends AsyncTask<Void, Void, Boolean> {
     private final TransactionsModel transaction;
 
     public TransactionsDeleteTask(@NonNull Context context, @Nullable UpdateFinishedCallback callback, @NonNull TransactionsModel transaction) {
+        super(context);
         dbHelper = new DBHelper(context);
         callbackRef = new WeakReference<>(callback);
         this.transaction = transaction;
@@ -74,6 +76,7 @@ public class TransactionsDeleteTask extends AsyncTask<Void, Void, Boolean> {
 
     @Override
     protected void onPostExecute(Boolean success) {
+        super.onPostExecute(success);
         UpdateFinishedCallback callback = callbackRef.get();
         if (callback != null) {
             callback.onUpdateFinished(success);

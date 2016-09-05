@@ -20,7 +20,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
@@ -29,7 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.ref.WeakReference;
 
-public class TransactionsUpdateTask extends AsyncTask<Void, Void, Boolean> {
+import de.bitmacht.workingtitle36.widget.WidgetAwareAsyncTask;
+
+public class TransactionsUpdateTask extends WidgetAwareAsyncTask {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionsUpdateTask.class);
 
@@ -38,6 +39,7 @@ public class TransactionsUpdateTask extends AsyncTask<Void, Void, Boolean> {
     private Edit edit;
 
     public TransactionsUpdateTask(@NonNull Context context, @Nullable UpdateFinishedCallback callback, @NonNull Edit edit) {
+        super(context);
         dbHelper = new DBHelper(context);
         callbackRef = new WeakReference<>(callback);
         this.edit = edit;
@@ -131,6 +133,7 @@ public class TransactionsUpdateTask extends AsyncTask<Void, Void, Boolean> {
 
     @Override
     protected void onPostExecute(Boolean success) {
+        super.onPostExecute(success);
         UpdateFinishedCallback callback = callbackRef.get();
         if (callback != null) {
             callback.onUpdateFinished(success);
