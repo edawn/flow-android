@@ -43,6 +43,17 @@
         <activity
             android:name=".RegularEditActivity"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <receiver android:name=".widget.WidgetProvider">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/widget" />
+        </receiver>
+
+        <service android:name=".widget.WidgetService" />
+
     </application>
 
 </manifest>
