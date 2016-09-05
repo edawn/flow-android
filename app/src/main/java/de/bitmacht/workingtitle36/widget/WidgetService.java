@@ -122,10 +122,6 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
         updateWidget();
     }
 
-    /**
-     * hallo
-     * {@link OverviewActivity#updateOverview()}
-     */
     private void updateWidget() {
         if (regulars == null || requestPeriods == null || transactions == null) {
             return;
