@@ -71,7 +71,13 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
         if (BuildConfig.DEBUG) {
             logger.trace("-");
         }
-        startLoaders();
+
+        int[] widgetIds = AppWidgetManager.getInstance(this).
+                getAppWidgetIds(new ComponentName(this, WidgetProvider.class));
+        if (widgetIds.length > 0) {
+            startLoaders();
+        }
+        
         return START_STICKY;
     }
 
