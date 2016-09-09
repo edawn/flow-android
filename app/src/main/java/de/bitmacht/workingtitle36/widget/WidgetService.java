@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.graphics.ColorUtils;
 import android.widget.RemoteViews;
 
 import org.joda.time.DateTime;
@@ -45,6 +46,7 @@ import de.bitmacht.workingtitle36.RegularsLoader;
 import de.bitmacht.workingtitle36.TransactionEditActivity;
 import de.bitmacht.workingtitle36.TransactionsLoader;
 import de.bitmacht.workingtitle36.TransactionsModel;
+import de.bitmacht.workingtitle36.Utils;
 import de.bitmacht.workingtitle36.Value;
 
 public class WidgetService extends Service implements Loader.OnLoadCompleteListener {
@@ -58,7 +60,7 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
     private ArrayList<RegularModel> regulars = null;
     private Periods requestPeriods = null;
     private ArrayList<TransactionsModel> transactions = null;
-
+    private float alpha = 0.5f;
 
     @Override
     public void onCreate() {
@@ -71,6 +73,8 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
         if (BuildConfig.DEBUG) {
             logger.trace("-");
         }
+
+        alpha = Utils.getfPref(this, R.string.pref_widget_transparency_key, alpha);
 
         int[] widgetIds = AppWidgetManager.getInstance(this).
                 getAppWidgetIds(new ComponentName(this, WidgetProvider.class));
@@ -216,10 +220,16 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
             logger.trace("ids: {}", widgetIds);
         }
 
+        int bgColor = getResources().getColor(R.color.widgetBackground);
+        int alphaInt = (int) (255 * alpha);
+        bgColor = ColorUtils.setAlphaComponent(bgColor, alphaInt);
+
         final int N = widgetIds.length;
         for (int i = 0; i < N; i++) {
             int widgetId = widgetIds[i];
             RemoteViews views = new RemoteViews(this.getPackageName(), R.layout.widget);
+
+            views.setInt(R.id.container, "setBackgroundColor", bgColor);
 
             PendingIntent pendingIntent =
                     PendingIntent.getActivity(this, 0, new Intent(this, TransactionEditActivity.class), 0);
@@ -228,7 +238,6 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
             views.setTextViewText(R.id.value_button, remainingText);
             pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, OverviewActivity.class), 0);
             views.setOnClickPendingIntent(R.id.value_button, pendingIntent);
-
 
             widgetManager.updateAppWidget(widgetId, views);
         }

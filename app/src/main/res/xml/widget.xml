@@ -21,5 +21,5 @@
     android:widgetCategory="home_screen"
     android:initialLayout="@layout/widget"
     android:previewImage="@mipmap/ic_launcher"
-    >
+    android:configure="de.bitmacht.workingtitle36.widget.WidgetConfigureActivity">
 </appwidget-provider>
