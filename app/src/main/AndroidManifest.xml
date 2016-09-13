@@ -28,7 +28,8 @@
 
         <activity
             android:name=".OverviewActivity"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -39,7 +40,13 @@
         <activity android:name=".SettingsActivity" />
         <activity
             android:name=".TransactionEditActivity"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:parentActivityName=".OverviewActivity"
+            android:launchMode="singleTop">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="de.bitmacht.workingtitle36.OverviewActivity" />
+        </activity>
         <activity
             android:name=".RegularEditActivity"
             android:theme="@style/AppTheme.NoActionBar" />

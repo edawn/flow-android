@@ -24,6 +24,7 @@ import android.content.Intent;
 import android.content.Loader;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.graphics.ColorUtils;
 import android.widget.RemoteViews;
 
@@ -231,13 +232,18 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
 
             views.setInt(R.id.container, "setBackgroundColor", bgColor);
 
-            PendingIntent pendingIntent =
-                    PendingIntent.getActivity(this, 0, new Intent(this, TransactionEditActivity.class), 0);
-            views.setOnClickPendingIntent(R.id.new_transaction_button, pendingIntent);
-
             views.setTextViewText(R.id.value_button, remainingText);
-            pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, OverviewActivity.class), 0);
+            Intent intent = new Intent(this, OverviewActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
             views.setOnClickPendingIntent(R.id.value_button, pendingIntent);
+
+            intent = new Intent(this, TransactionEditActivity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+            stackBuilder.addParentStack(TransactionEditActivity.class).addNextIntent(intent);
+            pendingIntent = stackBuilder.getPendingIntent(0, 0);
+            views.setOnClickPendingIntent(R.id.new_transaction_button, pendingIntent);
 
             widgetManager.updateAppWidget(widgetId, views);
         }
