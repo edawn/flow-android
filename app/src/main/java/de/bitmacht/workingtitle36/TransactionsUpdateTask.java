@@ -21,27 +21,20 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.ref.WeakReference;
-
-import de.bitmacht.workingtitle36.widget.WidgetAwareAsyncTask;
-
-public class TransactionsUpdateTask extends WidgetAwareAsyncTask {
+public class TransactionsUpdateTask extends DBModifyingAsyncTask {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionsUpdateTask.class);
 
     private final DBHelper dbHelper;
-    private final WeakReference<UpdateFinishedCallback> callbackRef;
     private Edit edit;
 
-    public TransactionsUpdateTask(@NonNull Context context, @Nullable UpdateFinishedCallback callback, @NonNull Edit edit) {
+    public TransactionsUpdateTask(@NonNull Context context, @NonNull Edit edit) {
         super(context);
         dbHelper = new DBHelper(context);
-        callbackRef = new WeakReference<>(callback);
         this.edit = edit;
     }
 
@@ -129,18 +122,5 @@ public class TransactionsUpdateTask extends WidgetAwareAsyncTask {
             logger.trace("finished inserting");
         }
         return true;
-    }
-
-    @Override
-    protected void onPostExecute(Boolean success) {
-        super.onPostExecute(success);
-        UpdateFinishedCallback callback = callbackRef.get();
-        if (callback != null) {
-            callback.onUpdateFinished(success);
-        }
-    }
-
-    interface UpdateFinishedCallback {
-        void onUpdateFinished(boolean success);
     }
 }

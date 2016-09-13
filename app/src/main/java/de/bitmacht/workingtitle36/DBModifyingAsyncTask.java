@@ -14,29 +14,42 @@
  * limitations under the License.
  */
 
-package de.bitmacht.workingtitle36.widget;
+package de.bitmacht.workingtitle36;
 
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.annotation.CallSuper;
+import android.support.v4.content.LocalBroadcastManager;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Any AsyncTask that modifies the underlying data necessary to calculate the budget should be
  * derived from this class.
- * This will initiate an update of the widget(s) when the task finishes
+ * This task will send the DB_MODIFIED broadcast after it finishes
  */
-public abstract class WidgetAwareAsyncTask extends AsyncTask<Void, Void, Boolean> {
+public abstract class DBModifyingAsyncTask extends AsyncTask<Void, Void, Boolean> {
+
+    private static final Logger logger = LoggerFactory.getLogger(DBModifyingAsyncTask.class);
+
+    public static final String ACTION_DB_MODIFIED = "de.bitmacht.workingtitle36.action.DB_MODIFIED";
 
     protected final Context appContext;
 
-    protected WidgetAwareAsyncTask(Context context) {
+    protected DBModifyingAsyncTask(Context context) {
         appContext = context.getApplicationContext();
     }
 
     @CallSuper
     @Override
     protected void onPostExecute(Boolean success) {
-        appContext.startService(new Intent(appContext, WidgetService.class));
+        if (BuildConfig.DEBUG) {
+            logger.trace("-");
+        }
+        //TODO add success extra
+        LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(appContext);
+        broadcastManager.sendBroadcast(new Intent(ACTION_DB_MODIFIED));
     }
 }

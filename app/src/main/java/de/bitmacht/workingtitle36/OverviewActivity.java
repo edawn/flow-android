@@ -17,7 +17,10 @@
 package de.bitmacht.workingtitle36;
 
 import android.app.LoaderManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -25,6 +28,7 @@ import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -122,6 +126,19 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
 
     private HashMap<Long, Periods> periodHistory = new HashMap<>();
 
+    private BroadcastReceiver dataModifiedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (BuildConfig.DEBUG) {
+                logger.trace("received: {}", intent);
+            }
+
+            Bundle args = new Bundle();
+            args.putParcelable(TransactionsLoader.ARG_PERIODS, periods);
+            getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -202,7 +219,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                         TransactionsModel transaction = adapter.removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
                         transaction.isRemoved = true;
-                        TransactionsDeleteTask tdt = new TransactionsDeleteTask(OverviewActivity.this, null, transaction);
+                        TransactionsDeleteTask tdt = new TransactionsDeleteTask(OverviewActivity.this, transaction);
                         tdt.execute();
                         //TODO this should be shown only after a successful removal
                         Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG).
@@ -224,7 +241,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                     public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                         TransactionsModel transaction = adapter.getSubAdapter().removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
                         transaction.isRemoved = true;
-                        TransactionsDeleteTask tdt = new TransactionsDeleteTask(OverviewActivity.this, null, transaction);
+                        TransactionsDeleteTask tdt = new TransactionsDeleteTask(OverviewActivity.this, transaction);
                         tdt.execute();
                         //TODO this should be shown only after a successful removal
                         Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG).
@@ -287,9 +304,21 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
             logger.trace("-");
         }
 
+        LocalBroadcastManager.getInstance(this).
+                registerReceiver(dataModifiedReceiver, new IntentFilter(DBModifyingAsyncTask.ACTION_DB_MODIFIED));
+
         Bundle args = new Bundle();
         args.putParcelable(TransactionsLoader.ARG_PERIODS, periods);
         getLoaderManager().initLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
+    }
+
+    @Override
+    protected void onStop() {
+        if (BuildConfig.DEBUG) {
+            logger.trace("-");
+        }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(dataModifiedReceiver);
+        super.onStop();
     }
 
     @Override
@@ -605,7 +634,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 public void onLoaderReset(Loader<ArrayList<TransactionsModel>> loader) {}
             };
 
-    private class UndoClickListener implements View.OnClickListener, TransactionsDeleteTask.UpdateFinishedCallback {
+    private class UndoClickListener implements View.OnClickListener {
 
         private final TransactionsModel transaction;
 
@@ -616,16 +645,8 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         @Override
         public void onClick(View v) {
             transaction.isRemoved = false;
-            TransactionsDeleteTask tdt = new TransactionsDeleteTask(OverviewActivity.this, this, transaction);
+            TransactionsDeleteTask tdt = new TransactionsDeleteTask(OverviewActivity.this, transaction);
             tdt.execute();
-        }
-
-        //TODO instead of this callback-in-a-listener approach, one might consider (simply) adding the transaction back to the adapter
-        @Override
-        public void onUpdateFinished(boolean success) {
-            Bundle args = new Bundle();
-            args.putParcelable(TransactionsLoader.ARG_PERIODS, periods);
-            getLoaderManager().restartLoader(LOADER_ID_TRANSACTIONS, args, transactionsListener);
         }
     }
 

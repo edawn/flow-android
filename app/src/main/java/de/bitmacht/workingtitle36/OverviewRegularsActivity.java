@@ -75,7 +75,7 @@ public class OverviewRegularsActivity extends AppCompatActivity {
                 @Override
                 public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                     RegularModel regular = regularsAdapter.removeItem((BaseTransactionsAdapter.BaseTransactionVH) viewHolder);
-                    RegularsRemoveTask rut = new RegularsRemoveTask(OverviewRegularsActivity.this, null, regular.id);
+                    RegularsRemoveTask rut = new RegularsRemoveTask(OverviewRegularsActivity.this, regular.id);
                     rut.execute();
                     regularsModified = true;
                     setResult(RESULT_OK);
@@ -192,7 +192,7 @@ public class OverviewRegularsActivity extends AppCompatActivity {
         }
     }
 
-    private class UndoClickListener implements View.OnClickListener, RegularsUpdateTask.UpdateFinishedCallback {
+    private class UndoClickListener implements View.OnClickListener {
 
         private final RegularModel regular;
 
@@ -202,14 +202,8 @@ public class OverviewRegularsActivity extends AppCompatActivity {
 
         @Override
         public void onClick(View v) {
-            RegularsUpdateTask rut = new RegularsUpdateTask(OverviewRegularsActivity.this, this, regular);
+            RegularsUpdateTask rut = new RegularsUpdateTask(OverviewRegularsActivity.this, regular);
             rut.execute();
-        }
-
-        //TODO instead of this callback-in-a-listener approach, one might consider (simply) adding the regular transaction back to the adapter
-        @Override
-        public void onUpdateFinished(boolean success) {
-            getLoaderManager().restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
         }
     }
 }

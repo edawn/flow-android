@@ -19,12 +19,16 @@ package de.bitmacht.workingtitle36.widget;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.Loader;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.TaskStackBuilder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.graphics.ColorUtils;
 import android.widget.RemoteViews;
 
@@ -38,6 +42,7 @@ import java.util.ArrayList;
 
 import de.bitmacht.workingtitle36.BuildConfig;
 import de.bitmacht.workingtitle36.DBHelper;
+import de.bitmacht.workingtitle36.DBModifyingAsyncTask;
 import de.bitmacht.workingtitle36.MyApplication;
 import de.bitmacht.workingtitle36.OverviewActivity;
 import de.bitmacht.workingtitle36.Periods;
@@ -63,10 +68,30 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
     private ArrayList<TransactionsModel> transactions = null;
     private float alpha = 0.5f;
 
+    private final BroadcastReceiver dataModifiedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (BuildConfig.DEBUG) {
+                logger.trace("received: {}", intent);
+            }
+
+            int[] widgetIds = AppWidgetManager.getInstance(WidgetService.this).
+                    getAppWidgetIds(new ComponentName(WidgetService.this, WidgetProvider.class));
+            if (widgetIds.length > 0) {
+                startLoaders();
+            }
+        }
+    };
+
     @Override
     public void onCreate() {
         super.onCreate();
+        if (BuildConfig.DEBUG) {
+            logger.trace("-");
+        }
         dbHelper = new DBHelper(this);
+        LocalBroadcastManager.getInstance(this).
+                registerReceiver(dataModifiedReceiver, new IntentFilter(DBModifyingAsyncTask.ACTION_DB_MODIFIED));
     }
 
     @Override
@@ -84,6 +109,15 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
         }
         
         return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+        if (BuildConfig.DEBUG) {
+            logger.trace("-");
+        }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(dataModifiedReceiver);
+        super.onDestroy();
     }
 
     private void startLoaders() {

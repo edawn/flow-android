@@ -27,7 +27,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TimePicker;
-import android.widget.Toast;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +39,7 @@ import de.bitmacht.workingtitle36.view.ValueInput;
 import de.bitmacht.workingtitle36.view.ValueWidget;
 
 public class TransactionEditActivity extends AppCompatActivity implements View.OnClickListener,
-        TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener, TransactionsUpdateTask.UpdateFinishedCallback {
+        TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionEditActivity.class);
 
@@ -149,8 +148,9 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
                 if (BuildConfig.DEBUG) {
                     logger.trace("edit: {}", edit);
                 }
-                new TransactionsUpdateTask(this, this, edit).execute();
-                setUpdatingState(true);
+                new TransactionsUpdateTask(this, edit).execute();
+                //TODO wait for the update to finish
+                finish();
             } else {
                 //TODO if there was any data entered, show confirmation dialog
                 // or: save the data, finish and show a snackbar
@@ -196,25 +196,5 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private Edit getEdit() {
         return new Edit(parentId, transactionId, transactionTime.getTimeInMillis(),
                 descriptionView.getText().toString(), locationView.getText().toString(), valueWidget.getValue());
-    }
-
-    @Override
-    public void onUpdateFinished(boolean success) {
-        setUpdatingState(false);
-        if (success) {
-            setResult(RESULT_OK);
-            finish();
-        } else {
-            Toast.makeText(this, "update failed", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * Modifies the UI to express that a database update is in progress.
-     * @param isUpdating true if the update is about to start; false if it has ended
-     */
-    private void setUpdatingState(boolean isUpdating) {
-        acceptButton.setEnabled(!isUpdating);
-        acceptButton.setClickable(!isUpdating);
     }
 }

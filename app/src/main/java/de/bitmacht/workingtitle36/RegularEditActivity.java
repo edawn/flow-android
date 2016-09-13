@@ -42,7 +42,7 @@ import de.bitmacht.workingtitle36.view.TimeView;
 import de.bitmacht.workingtitle36.view.ValueWidget;
 
 public class RegularEditActivity extends AppCompatActivity implements View.OnClickListener,
-        DatePickerFragment.OnDateSetListener, RegularsUpdateTask.UpdateFinishedCallback {
+        DatePickerFragment.OnDateSetListener {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularEditActivity.class);
 
@@ -169,8 +169,11 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
         int id = v.getId();
         if (id == R.id.accept_button || id == R.id.cancel_button) {
             if (id == R.id.accept_button) {
-                RegularsUpdateTask rut = new RegularsUpdateTask(this, this, getRegular());
+                RegularsUpdateTask rut = new RegularsUpdateTask(this, getRegular());
                 rut.execute();
+                setResult(RESULT_OK);
+                finish();
+                //TODO wait for the update to finish
             } else {
                 finish();
             }
@@ -258,13 +261,5 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
                 cv.amount, cv.currencyCode, descriptionView.getText().toString());
         regular.id = regularId;
         return regular;
-    }
-
-    @Override
-    public void onUpdateFinished(boolean success) {
-        if (success) {
-            setResult(RESULT_OK);
-        }
-        finish();
     }
 }

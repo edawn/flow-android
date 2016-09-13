@@ -20,27 +20,20 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.ref.WeakReference;
-
-import de.bitmacht.workingtitle36.widget.WidgetAwareAsyncTask;
-
-public class RegularsUpdateTask extends WidgetAwareAsyncTask {
+public class RegularsUpdateTask extends DBModifyingAsyncTask {
 
     private static final Logger logger = LoggerFactory.getLogger(RegularsUpdateTask.class);
 
     private final DBHelper dbHelper;
-    private final WeakReference<UpdateFinishedCallback> callbackRef;
     private final RegularModel regular;
 
-    public RegularsUpdateTask(@NonNull Context context, @Nullable UpdateFinishedCallback callback, RegularModel regular) {
+    public RegularsUpdateTask(@NonNull Context context, RegularModel regular) {
         super(context);
         dbHelper = new DBHelper(context);
-        callbackRef = new WeakReference<>(callback);
         this.regular = regular;
     }
 
@@ -66,18 +59,5 @@ public class RegularsUpdateTask extends WidgetAwareAsyncTask {
             logger.trace("finished inserting");
         }
         return true;
-    }
-
-    @Override
-    protected void onPostExecute(Boolean success) {
-        super.onPostExecute(success);
-        UpdateFinishedCallback callback = callbackRef.get();
-        if (callback != null) {
-            callback.onUpdateFinished(success);
-        }
-    }
-
-    interface UpdateFinishedCallback {
-        void onUpdateFinished(boolean success);
     }
 }
