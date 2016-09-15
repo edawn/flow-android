@@ -21,6 +21,7 @@ import android.content.Context;
 
 import java.util.ArrayList;
 
+//TODO possibly implement onStopLoading and onCanceled
 public class RegularsLoader extends AsyncTaskLoader<ArrayList<RegularModel>> {
     private final DBHelper dbHelper;
     private ArrayList<RegularModel> result;

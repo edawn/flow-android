@@ -25,6 +25,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.Loader;
+import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.TaskStackBuilder;
@@ -117,6 +118,25 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
             logger.trace("-");
         }
         LocalBroadcastManager.getInstance(this).unregisterReceiver(dataModifiedReceiver);
+
+        if (transactionsLoader != null) {
+            //noinspection unchecked
+            transactionsLoader.unregisterListener(this);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                transactionsLoader.cancelLoad();
+            }
+            transactionsLoader.stopLoading();
+        }
+        
+        if (regularsLoader != null) {
+            //noinspection unchecked
+            regularsLoader.unregisterListener(this);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+                regularsLoader.cancelLoad();
+            }
+            regularsLoader.stopLoading();
+        }
+
         super.onDestroy();
     }
 

@@ -24,6 +24,7 @@ import android.os.Bundle;
 
 import java.util.ArrayList;
 
+//TODO possibly implement onStopLoading and onCanceled
 public class TransactionsLoader extends AsyncTaskLoader<ArrayList<TransactionsModel>> {
 
     public static final String ARG_PERIODS = "periods";

@@ -21,10 +21,29 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import de.bitmacht.workingtitle36.BuildConfig;
+
 public class WidgetProvider extends AppWidgetProvider {
+
+    private static final Logger logger = LoggerFactory.getLogger(WidgetProvider.class);
+
 
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        if (BuildConfig.DEBUG) {
+            logger.trace("-");
+        }
         context.startService(new Intent(context, WidgetService.class));
+    }
+
+    @Override
+    public void onDisabled(Context context) {
+        if (BuildConfig.DEBUG) {
+            logger.trace("-");
+        }
+        context.stopService(new Intent(context, WidgetService.class));
     }
 }
