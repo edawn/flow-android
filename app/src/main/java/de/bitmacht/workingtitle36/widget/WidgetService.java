@@ -75,12 +75,7 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
             if (BuildConfig.DEBUG) {
                 logger.trace("received: {}", intent);
             }
-
-            int[] widgetIds = AppWidgetManager.getInstance(WidgetService.this).
-                    getAppWidgetIds(new ComponentName(WidgetService.this, WidgetProvider.class));
-            if (widgetIds.length > 0) {
-                startLoaders();
-            }
+            start();
         }
     };
 
@@ -100,7 +95,11 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
         if (BuildConfig.DEBUG) {
             logger.trace("-");
         }
+        start();
+        return START_STICKY;
+    }
 
+    private void start() {
         alpha = Utils.getfPref(this, R.string.pref_widget_transparency_key, alpha);
 
         int[] widgetIds = AppWidgetManager.getInstance(this).
@@ -108,8 +107,6 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
         if (widgetIds.length > 0) {
             startLoaders();
         }
-        
-        return START_STICKY;
     }
 
     @Override
