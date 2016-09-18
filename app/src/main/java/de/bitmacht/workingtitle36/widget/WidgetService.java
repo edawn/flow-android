@@ -16,6 +16,7 @@
 
 package de.bitmacht.workingtitle36.widget;
 
+import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -69,6 +70,8 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
     private ArrayList<TransactionsModel> transactions = null;
     private float alpha = 0.5f;
 
+    private PendingIntent alarmPendingIntent = null;
+
     private final BroadcastReceiver dataModifiedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -100,6 +103,16 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
     }
 
     private void start() {
+        AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        long startOfNextDay = DateTime.now().plusDays(1).withTimeAtStartOfDay().getMillis();
+        Intent intent = new Intent(this, WidgetService.class);
+        alarmPendingIntent = PendingIntent.getService(this, 0, intent, 0);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            alarmManager.set(AlarmManager.RTC, startOfNextDay, alarmPendingIntent);
+        } else {
+            alarmManager.setExact(AlarmManager.RTC, startOfNextDay, alarmPendingIntent);
+        }
+
         alpha = Utils.getfPref(this, R.string.pref_widget_transparency_key, alpha);
 
         int[] widgetIds = AppWidgetManager.getInstance(this).
@@ -115,6 +128,8 @@ public class WidgetService extends Service implements Loader.OnLoadCompleteListe
             logger.trace("-");
         }
         LocalBroadcastManager.getInstance(this).unregisterReceiver(dataModifiedReceiver);
+
+        ((AlarmManager) getSystemService(Context.ALARM_SERVICE)).cancel(alarmPendingIntent);
 
         if (transactionsLoader != null) {
             //noinspection unchecked
