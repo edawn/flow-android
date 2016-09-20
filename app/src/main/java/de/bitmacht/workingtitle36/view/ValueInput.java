@@ -98,4 +98,8 @@ public class ValueInput extends LinearLayout implements ValueWidget {
         }
         return value;
     }
+
+    public void focusEditText() {
+        valueEditText.requestFocus();
+    }
 }

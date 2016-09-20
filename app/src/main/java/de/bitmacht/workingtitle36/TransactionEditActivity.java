@@ -62,6 +62,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private ValueWidget valueWidget;
     private EditText descriptionView;
     private EditText locationView;
+    private boolean focusValueInput = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,6 +107,9 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
                         logger.warn("A transaction without an edit: id: {}", transaction.id);
                     }
                 }
+            } else {
+                // focus value input only when not editing an existing transaction
+                focusValueInput = true;
             }
         } else {
             if (savedInstanceState.containsKey(DBHelper.TRANSACTIONS_KEY_ID)) {
@@ -124,6 +128,15 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
 
         if (valueWidget instanceof ValueInput) {
             ((ValueInput) valueWidget).setValue(value, true);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (focusValueInput) {
+            ((ValueInput) valueWidget).focusEditText();
+            focusValueInput = false;
         }
     }
 
