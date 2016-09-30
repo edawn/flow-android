@@ -143,7 +143,7 @@ public class Periods implements Parcelable {
             new Creator<Periods>() {
                 @Override
                 public Periods createFromParcel(Parcel source) {
-                    return null;
+                    return new Periods(source);
                 }
 
                 @Override
