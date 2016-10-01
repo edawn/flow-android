@@ -53,4 +53,5 @@
     <string name="about_accept">OK</string>
     <string name="widget_config_title">%1$s Widget Configuration</string>
     <string name="widget_config_transparency">Transparency</string>
+    <string name="help_new_expense">Add a new\nexpense</string>
 </resources>

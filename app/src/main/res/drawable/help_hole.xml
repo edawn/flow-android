@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
   ~ Copyright 2016 Kamil Sartys
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,14 +14,8 @@
   ~ limitations under the License.
   -->
 
-<resources>
-    <color name="colorPrimary">#36c15a</color>
-    <color name="colorPrimaryDark">#0e9f34</color>
-    <color name="colorAccent">#ffc239</color>
-    <color name="itemIcon">#737373</color>
-    <color name="subtract">#e00</color>
-    <color name="add">#0c0</color>
-    <color name="widgetBackground">#222</color>
-    <color name="helpScreen">#8000</color>
-    <color name="helpForeground">#fff</color>
-</resources>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid
+        android:color="#f000" />
+</shape>
