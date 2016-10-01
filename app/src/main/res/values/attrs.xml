@@ -31,4 +31,7 @@
     <declare-styleable name="HoleyLayout_Layout">
         <attr name="layout_punch" format="boolean" />
     </declare-styleable>
+    <declare-styleable name="FancyFontTextView">
+        <attr name="font" format="string" />
+    </declare-styleable>
 </resources>
