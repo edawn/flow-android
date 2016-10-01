@@ -25,4 +25,10 @@
             <enum name="date" value="1" />
         </attr>
     </declare-styleable>
+    <declare-styleable name="HoleyLayout">
+        <attr name="screenColor" format="color" />
+    </declare-styleable>
+    <declare-styleable name="HoleyLayout_Layout">
+        <attr name="layout_punch" format="boolean" />
+    </declare-styleable>
 </resources>
