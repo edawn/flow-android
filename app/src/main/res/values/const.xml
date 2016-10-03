@@ -18,4 +18,5 @@
 <resources>
     <string name="pref_currency_key" translatable="false">pref_currency</string>
     <string name="pref_widget_transparency_key" translatable="false">pref_widget_transparency</string>
+    <string name="pref_first_time_key" translatable="false">pref_first_time</string>
 </resources>

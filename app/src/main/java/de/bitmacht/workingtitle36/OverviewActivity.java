@@ -37,6 +37,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -52,6 +53,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import de.bitmacht.workingtitle36.view.HoleyLayout;
 
 public class OverviewActivity extends AppCompatActivity implements View.OnClickListener {
     
@@ -96,6 +99,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
     private Button dayTransactionsButton;
     private RecyclerView dayRecycler;
     private NavigationView navBar;
+    private HoleyLayout helpScreen = null;
 
     @IntDef({PERIOD_BEFORE, PERIOD_NEXT})
     @Retention(RetentionPolicy.SOURCE)
@@ -169,6 +173,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         dayTransactionsButton = (Button) findViewById(R.id.day_transactions_button);
         dayRecycler = (RecyclerView) findViewById(R.id.transactions_day);
         navBar = (NavigationView) findViewById(R.id.navigation);
+        if (Utils.getbPref(this, R.string.pref_first_time_key, true)) {
+            helpScreen = (HoleyLayout) findViewById(R.id.help_screen);
+            helpScreen.setVisibility(View.VISIBLE);
+        }
 
         setSupportActionBar(toolbar);
         //noinspection ConstantConditions
@@ -295,6 +303,17 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         }
 
         getLoaderManager().initLoader(LOADER_ID_REGULARS, null, regularsLoaderListener);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (helpScreen != null) {
+            Utils.setbPref(this, R.string.pref_first_time_key, false);
+            helpScreen.setVisibility(View.GONE);
+            helpScreen = null;
+            return true;
+        }
+        return super.dispatchTouchEvent(ev);
     }
 
     @Override

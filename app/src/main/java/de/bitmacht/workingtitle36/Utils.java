@@ -81,6 +81,17 @@ public class Utils {
     }
 
     /**
+     * Set a boolean value in the default shared preferences
+     *
+     * @param context The Context to use
+     * @param resId   A String resource that contains the key of the value to be set
+     * @param value   The value to be set
+     */
+    public static void setbPref(Context context, int resId, boolean value) {
+        PreferenceManager.getDefaultSharedPreferences(context).edit().putBoolean(context.getString(resId), value).apply();
+    }
+
+    /**
      * Set an int value in the default shared preferences
      *
      * @param context The Context to use
