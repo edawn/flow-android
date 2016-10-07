@@ -39,6 +39,7 @@ import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -176,6 +177,10 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
         if (Utils.getbPref(this, R.string.pref_first_time_key, true)) {
             helpScreen = (HoleyLayout) findViewById(R.id.help_screen);
             helpScreen.setVisibility(View.VISIBLE);
+            View hole = findViewById(R.id.hole_fab);
+            hole.setScaleX(10);
+            hole.setScaleY(10);
+            hole.animate().scaleX(1).scaleY(1).setInterpolator(new DecelerateInterpolator());
         }
 
         setSupportActionBar(toolbar);
