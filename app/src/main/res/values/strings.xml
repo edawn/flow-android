@@ -50,7 +50,6 @@
         &lt;p&gt;Copyright 2016 by &lt;a href=\&quot;mailto:kamil@kugelhaufen.de\&quot;&gt;Kamil Sartys&lt;/a&gt;&lt;/p&gt;
         %1$s uses the following libraries and resources:&lt;br&gt;
     </string>
-    <string name="about_accept">OK</string>
     <string name="widget_config_title">%1$s Widget Configuration</string>
     <string name="widget_config_transparency">Transparency</string>
     <string name="help_new_expense">Add a new\nexpense</string>

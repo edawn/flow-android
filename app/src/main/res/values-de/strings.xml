@@ -45,7 +45,6 @@
     <string name="time">Zeit</string>
     <string name="transaction_edit_location_hint">Ort</string>
     <string name="about_title">Über %1$s</string>
-    <string name="about_accept">OK</string>
     <string name="widget_config_transparency">Transparenz</string>
     <string name="widget_config_title">%1$s Widget Einstellungen</string>
     <string name="help_new_expense">Neue Ausgabe\nhinzufügen</string>

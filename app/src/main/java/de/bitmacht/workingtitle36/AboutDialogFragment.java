@@ -51,7 +51,7 @@ public class AboutDialogFragment extends AppCompatDialogFragment {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setTitle(getString(R.string.about_title, appName)).
                 setView(contentView).
-                setPositiveButton(R.string.about_accept, null);
+                setPositiveButton(android.R.string.ok, null);
         return builder.create();
     }
 }
