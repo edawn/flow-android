@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import de.bitmacht.workingtitle36.view.TimeView;
 import de.bitmacht.workingtitle36.view.TransactionView;
 
 /**
@@ -57,8 +56,6 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
     public BaseTransactionsAdapter.BaseTransactionVH onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
         TransactionView transactionView = (TransactionView) inflater.inflate(R.layout.transaction_view, parent, false);
-
-        transactionView.setTimeFormat(TimeView.TIME_FORMAT_TIMEDATE_SHORT);
         return new ClickableTransactionVH(transactionView);
     }
 

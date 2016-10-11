@@ -59,8 +59,4 @@ public class TransactionView extends BaseTransactionView {
         setValue(edit.getValue());
         setDescription(edit.transactionDescription);
     }
-
-    public void setTimeFormat(@TimeView.TimeFormat int timeFormatStyle) {
-        timeView.setTimeFormat(timeFormatStyle);
-    }
 }

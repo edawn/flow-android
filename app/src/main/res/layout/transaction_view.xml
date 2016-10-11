@@ -22,7 +22,9 @@
 
     <de.bitmacht.workingtitle36.view.TimeView
         android:id="@+id/time"
-        style="@style/TransactionItemTime" />
+        style="@style/TransactionItemTime"
+        custom:timeFormat="timeDateShort"
+        />
 
     <de.bitmacht.workingtitle36.view.ValueTextView
         android:id="@+id/value"
