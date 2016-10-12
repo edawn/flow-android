@@ -639,7 +639,7 @@ public class OverviewActivity extends AppCompatActivity implements View.OnClickL
                 }
             };
 
-    LoaderManager.LoaderCallbacks<ArrayList<TransactionsModel>> transactionsListener =
+    private LoaderManager.LoaderCallbacks<ArrayList<TransactionsModel>> transactionsListener =
             new LoaderManager.LoaderCallbacks<ArrayList<TransactionsModel>>() {
                 @Override
                 public Loader<ArrayList<TransactionsModel>> onCreateLoader(int id, Bundle args) {
