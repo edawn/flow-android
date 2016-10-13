@@ -17,13 +17,17 @@
 package de.bitmacht.workingtitle36;
 
 import android.app.DialogFragment;
+import android.app.LoaderManager;
 import android.app.TimePickerDialog;
 import android.content.Intent;
+import android.content.Loader;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TimePicker;
@@ -54,6 +58,8 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     private Long parentId = null;
     private Calendar transactionTime = new GregorianCalendar();
 
+    private DBHelper dbHelper;
+
     private Toolbar toolbar;
     private ImageButton cancelButton;
     private ImageButton acceptButton;
@@ -67,6 +73,8 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        dbHelper = new DBHelper(this);
 
         setContentView(R.layout.activity_transaction_edit);
 
@@ -129,6 +137,14 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         if (valueWidget instanceof ValueInput) {
             ((ValueInput) valueWidget).setValue(value, true);
         }
+
+        Bundle args = new Bundle();
+        args.putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_DESCRIPTION);
+        getLoaderManager().initLoader(0, args, suggestionsListener);
+
+        args = new Bundle();
+        args.putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_LOCATION);
+        getLoaderManager().initLoader(1, args, suggestionsListener);
     }
 
     @Override
@@ -210,4 +226,21 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         return new Edit(parentId, transactionId, transactionTime.getTimeInMillis(),
                 descriptionView.getText().toString(), locationView.getText().toString(), valueWidget.getValue());
     }
+
+    private LoaderManager.LoaderCallbacks<ArrayAdapter<String>> suggestionsListener = new LoaderManager.LoaderCallbacks<ArrayAdapter<String>>() {
+        @Override
+        public Loader<ArrayAdapter<String>> onCreateLoader(int id, Bundle args) {
+            return new TransactionsSuggestionsLoader<>(TransactionEditActivity.this, dbHelper, args);
+        }
+
+        @Override
+        public void onLoadFinished(Loader<ArrayAdapter<String>> loader, ArrayAdapter<String> data) {
+            AutoCompleteTextView destinationView = (AutoCompleteTextView) (((TransactionsSuggestionsLoader) loader).column.
+                                equals(TransactionsSuggestionsLoader.COLUMN_DESCRIPTION) ? descriptionView : locationView);
+            destinationView.setAdapter(data);
+        }
+
+        @Override
+        public void onLoaderReset(Loader<ArrayAdapter<String>> loader) {}
+    };
 }
