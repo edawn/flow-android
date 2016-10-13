@@ -68,7 +68,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <android.support.v7.widget.AppCompatImageView
+                <ImageView
                     style="@style/TransactionEditorItemIcon"
                     android:src="@drawable/ic_attach_money_black_24dp" />
 
@@ -86,7 +86,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <android.support.v7.widget.AppCompatImageView
+                <ImageView
                     style="@style/TransactionEditorItemIcon"
                     android:src="@drawable/ic_local_offer_black_24dp" />
 
@@ -110,7 +110,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <android.support.v7.widget.AppCompatImageView
+                <ImageView
                     style="@style/TransactionEditorItemIcon"
                     android:src="@drawable/ic_place_black_24dp" />
 

@@ -17,7 +17,7 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <android.support.v7.widget.AppCompatCheckBox
+    <CheckBox
         android:id="@+id/sign_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
