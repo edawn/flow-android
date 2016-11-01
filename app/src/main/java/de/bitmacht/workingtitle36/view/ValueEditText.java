@@ -74,17 +74,13 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
         setFilters(new InputFilter[]{inf});
     }
 
-    @Override
-    @NonNull
-    public Value getValue() {
-        String text = getText().toString();
-
+    private String extractValueString(String rawValueString) {
         Currency currency = Currency.getInstance(currencyCode);
         int fractionDigits = currency.getDefaultFractionDigits();
-        text = text.replaceAll("[^0-9.,]+","");
+        rawValueString = rawValueString.replaceAll("[^0-9.,]+","");
 
         char separator = DecimalFormatSymbols.getInstance().getMonetaryDecimalSeparator();
-        String[] splits = text.split("[" + separator +"]", 2);
+        String[] splits = rawValueString.split("[" + separator +"]", 2);
 
         String major = splits[0].replaceAll("[^0-9]+", "");
         String minor = splits.length == 2 ? splits[1].replaceAll("[^0-9]+","") : "";
@@ -101,7 +97,13 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
                 }
             }
         }
-        long amount = Long.parseLong(major + minor);
+        return major + minor;
+    }
+
+    @Override
+    @NonNull
+    public Value getValue() {
+        long amount = Long.parseLong(extractValueString(getText().toString()));
         return new Value(currencyCode, amount);
     }
 
@@ -172,6 +174,9 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
             if (!pattern.matcher(result).matches()) {
                 return dest.subSequence(dstart, dend);
+            }
+            if (extractValueString(result).length() > 18) {
+                return "";
             }
             return sourceMod;
         }
