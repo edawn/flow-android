@@ -50,6 +50,8 @@ abstract class BaseTransactionsAdapter<VH extends RecyclerView.ViewHolder> exten
     }
 
     private void updateValueWidths() {
+        // it seems that there is no way to find the views that are not visible and thus scrapped,
+        // but not recycled (yet); they may come back without rebinding, which is bad
         LinearLayoutManager lm = (LinearLayoutManager) recyclerView.getLayoutManager();
         int first = lm.findFirstVisibleItemPosition();
         int last = lm.findLastVisibleItemPosition();
@@ -61,6 +63,13 @@ abstract class BaseTransactionsAdapter<VH extends RecyclerView.ViewHolder> exten
             transactionView.setValueViewWidth(valueWidth);
             first++;
         }
+
+        recyclerView.post(new Runnable() {
+            @Override
+            public void run() {
+                recyclerView.requestLayout();
+            }
+        });
     }
 
     @Override
