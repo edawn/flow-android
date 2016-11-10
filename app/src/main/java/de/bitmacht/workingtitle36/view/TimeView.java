@@ -53,6 +53,7 @@ public class TimeView extends TextView {
     public static final int TIME_FORMAT_TIME = 0;
     public static final int TIME_FORMAT_DATE = 1;
     public static final int TIME_FORMAT_TIMEDATE_SHORT = 2;
+    public static final int TIME_FORMAT_TIMEDATE_SHORT_FIXED = 3;
 
     private static final String[] TIME_FORMATS = {"Hm", "yMd", "MMddHm"};
     /**
@@ -141,7 +142,7 @@ public class TimeView extends TextView {
             }
 
             if (update) {
-                timeFormats = new SimpleDateFormat[TIME_FORMATS.length];
+                timeFormats = new SimpleDateFormat[TIME_FORMATS.length + 1];
             }
 
             timeFormat = timeFormats[timeFormatStyle];
@@ -150,15 +151,19 @@ public class TimeView extends TextView {
                 String pattern;
                 Locale locale = Locale.getDefault();
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    pattern = DateFormat.is24HourFormat(getContext()) ?
-                            TIME_FORMATS[timeFormatStyle] : TIME_FORMATS_12[timeFormatStyle];
-                    if (BuildConfig.DEBUG) {
-                        logger.debug("locale: {} raw pattern: {}", locale, pattern);
-                    }
-                    pattern = DateFormat.getBestDateTimePattern(locale, pattern);
+                if (timeFormatStyle == TIME_FORMAT_TIMEDATE_SHORT_FIXED) {
+                    pattern = TIME_FORMATS_OLD_API[2];
                 } else {
-                    pattern = TIME_FORMATS_OLD_API[timeFormatStyle];
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                        pattern = DateFormat.is24HourFormat(getContext()) ?
+                                TIME_FORMATS[timeFormatStyle] : TIME_FORMATS_12[timeFormatStyle];
+                        if (BuildConfig.DEBUG) {
+                            logger.debug("locale: {} raw pattern: {}", locale, pattern);
+                        }
+                        pattern = DateFormat.getBestDateTimePattern(locale, pattern);
+                    } else {
+                        pattern = TIME_FORMATS_OLD_API[timeFormatStyle];
+                    }
                 }
 
                 if (BuildConfig.DEBUG) {

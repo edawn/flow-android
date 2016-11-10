@@ -24,6 +24,7 @@
             <enum name="time" value="0" />
             <enum name="date" value="1" />
             <enum name="timeDateShort" value="2" />
+            <enum name="timeDateShortFixed" value="3" />
         </attr>
     </declare-styleable>
     <declare-styleable name="HoleyLayout">
