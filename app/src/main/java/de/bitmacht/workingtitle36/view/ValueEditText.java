@@ -44,10 +44,7 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
     private static final Logger logger = LoggerFactory.getLogger(ValueEditText.class);
 
-    private String currencyCode;
-    String currencySymbol = "";
-
-    private ValueInputFilter inf;
+    private Currency currency;
 
     public ValueEditText(Context context) {
         super(context);
@@ -65,17 +62,12 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
     }
 
     private void init() {
-        Currency currency = MyApplication.getCurrency();
-        currencyCode = currency.getCurrencyCode();
-        currencySymbol = currency.getSymbol();
-        setText(currencySymbol);
+        updateCurrency(MyApplication.getCurrency());
+        setValue(new Value(currency.getCurrencyCode(), 0));
         setRawInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        inf = new ValueInputFilter(currency);
-        setFilters(new InputFilter[]{inf});
     }
 
     private String extractValueString(String rawValueString) {
-        Currency currency = Currency.getInstance(currencyCode);
         int fractionDigits = currency.getDefaultFractionDigits();
         rawValueString = rawValueString.replaceAll("[^0-9.,]+","");
 
@@ -104,22 +96,25 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
     @NonNull
     public Value getValue() {
         long amount = Long.parseLong(extractValueString(getText().toString()));
-        return new Value(currencyCode, amount);
+        return new Value(currency.getCurrencyCode(), amount);
     }
 
     @Override
     @NonNull
     public String setValue(@NonNull Value value) {
-        currencyCode = value.currencyCode;
-        if (!inf.getCurrency().getCurrencyCode().equals(currencyCode)) {
-            inf = new ValueInputFilter(Currency.getInstance(currencyCode));
-            setFilters(new InputFilter[]{inf});
+        if (!value.currencyCode.equals(currency.getCurrencyCode())) {
+            updateCurrency(value.getCurrency());
         }
         Pair<String, String> vs = value.getValueAndSymbolStrings(Locale.getDefault());
         String valueText = vs.first + vs.second;
-        currencySymbol = vs.second;
         setText(valueText);
         return valueText;
+    }
+
+    private void updateCurrency(@NonNull Currency currency) {
+        this.currency = currency;
+        ValueInputFilter inf = new ValueInputFilter(currency);
+        setFilters(new InputFilter[]{inf});
     }
 
     @Override
@@ -128,7 +123,7 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
             Editable text = getEditableText();
             if (text != null) {
                 int tl = text.length();
-                int sl = currencySymbol == null ? 0 : currencySymbol.length();
+                int sl = currency.getSymbol().length();
                 int vl = tl - sl;
                 int newStart = Math.min(selStart, vl);
                 int newEnd = Math.min(selEnd, vl);
@@ -145,7 +140,6 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
     private class ValueInputFilter implements InputFilter {
 
-        private final Currency currency;
         private final char separator;
         private final String separatorString;
         private final int fracts;
@@ -153,8 +147,7 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
         private final Pattern pattern;
         private final Pattern separatorReplacePattern;
 
-        public ValueInputFilter(Currency currency) {
-            this.currency = currency;
+        ValueInputFilter(Currency currency) {
             separator = DecimalFormatSymbols.getInstance().getMonetaryDecimalSeparator();
             separatorString = Character.toString(separator);
             fracts = currency.getDefaultFractionDigits();
@@ -179,10 +172,6 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
                 return "";
             }
             return sourceMod;
-        }
-
-        public Currency getCurrency() {
-            return currency;
         }
     }
 }
