@@ -78,8 +78,11 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
         String[] splits = rawValueString.split("[" + separator +"]", 2);
 
         String major = splits[0].replaceAll("[^0-9]+", "");
-        String minor = splits.length == 2 ? splits[1].replaceAll("[^0-9]+","") : "";
+        if (major.length() == 0) {
+            major = "0";
+        }
 
+        String minor = splits.length == 2 ? splits[1].replaceAll("[^0-9]+","") : "";
         if (fractionDigits == 0) {
             minor = "";
         } else {
@@ -92,6 +95,7 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
                 }
             }
         }
+
         return major + minor;
     }
 
