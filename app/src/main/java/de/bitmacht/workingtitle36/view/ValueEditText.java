@@ -44,6 +44,9 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
     private static final Logger logger = LoggerFactory.getLogger(ValueEditText.class);
 
+    // The maximum length of the absolute value of a decimal number that will fit into a long
+    public static final int MAX_DEC_LEN = 18;
+
     private Currency currency;
 
     public ValueEditText(Context context) {
@@ -168,7 +171,7 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
             if (!pattern.matcher(result).matches()) {
                 return dest.subSequence(dstart, dend);
             }
-            if (extractValueString(result).length() > 18) {
+            if (extractValueString(result).length() > MAX_DEC_LEN) {
                 return "";
             }
             return sourceMod;
