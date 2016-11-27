@@ -23,4 +23,10 @@
         android:summary="@string/pref_currency_summary"
         />
 
+   <CheckBoxPreference
+      android:key="@string/pref_register_key"
+      android:title="@string/pref_register_title"
+      android:summary="@string/pref_register_summary"
+      />
+
 </PreferenceScreen>

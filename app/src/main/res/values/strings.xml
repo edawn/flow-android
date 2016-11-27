@@ -40,6 +40,8 @@
     <string name="currency_list_item">%1$s</string>
     <string name="pref_currency_title">Currency</string>
     <string name="pref_currency_summary">%s</string>
+    <string name="pref_register_title">Automatic decimal point</string>
+    <string name="pref_register_summary">Cash register like input of amounts</string>
     <string name="value">Value</string>
     <string name="snackbar_transaction_removed">Transaction removed</string>
     <string name="snackbar_undo">UNDO</string>

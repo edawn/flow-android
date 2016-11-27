@@ -39,6 +39,8 @@
     <string name="currency_list_item">%1$s</string>
     <string name="pref_currency_title">Währung</string>
     <string name="pref_currency_summary">%s</string>
+    <string name="pref_register_title">Automatischer Dezimalpunkt</string>
+    <string name="pref_register_summary">Eingabe von Beträgen wie bei Registerkassen</string>
     <string name="value">Wert</string>
     <string name="snackbar_transaction_removed">Umsatz entfernt</string>
     <string name="snackbar_undo">RÜCKGÄNGIG</string>

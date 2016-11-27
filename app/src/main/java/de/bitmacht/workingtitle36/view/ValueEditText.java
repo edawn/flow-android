@@ -24,6 +24,7 @@ import android.text.InputFilter;
 import android.text.InputType;
 import android.text.Selection;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Pair;
 
@@ -33,11 +34,12 @@ import org.slf4j.LoggerFactory;
 import java.text.DecimalFormatSymbols;
 import java.util.Currency;
 import java.util.Locale;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import de.bitmacht.workingtitle36.BuildConfig;
 import de.bitmacht.workingtitle36.MyApplication;
+import de.bitmacht.workingtitle36.R;
+import de.bitmacht.workingtitle36.Utils;
 import de.bitmacht.workingtitle36.Value;
 
 public class ValueEditText extends AppCompatEditText implements ValueWidget {
@@ -48,6 +50,7 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
     public static final int MAX_DEC_LEN = 18;
 
     private Currency currency;
+    private ValueTextWatcher textWatcher;
 
     public ValueEditText(Context context) {
         super(context);
@@ -120,8 +123,15 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
     private void updateCurrency(@NonNull Currency currency) {
         this.currency = currency;
-        ValueInputFilter inf = new ValueInputFilter(currency);
-        setFilters(new InputFilter[]{inf});
+
+        removeTextChangedListener(textWatcher);
+        if (Utils.getbPref(getContext(), R.string.pref_register_key, false)) {
+            setFilters(new InputFilter[]{});
+            textWatcher = new ValueTextWatcher(currency);
+            addTextChangedListener(textWatcher);
+        } else {
+            setFilters(new InputFilter[]{new ValueInputFilter(currency)});
+        }
     }
 
     @Override
@@ -179,6 +189,111 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
                 return "";
             }
             return sourceMod;
+        }
+    }
+
+    private class ValueTextWatcher implements TextWatcher {
+        private final char separator;
+        private final String separatorString;
+        private final int fracts;
+        private final String symbol;
+        private final Pattern pattern;
+        private boolean isModfiying = false;
+
+        ValueTextWatcher(Currency currency) {
+            separator = DecimalFormatSymbols.getInstance().getMonetaryDecimalSeparator();
+            separatorString = Character.toString(separator);
+            fracts = currency.getDefaultFractionDigits();
+            symbol = currency.getSymbol();
+            if (fracts > 0) {
+                pattern = Pattern.compile("(?:0|[1-9]+[0-9]*)\\Q" + separator + "\\E[0-9]{" + fracts + "}\\Q" + symbol + "\\E");
+            } else {
+                pattern = Pattern.compile("(?:0|[1-9]+[0-9]*)\\Q" + symbol + "\\E");
+            }
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            if (BuildConfig.DEBUG) {
+                logger.trace("{} start: {} count: {} after: {}", s, start, count, after);
+            }
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            if (BuildConfig.DEBUG) {
+                logger.trace("{} start: {} before: {} count: {}", s, start, before, count);
+            }
+}
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            if (isModfiying) {
+                return;
+            }
+            isModfiying = true;
+            try {
+                boolean isValid = pattern.matcher(s).matches();
+                isValid = isValid && extractValueString(s.toString()).length() <= MAX_DEC_LEN;
+
+                if (BuildConfig.DEBUG) {
+                    logger.trace("{} isValid: {}", s, isValid);
+                }
+
+                if (isValid) {
+                    return;
+                }
+
+                int i = 0;
+                while (i < s.length()) {
+                    if (BuildConfig.DEBUG) {
+                        logger.trace("i: {} s: {}", i, s);
+                    }
+                    if (!Character.isDigit(s.charAt(i))) {
+                        s.delete(i, i + 1);
+                    } else {
+                        i++;
+                    }
+                }
+
+                if (BuildConfig.DEBUG) {
+                    logger.trace("plain: {}", s);
+                }
+
+                // remove excess leading zeros
+                while (s.length() > fracts + 1 && s.charAt(0) == '0') {
+                    s.delete(0, 1);
+                }
+
+                // fill with zeros up to one before the decimal point
+                while (s.length() < fracts + 1) {
+                    s.insert(0, "0");
+                }
+
+                while (s.length() > MAX_DEC_LEN) {
+                    s.delete(s.length() - 1, s.length());
+                }
+
+                // add decimal point
+                if (fracts > 0) {
+                    s.insert(s.length() - fracts, separatorString);
+                }
+
+                // add the currency symbol
+                s.append(symbol);
+
+                // position cursor between the number and the symbol
+                Selection.setSelection(s, s.length() - symbol.length());
+
+                if (BuildConfig.DEBUG) {
+                    logger.trace("revalidated: {}", s);
+                }
+            } finally {
+                isModfiying = false;
+                if (BuildConfig.DEBUG) {
+                    logger.trace("final");
+                }
+            }
         }
     }
 }
