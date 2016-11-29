@@ -38,9 +38,10 @@ public class AboutDialogFragment extends AppCompatDialogFragment {
         TextView messageView = (TextView) contentView.findViewById(R.id.message);
         WebView licensesView = (WebView) contentView.findViewById(R.id.licenses);
 
+        String version = BuildConfig.VERSION_CODE + "/" + BuildConfig.VERSION_NAME;
         String appName = getString(R.string.app_name);
 
-        Spanned message = Html.fromHtml(getString(R.string.about_message, appName));
+        Spanned message = Html.fromHtml(getString(R.string.about_message, version, appName));
 
         messageView.setText(message);
         messageView.setLinksClickable(true);
