@@ -95,7 +95,7 @@
                     android:layout_toEndOf="@id/icon"
                     android:layout_toRightOf="@id/icon">
 
-                    <AutoCompleteTextView
+                    <de.bitmacht.workingtitle36.view.HintedAutoCompleteTextView
                         android:id="@+id/description"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -119,7 +119,7 @@
                     android:layout_toEndOf="@id/icon"
                     android:layout_toRightOf="@id/icon">
 
-                    <AutoCompleteTextView
+                    <de.bitmacht.workingtitle36.view.HintedAutoCompleteTextView
                         android:id="@+id/location"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
