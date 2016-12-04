@@ -136,21 +136,13 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
     @Override
     protected void onSelectionChanged(int selStart, int selEnd) {
-        try {
-            Editable text = getEditableText();
-            if (text != null) {
-                int tl = text.length();
-                int sl = currency.getSymbol().length();
-                int vl = tl - sl;
-                int newStart = Math.min(selStart, vl);
-                int newEnd = Math.min(selEnd, vl);
+        Editable text = getEditableText();
+        if (text != null && text.length() != 0 && currency != null) {
+            int vl = text.length() - currency.getSymbol().length();
+            int newStart = Math.min(selStart, vl);
+            int newEnd = Math.min(selEnd, vl);
 
-                Selection.setSelection(text, newStart, newEnd);
-            }
-        } catch (Exception e) {
-            if (BuildConfig.DEBUG) {
-                logger.trace("oops", e);
-            }
+            Selection.setSelection(text, newStart, newEnd);
         }
         super.onSelectionChanged(selStart, selEnd);
     }
