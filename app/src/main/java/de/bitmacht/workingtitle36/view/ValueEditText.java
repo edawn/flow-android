@@ -136,6 +136,9 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
     @Override
     protected void onSelectionChanged(int selStart, int selEnd) {
+        if (textWatcher != null && textWatcher.isModfiying) {
+            return;
+        }
         Editable text = getEditableText();
         if (text != null && text.length() != 0 && currency != null) {
             int vl = text.length() - currency.getSymbol().length();
@@ -144,7 +147,6 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
             Selection.setSelection(text, newStart, newEnd);
         }
-        super.onSelectionChanged(selStart, selEnd);
     }
 
     private class ValueInputFilter implements InputFilter {
@@ -273,9 +275,6 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
 
                 // add the currency symbol
                 s.append(symbol);
-
-                // position cursor between the number and the symbol
-                Selection.setSelection(s, s.length() - symbol.length());
 
                 if (BuildConfig.DEBUG) {
                     logger.trace("revalidated: {}", s);
