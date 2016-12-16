@@ -49,6 +49,8 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
     // The maximum length of the absolute value of a decimal number that will fit into a long
     public static final int MAX_DEC_LEN = 18;
 
+    // utilize cash register like input style
+    private boolean registerInputStyle = false;
     private Currency currency;
     private ValueTextWatcher textWatcher;
 
@@ -68,6 +70,7 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
     }
 
     private void init() {
+        registerInputStyle = Utils.getbPref(getContext(), R.string.pref_register_key, registerInputStyle);
         updateCurrency(MyApplication.getCurrency());
         setValue(new Value(currency.getCurrencyCode(), 0));
         setRawInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
@@ -125,7 +128,7 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
         this.currency = currency;
 
         removeTextChangedListener(textWatcher);
-        if (Utils.getbPref(getContext(), R.string.pref_register_key, false)) {
+        if (registerInputStyle) {
             setFilters(new InputFilter[]{});
             textWatcher = new ValueTextWatcher(currency);
             addTextChangedListener(textWatcher);
@@ -144,6 +147,14 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
             int vl = text.length() - currency.getSymbol().length();
             int newStart = Math.min(selStart, vl);
             int newEnd = Math.min(selEnd, vl);
+
+            // shift the cursor one to the left, if it should lie right of the decimal separator
+            //XXX breaks shifting the cursor with the right arrow key
+            if (registerInputStyle && newStart == newEnd && newEnd != 0 &&
+                    !Character.isDigit(text.charAt(newEnd - 1))) {
+                newStart--;
+                newEnd--;
+            }
 
             Selection.setSelection(text, newStart, newEnd);
         }
