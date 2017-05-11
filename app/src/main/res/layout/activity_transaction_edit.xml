@@ -78,7 +78,8 @@
 
                 <de.bitmacht.workingtitle36.view.ValueInput
                     android:id="@+id/value"
-                    style="@style/TransactionEditorItemActionValueContainer" />
+                    style="@style/TransactionEditorItemActionValueContainer"
+                    app:negativeZero="true"/>
 
             </RelativeLayout>
 

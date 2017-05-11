@@ -32,8 +32,6 @@ abstract public class BaseTransactionView extends RelativeLayout {
 
     private ValueTextView valueView;
     private DescriptionView descriptionView;
-    private String valueText;
-    private int valueTextLength;
 
     public BaseTransactionView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -54,16 +52,13 @@ abstract public class BaseTransactionView extends RelativeLayout {
 
         valueView = (ValueTextView) findViewById(R.id.value);
         descriptionView = (DescriptionView) findViewById(R.id.description);
-
-        valueTextLength = valueView.getText().length();
     }
 
     /**
      * Set the Value to be shown
      */
     final void setValue(Value value) {
-        valueText = valueView.setValue(value);
-        valueTextLength = valueText.length();
+        valueView.setValue(value);
     }
 
     /**
@@ -77,7 +72,7 @@ abstract public class BaseTransactionView extends RelativeLayout {
      * Return the length of the text in the ValueView
      */
     public final int getValueTextLength() {
-        return valueTextLength;
+        return valueView.getText().length();
     }
 
     /**

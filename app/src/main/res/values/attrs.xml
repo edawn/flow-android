@@ -36,4 +36,7 @@
     <declare-styleable name="FancyFontTextView">
         <attr name="font" format="string" />
     </declare-styleable>
+    <declare-styleable name="ValueInput">
+        <attr name="negativeZero" format="boolean" />
+    </declare-styleable>
 </resources>

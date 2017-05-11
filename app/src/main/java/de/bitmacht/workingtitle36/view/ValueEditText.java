@@ -113,15 +113,17 @@ public class ValueEditText extends AppCompatEditText implements ValueWidget {
     }
 
     @Override
-    @NonNull
-    public String setValue(@NonNull Value value) {
+    public void setValue(Value value) {
         if (!value.currencyCode.equals(currency.getCurrencyCode())) {
             updateCurrency(value.getCurrency());
         }
         Pair<String, String> vs = value.getValueAndSymbolStrings(Locale.getDefault());
         String valueText = vs.first + vs.second;
         setText(valueText);
-        return valueText;
+    }
+
+    public CharSequence getValueText() {
+        return getText();
     }
 
     private void updateCurrency(@NonNull Currency currency) {

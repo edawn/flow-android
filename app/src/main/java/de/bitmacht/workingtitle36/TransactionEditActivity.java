@@ -135,7 +135,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         }
 
         if (valueWidget instanceof ValueInput) {
-            ((ValueInput) valueWidget).setValue(value, true);
+            valueWidget.setValue(value);
         }
 
         Bundle args = new Bundle();
