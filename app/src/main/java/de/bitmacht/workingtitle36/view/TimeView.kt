@@ -74,12 +74,8 @@ class TimeView : TextView {
 
     private fun init(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
         val a = context.theme.obtainStyledAttributes(attrs, R.styleable.TimeView, defStyleAttr, defStyleRes)
-
-        try {
-            timeFormatStyle = a.getInteger(R.styleable.TimeView_timeFormat, timeFormatStyle)
-        } finally {
-            a.recycle()
-        }
+        timeFormatStyle = a.getInteger(R.styleable.TimeView_timeFormat, timeFormatStyle)
+        a.recycle()
 
         updateTimeFormat()
     }

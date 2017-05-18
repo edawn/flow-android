@@ -66,12 +66,8 @@ class DescriptionView : TextView {
 
     private fun initAttrs(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) {
         val a = context.theme.obtainStyledAttributes(attrs, R.styleable.DescriptionView, defStyleAttr, defStyleRes)
-
-        try {
-            isConcise = a.getBoolean(R.styleable.DescriptionView_isConcise, isConcise)
-        } finally {
-            a.recycle()
-        }
+        isConcise = a.getBoolean(R.styleable.DescriptionView_isConcise, isConcise)
+        a.recycle()
     }
 
     private fun updateDescription() {

@@ -79,12 +79,7 @@ class ValueInput : LinearLayout, ValueWidget {
         valueEditText = value_edit
 
         val a = context.obtainStyledAttributes(attrs, R.styleable.ValueInput)
-
-        (0 until a.indexCount).map { a.getIndex(it) }.forEach {
-            when(it) {
-                R.styleable.ValueInput_negativeZero -> a.getBoolean(it, negativeZero)
-            }
-        }
+        negativeZero = a.getBoolean(R.styleable.ValueInput_negativeZero, negativeZero)
         a.recycle()
     }
 

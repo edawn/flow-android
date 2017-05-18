@@ -14,34 +14,33 @@
  * limitations under the License.
  */
 
-package de.bitmacht.workingtitle36.view;
+package de.bitmacht.workingtitle36.view
 
-import android.content.Context;
-import android.graphics.Typeface;
+import android.content.Context
+import android.graphics.Typeface
 
-import java.util.HashMap;
+import java.util.HashMap
 
 /**
  * Based on http://stackoverflow.com/a/16648457
  */
-public class FontCache {
-    
-    private static HashMap<String, Typeface> fontCache = new HashMap<>();
+object FontCache {
 
-    public static Typeface getTypeface(String fontname, Context context) {
-        Typeface typeface = fontCache.get(fontname);
+    private val fontCache = HashMap<String, Typeface>()
+
+    fun getTypeface(fontname: String, context: Context): Typeface? {
+        var typeface: Typeface? = fontCache[fontname]
 
         if (typeface == null) {
             try {
-                typeface = Typeface.createFromAsset(context.getAssets(), fontname);
-            } catch (Exception e) {
-
-                return null;
+                typeface = Typeface.createFromAsset(context.assets, fontname)
+            } catch (e: Exception) {
+                return null
             }
 
-            fontCache.put(fontname, typeface);
+            fontCache.put(fontname, typeface)
         }
 
-        return typeface;
+        return typeface
     }
 }
