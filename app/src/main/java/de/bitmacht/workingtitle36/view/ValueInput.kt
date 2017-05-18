@@ -58,7 +58,7 @@ class ValueInput : LinearLayout, ValueWidget {
     override var value: Value?
         get() {
             val outvalue = valueEditText.value
-            return if (signCheckbox.isChecked) outvalue else outvalue.withAmount(-outvalue.amount)
+            return if (signCheckbox.isChecked) outvalue else outvalue!!.withAmount(-outvalue.amount)
         }
         set(value) {
             var outvalue = value
