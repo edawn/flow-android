@@ -131,7 +131,7 @@ public class TransactionEditActivity extends AppCompatActivity implements View.O
         updateTimeViews();
 
         if (value == null) {
-            value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
+            value = new Value(MyApplication.Companion.getCurrency().getCurrencyCode(), 0);
         }
 
         if (valueWidget instanceof ValueInput) {

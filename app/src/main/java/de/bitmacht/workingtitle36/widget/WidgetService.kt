@@ -201,7 +201,7 @@ class WidgetService : Service() {
 
         val startOfDayMillis = periods!!.shortStart.millis
         val endOfDayMillis = periods.shortEnd.millis
-        val currencyCode = MyApplication.getCurrency().currencyCode
+        val currencyCode = MyApplication.currency.currencyCode
         var valueBeforeDay = Value(currencyCode, 0)
         var valueDay = Value(currencyCode, 0)
         for (transact in transactions!!) {

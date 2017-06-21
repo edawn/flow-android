@@ -62,7 +62,7 @@ class ValueEditText : AppCompatEditText, ValueWidget {
 
     private fun init() {
         registerInputStyle = Utils.getbPref(context, R.string.pref_register_key, registerInputStyle)
-        updateCurrency(MyApplication.getCurrency())
+        updateCurrency(MyApplication.currency)
         value = Value(currency!!.currencyCode, 0)
         setRawInputType(InputType.TYPE_CLASS_NUMBER or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS)
     }

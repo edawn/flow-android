@@ -413,7 +413,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         }
         val startOfDayMillis = periods.shortStart.millis
         val endOfDayMillis = periods.shortEnd.millis
-        val currencyCode = MyApplication.getCurrency().currencyCode
+        val currencyCode = MyApplication.currency.currencyCode
         var valueBeforeDay = Value(currencyCode, 0)
         var valueDay = Value(currencyCode, 0)
         hasTransactionsMonth = !transactions!!.isEmpty()
@@ -455,7 +455,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
             return
         }
 
-        val currencyCode = MyApplication.getCurrency().currencyCode
+        val currencyCode = MyApplication.currency.currencyCode
 
         var transactionsSum = Value(currencyCode, 0)
         if (transactions != null) {

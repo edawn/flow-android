@@ -129,7 +129,7 @@ public class RegularEditActivity extends AppCompatActivity implements View.OnCli
                 repetitionSpinner.setSelection(regular.getPeriodIndex());
                 descriptionView.setText(regular.description);
             } else {
-                value = new Value(MyApplication.getCurrency().getCurrencyCode(), 0);
+                value = new Value(MyApplication.Companion.getCurrency().getCurrencyCode(), 0);
                 // corresponds to 'Monthly' in R.array.interval_names
                 repetitionSpinner.setSelection(2);
             }
