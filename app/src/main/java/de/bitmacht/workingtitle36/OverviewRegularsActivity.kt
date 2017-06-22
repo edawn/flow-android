@@ -65,7 +65,7 @@ class OverviewRegularsActivity : AppCompatActivity() {
 
                     override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                         val regular = regularsAdapter!!.removeItem(viewHolder as BaseTransactionsAdapter<BaseTransactionsAdapter<RecyclerView.ViewHolder>.BaseTransactionVH>.BaseTransactionVH)
-                        val rut = RegularsRemoveTask(this@OverviewRegularsActivity, regular.id)
+                        val rut = RegularsRemoveTask(this@OverviewRegularsActivity, regular.id!!)
                         rut.execute()
                         regularsModified = true
                         setResult(Activity.RESULT_OK)

@@ -59,7 +59,7 @@ public class TransactionsLoader extends AsyncTaskLoader<ArrayList<TransactionsMo
         ArrayList<TransactionsModel> result = new ArrayList<>(cursor.getCount());
 
         while (cursor.moveToNext()) {
-            result.add(TransactionsModel.getInstanceWithEdit(cursor));
+            result.add(TransactionsModel.Companion.getInstanceWithEdit(cursor));
         }
 
         return result;

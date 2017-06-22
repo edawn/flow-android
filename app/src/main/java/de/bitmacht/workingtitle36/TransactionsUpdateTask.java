@@ -47,7 +47,7 @@ public class TransactionsUpdateTask extends DBModifyingAsyncTask {
             try {
                 ContentValues cv = new ContentValues(10);
 
-                Long transactionId = edit.transaction;
+                Long transactionId = edit.getTransaction();
                 Long parentId = null;
                 int sequence = 0;
 
@@ -59,7 +59,7 @@ public class TransactionsUpdateTask extends DBModifyingAsyncTask {
                     if (transactionsCount == 0) {
                         transactionId = null;
                     } else {
-                        parentId = edit.parent;
+                        parentId = edit.getParent();
                         createNewTransaction = false;
                         if (BuildConfig.DEBUG) {
                             if (transactionsCount > 1) {
@@ -82,16 +82,16 @@ public class TransactionsUpdateTask extends DBModifyingAsyncTask {
                         }
                         while (cursor.moveToNext()) {
                             Edit tmpEdit = new Edit(cursor);
-                            sequence = Math.max(sequence, tmpEdit.sequence + 1);
-                            if (edit.parent.equals(tmpEdit.id)) {
-                                parentId = edit.parent;
+                            sequence = Math.max(sequence, tmpEdit.getSequence() + 1);
+                            if (edit.getParent().equals(tmpEdit.getId())) {
+                                parentId = edit.getParent();
                             }
                         }
                     } finally {
                         cursor.close();
                     }
                     if (parentId == null) {
-                        throw new Exception("No parent found for edit " + edit.id + " in transaction " + transactionId);
+                        throw new Exception("No parent found for edit " + edit.getId() + " in transaction " + transactionId);
                     }
                 }
 
@@ -99,11 +99,11 @@ public class TransactionsUpdateTask extends DBModifyingAsyncTask {
                 cv.put(DBHelper.EDITS_KEY_TRANSACTION, transactionId);
                 cv.put(DBHelper.EDITS_KEY_SEQUENCE, sequence);
                 cv.put(DBHelper.EDITS_KEY_IS_PENDING, false);
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_TIME, edit.transactionTime);
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, edit.transactionDescription);
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_LOCATION, edit.transactionLocation);
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY, edit.transactionCurrency);
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT, edit.transactionAmount);
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_TIME, edit.getTransactionTime());
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, edit.getTransactionDescription());
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_LOCATION, edit.getTransactionLocation());
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY, edit.getTransactionCurrency());
+                cv.put(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT, edit.getTransactionAmount());
                 db.insertOrThrow(DBHelper.EDITS_TABLE_NAME, null, cv);
 
                 db.setTransactionSuccessful();

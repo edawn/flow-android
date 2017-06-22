@@ -94,7 +94,7 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
                 if (transaction.mostRecentEdit != null) {
                     transactionId = transaction.id
                     val parentEdit = transaction.mostRecentEdit
-                    parentId = parentEdit.id
+                    parentId = parentEdit!!.id
                     transactionTime.timeInMillis = parentEdit.transactionTime
                     descriptionView!!.setText(parentEdit.transactionDescription)
                     locationView!!.setText(parentEdit.transactionLocation)
@@ -207,7 +207,7 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
      */
     private val edit: Edit
         get() = Edit(parentId, transactionId, transactionTime.timeInMillis,
-                descriptionView!!.text.toString(), locationView!!.text.toString(), valueWidget!!.value)
+                descriptionView!!.text.toString(), locationView!!.text.toString(), valueWidget!!.value!!)
 
     private val suggestionsListener = object : LoaderManager.LoaderCallbacks<ArrayAdapter<String>> {
         override fun onCreateLoader(id: Int, args: Bundle): Loader<ArrayAdapter<String>> {

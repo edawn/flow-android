@@ -73,7 +73,7 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
         TransactionView transactionView = (TransactionView) holder.itemView;
         TransactionsModel transaction = parent != null ?
                 parent.transactions.get(parent.subIndexStart + position) : transactions.get(position);
-        transactionView.setData(transaction.mostRecentEdit);
+        transactionView.setData(transaction.getMostRecentEdit());
         onPostBind(transactionView);
     }
 
@@ -171,7 +171,7 @@ public class TransactionsArrayAdapter extends BaseTransactionsAdapter<BaseTransa
         int i = 0;
 
         while (i < size) {
-            long trTime = transactions.get(i).mostRecentEdit.transactionTime;
+            long trTime = transactions.get(i).getMostRecentEdit().getTransactionTime();
             if (i == 0 && startTime <= trTime) {
                 startIndex = 0;
             }

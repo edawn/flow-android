@@ -199,16 +199,16 @@ class WidgetService : Service() {
         //TODO deduplicate from OverviewActivity#updateTransactions() and OverviewActivity#updateOverview()
         //though there might be no non-ugly solution ...
 
-        val startOfDayMillis = periods!!.shortStart.millis
+        val startOfDayMillis = periods!!.shortStart!!.millis
         val endOfDayMillis = periods.shortEnd.millis
         val currencyCode = MyApplication.currency.currencyCode
         var valueBeforeDay = Value(currencyCode, 0)
         var valueDay = Value(currencyCode, 0)
         for (transact in transactions!!) {
-            val transactionTime = transact.mostRecentEdit.transactionTime
+            val transactionTime = transact.mostRecentEdit!!.transactionTime
             if (transactionTime < startOfDayMillis) {
                 try {
-                    valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit.value)
+                    valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit!!.value)
                 } catch (e: Value.CurrencyMismatchException) {
                     if (BuildConfig.DEBUG) {
                         logger.warn("unable to add: {}", transact.mostRecentEdit)
@@ -217,7 +217,7 @@ class WidgetService : Service() {
 
             } else if (transactionTime < endOfDayMillis) {
                 try {
-                    valueDay = valueDay.add(transact.mostRecentEdit.value)
+                    valueDay = valueDay.add(transact.mostRecentEdit!!.value)
                 } catch (e: Value.CurrencyMismatchException) {
                     if (BuildConfig.DEBUG) {
                         logger.warn("unable to add: {}", transact.mostRecentEdit)
@@ -231,7 +231,7 @@ class WidgetService : Service() {
 
         val regularsValues = ArrayList<Value>(regulars!!.size)
         for (regular in regulars!!) {
-            regularsValues.add(regular.getCumulativeValue(periods.longStart, periods.longEnd))
+            regularsValues.add(regular.getCumulativeValue(periods.longStart!!, periods.longEnd))
         }
 
         var regularsSum = Value(currencyCode, 0)

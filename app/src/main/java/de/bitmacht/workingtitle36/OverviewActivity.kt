@@ -359,7 +359,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
 
     private fun changeMonth(@PeriodModifier periodModifier: Int) {
         var newPeriods = if (periodModifier == PERIOD_BEFORE) periods.previousLong() else periods.nextLong()
-        val historicPeriods = periodHistory[newPeriods.longStart.millis]
+        val historicPeriods = periodHistory[newPeriods.longStart?.millis]
         if (historicPeriods != null) {
             newPeriods = historicPeriods
         }
@@ -380,16 +380,16 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
     }
 
     private fun onPeriodChanged() {
-        periodHistory.put(periods.longStart.millis, periods)
+        periodHistory.put(periods.longStart!!.millis, periods)
 
         val now = DateTime.now()
         // update the action bar
         // the next month would be in the future
         setButtonEnabled(monthNextBtn, !periods.longEnd.isAfter(now))
-        supportActionBar!!.setTitle(getString(R.string.overview_title, periods.longStart.toGregorianCalendar()))
+        supportActionBar!!.setTitle(getString(R.string.overview_title, periods!!.longStart!!.toGregorianCalendar()))
 
         // the first day of the month
-        setButtonEnabled(dayBeforeBtn, periods.shortStart.isAfter(periods.longStart))
+        setButtonEnabled(dayBeforeBtn, periods.shortStart!!.isAfter(periods.longStart))
         // the last day of the month
         setButtonEnabled(dayNextBtn, periods.longEnd.isAfter(periods.shortEnd))
 
@@ -397,7 +397,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         dayLabel!!.text = if (isViewingToday)
             getString(R.string.overview_today)
         else
-            getString(R.string.overview_day, periods.shortStart.dayOfMonth().get())
+            getString(R.string.overview_day, periods!!.shortStart!!.dayOfMonth().get())
     }
 
     /**
@@ -411,7 +411,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         if (transactions == null) {
             return
         }
-        val startOfDayMillis = periods.shortStart.millis
+        val startOfDayMillis = periods.shortStart!!.millis
         val endOfDayMillis = periods.shortEnd.millis
         val currencyCode = MyApplication.currency.currencyCode
         var valueBeforeDay = Value(currencyCode, 0)
@@ -419,10 +419,10 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         hasTransactionsMonth = !transactions!!.isEmpty()
         hasTransactionsDay = false
         for (transact in transactions!!) {
-            val transactionTime = transact.mostRecentEdit.transactionTime
+            val transactionTime = transact.mostRecentEdit!!.transactionTime
             if (transactionTime < startOfDayMillis) {
                 try {
-                    valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit.value)
+                    valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit!!.value)
                 } catch (e: Value.CurrencyMismatchException) {
                     if (BuildConfig.DEBUG) {
                         logger.warn("unable to add: {}", transact.mostRecentEdit)
@@ -431,7 +431,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
 
             } else if (transactionTime < endOfDayMillis) {
                 try {
-                    valueDay = valueDay.add(transact.mostRecentEdit.value)
+                    valueDay = valueDay.add(transact.mostRecentEdit!!.value)
                     hasTransactionsDay = true
                 } catch (e: Value.CurrencyMismatchException) {
                     if (BuildConfig.DEBUG) {
@@ -467,7 +467,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
                     continue
                 }
                 try {
-                    transactionsSum = transactionsSum.add(transaction.mostRecentEdit.value)
+                    transactionsSum = transactionsSum.add(transaction.mostRecentEdit!!.value)
                 } catch (e: Value.CurrencyMismatchException) {
                     if (BuildConfig.DEBUG) {
                         logger.warn("adding value failed")
@@ -479,7 +479,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
 
         val regularsValues = ArrayList<Value>(regulars!!.size)
         for (regular in regulars!!) {
-            regularsValues.add(regular.getCumulativeValue(periods.longStart, periods.longEnd))
+            regularsValues.add(regular.getCumulativeValue(periods.longStart!!, periods.longEnd))
         }
 
         var regularsSum = Value(currencyCode, 0)
@@ -513,9 +513,9 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         val daysBefore = Days.daysBetween(periods.longStart, periods.shortStart).days
 
         try {
-            val remainingFromDay = regularsSum.add(spentBeforeDay)
+            val remainingFromDay = regularsSum.add(spentBeforeDay!!)
             val remFromDayPerDay = remainingFromDay.withAmount(remainingFromDay.amount / (daysTotal - daysBefore))
-            val remainingDay = remFromDayPerDay.add(spentDay)
+            val remainingDay = remFromDayPerDay.add(spentDay!!)
 
             dayRemain!!.text = remainingDay.string
             daySpent!!.text = spentDay!!.withAmount(-spentDay!!.amount).string
