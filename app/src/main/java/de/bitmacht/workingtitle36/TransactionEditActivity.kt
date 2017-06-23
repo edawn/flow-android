@@ -211,7 +211,7 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
 
     private val suggestionsListener = object : LoaderManager.LoaderCallbacks<ArrayAdapter<String>> {
         override fun onCreateLoader(id: Int, args: Bundle): Loader<ArrayAdapter<String>> {
-            return TransactionsSuggestionsLoader(this@TransactionEditActivity, dbHelper, args)
+            return TransactionsSuggestionsLoader(this@TransactionEditActivity, dbHelper!!, args)
         }
 
         override fun onLoadFinished(loader: Loader<ArrayAdapter<String>>, data: ArrayAdapter<String>) {

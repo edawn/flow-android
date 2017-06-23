@@ -569,7 +569,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
 
     private val regularsLoaderListener = object : LoaderManager.LoaderCallbacks<ArrayList<RegularModel>> {
         override fun onCreateLoader(id: Int, args: Bundle?): Loader<ArrayList<RegularModel>> {
-            return RegularsLoader(this@OverviewActivity, dbHelper)
+            return RegularsLoader(this@OverviewActivity, dbHelper!!)
         }
 
         override fun onLoadFinished(loader: Loader<ArrayList<RegularModel>>, data: ArrayList<RegularModel>?) {
@@ -582,12 +582,12 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
 
     private val transactionsListener = object : LoaderManager.LoaderCallbacks<ArrayList<TransactionsModel>> {
         override fun onCreateLoader(id: Int, args: Bundle?): Loader<ArrayList<TransactionsModel>> {
-            return TransactionsLoader(this@OverviewActivity, dbHelper, args)
+            return TransactionsLoader(this@OverviewActivity, dbHelper!!, args!!)
         }
 
         override fun onLoadFinished(loader: Loader<ArrayList<TransactionsModel>>, data: ArrayList<TransactionsModel>?) {
             transactions = data
-            periods = (loader as TransactionsLoader).periods
+            periods = (loader as TransactionsLoader).periods!!
             onPeriodChanged()
             updateTransactions()
         }
