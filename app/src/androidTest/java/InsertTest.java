@@ -46,20 +46,20 @@ public class InsertTest {
         try {
             Cursor res;
 
-            db.execSQL("DELETE FROM " + DBHelper.EDITS_TABLE_NAME);
-            res = db.rawQuery("SELECT * FROM " + DBHelper.EDITS_TABLE_NAME, null);
+            db.execSQL("DELETE FROM " + DBHelper.Companion.getEDITS_TABLE_NAME());
+            res = db.rawQuery("SELECT * FROM " + DBHelper.Companion.getEDITS_TABLE_NAME(), null);
             // The table should be empty
             assertEquals(0, res.getCount());
             res.close();
 
-            db.execSQL("DELETE FROM " + DBHelper.TRANSACTIONS_TABLE_NAME);
-            res = db.rawQuery("SELECT * FROM " + DBHelper.TRANSACTIONS_TABLE_NAME, null);
+            db.execSQL("DELETE FROM " + DBHelper.Companion.getTRANSACTIONS_TABLE_NAME());
+            res = db.rawQuery("SELECT * FROM " + DBHelper.Companion.getTRANSACTIONS_TABLE_NAME(), null);
             // The table should be empty
             assertEquals(0, res.getCount());
             res.close();
 
-            db.execSQL("DELETE FROM " + DBHelper.REGULARS_TABLE_NAME);
-            res = db.rawQuery("SELECT * FROM " + DBHelper.REGULARS_TABLE_NAME, null);
+            db.execSQL("DELETE FROM " + DBHelper.Companion.getREGULARS_TABLE_NAME());
+            res = db.rawQuery("SELECT * FROM " + DBHelper.Companion.getREGULARS_TABLE_NAME(), null);
             // The table should be empty
             assertEquals(0, res.getCount());
             res.close();
@@ -72,21 +72,21 @@ public class InsertTest {
                 db.beginTransaction();
                 try {
                     ContentValues cv = new ContentValues(10);
-                    cv.put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, false);
-                    long transactionId = db.insertOrThrow(DBHelper.TRANSACTIONS_TABLE_NAME, null, cv);
+                    cv.put(DBHelper.Companion.getTRANSACTIONS_KEY_IS_REMOVED(), false);
+                    long transactionId = db.insertOrThrow(DBHelper.Companion.getTRANSACTIONS_TABLE_NAME(), null, cv);
 
                     cv.clear();
 
-                    cv.put(DBHelper.EDITS_KEY_PARENT, (Long) null);
-                    cv.put(DBHelper.EDITS_KEY_TRANSACTION, transactionId);
-                    cv.put(DBHelper.EDITS_KEY_SEQUENCE, 0);
-                    cv.put(DBHelper.EDITS_KEY_IS_PENDING, false);
-                    cv.put(DBHelper.EDITS_KEY_TRANSACTION_TIME, now.getMillis() + rnd.nextInt());
-                    cv.put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, "hello world");
-                    cv.put(DBHelper.EDITS_KEY_TRANSACTION_LOCATION, "planet earth");
-                    cv.put(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY, "EUR");
-                    cv.put(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT, ((int) (rnd.nextGaussian() * 10000)));
-                    db.insertOrThrow(DBHelper.EDITS_TABLE_NAME, null, cv);
+                    cv.put(DBHelper.Companion.getEDITS_KEY_PARENT(), (Long) null);
+                    cv.put(DBHelper.Companion.getEDITS_KEY_TRANSACTION(), transactionId);
+                    cv.put(DBHelper.Companion.getEDITS_KEY_SEQUENCE(), 0);
+                    cv.put(DBHelper.Companion.getEDITS_KEY_IS_PENDING(), false);
+                    cv.put(DBHelper.Companion.getEDITS_KEY_TRANSACTION_TIME(), now.getMillis() + rnd.nextInt());
+                    cv.put(DBHelper.Companion.getEDITS_KEY_TRANSACTION_DESCRIPTION(), "hello world");
+                    cv.put(DBHelper.Companion.getEDITS_KEY_TRANSACTION_LOCATION(), "planet earth");
+                    cv.put(DBHelper.Companion.getEDITS_KEY_TRANSACTION_CURRENCY(), "EUR");
+                    cv.put(DBHelper.Companion.getEDITS_KEY_TRANSACTION_AMOUNT(), ((int) (rnd.nextGaussian() * 10000)));
+                    db.insertOrThrow(DBHelper.Companion.getEDITS_TABLE_NAME(), null, cv);
 
                     db.setTransactionSuccessful();
                 } finally {
