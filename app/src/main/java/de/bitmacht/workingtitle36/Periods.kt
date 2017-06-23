@@ -113,7 +113,7 @@ class Periods : Parcelable {
          */
         val DEFAULT_SHORT_PERIOD = Period.days(1)
 
-        @JvmField final val CREATOR: Parcelable.Creator<Periods> = object : Parcelable.Creator<Periods> {
+        @JvmField val CREATOR: Parcelable.Creator<Periods> = object : Parcelable.Creator<Periods> {
             override fun createFromParcel(src: Parcel): Periods {
                 return Periods(src)
             }

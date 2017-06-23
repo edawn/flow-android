@@ -296,7 +296,7 @@ class RegularModel : Parcelable {
 
         private val logger = LoggerFactory.getLogger(RegularModel::class.java)
 
-        @JvmField final val CREATOR: Parcelable.Creator<RegularModel> = object : Parcelable.Creator<RegularModel> {
+        @JvmField val CREATOR: Parcelable.Creator<RegularModel> = object : Parcelable.Creator<RegularModel> {
             override fun createFromParcel(`in`: Parcel): RegularModel {
                 return RegularModel(`in`)
             }

@@ -53,7 +53,7 @@ class Edit : Parcelable {
             cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY)),
             cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT)))
 
-    constructor(parent: Long?, transaction: Long?, transactionTime: Long, transactionDescription: String, transactionLocation: String, value: Value) : this(null, parent, transaction, null, transactionTime, transactionDescription, transactionLocation, value.currencyCode, value.amount) {}
+    constructor(parent: Long?, transaction: Long?, transactionTime: Long, transactionDescription: String, transactionLocation: String, value: Value) : this(null, parent, transaction, null, transactionTime, transactionDescription, transactionLocation, value.currencyCode, value.amount)
 
     /**
      * Create a new Edit from arguments
@@ -114,7 +114,7 @@ class Edit : Parcelable {
 
     companion object {
 
-        @JvmField final val CREATOR: Parcelable.Creator<Edit> = object : Parcelable.Creator<Edit> {
+        @JvmField val CREATOR: Parcelable.Creator<Edit> = object : Parcelable.Creator<Edit> {
             override fun createFromParcel(source: Parcel): Edit {
                 return Edit(source)
             }

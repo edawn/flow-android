@@ -160,21 +160,21 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         }
         drawerLayout!!.addDrawerListener(drawerToggle!!)
 
-        monthBeforeBtn!!.setOnClickListener(this)
-        monthNextBtn!!.setOnClickListener(this)
+        monthBeforeBtn.setOnClickListener(this)
+        monthNextBtn.setOnClickListener(this)
 
-        monthTransactionsButton!!.setOnClickListener(this)
-        dayTransactionsButton!!.setOnClickListener(this)
+        monthTransactionsButton.setOnClickListener(this)
+        dayTransactionsButton.setOnClickListener(this)
 
-        monthRecycler!!.layoutManager = LinearLayoutManager(this)
+        monthRecycler.layoutManager = LinearLayoutManager(this)
         adapter = TransactionsArrayAdapter()
-        monthRecycler!!.adapter = adapter
+        monthRecycler.adapter = adapter
 
-        dayBeforeBtn!!.setOnClickListener(this)
-        dayNextBtn!!.setOnClickListener(this)
+        dayBeforeBtn.setOnClickListener(this)
+        dayNextBtn.setOnClickListener(this)
 
-        dayRecycler!!.layoutManager = LinearLayoutManager(this)
-        dayRecycler!!.adapter = adapter!!.subAdapter
+        dayRecycler.layoutManager = LinearLayoutManager(this)
+        dayRecycler.adapter = adapter!!.subAdapter
 
         val itemClickListener: ClickListener = { adapter, adapterPosition ->
             val transaction = (adapter as TransactionsArrayAdapter).getModel(adapterPosition)
@@ -252,10 +252,10 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
             isViewingToday = savedInstanceState.getBoolean(STATE_IS_VIEWING_TODAY)
             periods = if (isViewingToday) Periods() else savedInstanceState.getParcelable<Parcelable>(STATE_PERIODS) as Periods
             if (savedInstanceState.getBoolean(STATE_MONTH_RECYCLER_VISIBLE)) {
-                monthRecycler!!.visibility = View.VISIBLE
+                monthRecycler.visibility = View.VISIBLE
             }
             if (savedInstanceState.getBoolean(STATE_DAY_RECYCLER_VISIBLE)) {
-                dayRecycler!!.visibility = View.VISIBLE
+                dayRecycler.visibility = View.VISIBLE
             }
 
             periodHistory = savedInstanceState.getSerializable(STATE_PERIOD_HISTORY) as HashMap<Long, Periods>
@@ -302,8 +302,8 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         outState.putBoolean(STATE_IS_VIEWING_TODAY, isViewingToday)
         //TODO if the timezone changes after this, a wrong period may be restored
         outState.putParcelable(STATE_PERIODS, periods)
-        outState.putBoolean(STATE_MONTH_RECYCLER_VISIBLE, monthRecycler!!.visibility == View.VISIBLE)
-        outState.putBoolean(STATE_DAY_RECYCLER_VISIBLE, dayRecycler!!.visibility == View.VISIBLE)
+        outState.putBoolean(STATE_MONTH_RECYCLER_VISIBLE, monthRecycler.visibility == View.VISIBLE)
+        outState.putBoolean(STATE_DAY_RECYCLER_VISIBLE, dayRecycler.visibility == View.VISIBLE)
         outState.putSerializable(STATE_PERIOD_HISTORY, periodHistory)
     }
 
@@ -387,7 +387,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         // update the action bar
         // the next month would be in the future
         setButtonEnabled(monthNextBtn, !periods.longEnd.isAfter(now))
-        supportActionBar!!.setTitle(getString(R.string.overview_title, periods!!.longStart!!.toGregorianCalendar()))
+        supportActionBar!!.title = getString(R.string.overview_title, periods.longStart!!.toGregorianCalendar())
 
         // the first day of the month
         setButtonEnabled(dayBeforeBtn, periods.shortStart!!.isAfter(periods.longStart))
@@ -398,7 +398,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         dayLabel!!.text = if (isViewingToday)
             getString(R.string.overview_today)
         else
-            getString(R.string.overview_day, periods!!.shortStart!!.dayOfMonth().get())
+            getString(R.string.overview_day, periods.shortStart!!.dayOfMonth().get())
     }
 
     /**
@@ -547,8 +547,8 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         val id = v.id
         if (id == R.id.month_transactions_button || id == R.id.day_transactions_button) {
             val recyclerView = if (id == R.id.month_transactions_button) monthRecycler else dayRecycler
-            val newVisibility = if (recyclerView.getVisibility() == View.VISIBLE) View.GONE else View.VISIBLE
-            recyclerView.setVisibility(newVisibility)
+            val newVisibility = if (recyclerView.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+            recyclerView.visibility = newVisibility
             if (newVisibility == View.VISIBLE) {
                 val args = Bundle()
                 args.putParcelable(TransactionsLoader.ARG_PERIODS, periods)

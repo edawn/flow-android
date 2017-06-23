@@ -93,7 +93,7 @@ class TransactionsArrayAdapter : BaseTransactionsAdapter<BaseTransactionsAdapter
      * @return The model of the item removed
      */
     fun removeItem(holder: BaseTransactionsAdapter<*>.BaseTransactionVH): TransactionsModel {
-        val position = holder.getAdapterPosition()
+        val position = holder.adapterPosition
         val transactionRemoved: TransactionsModel
         if (parent != null) {
             val parentPos = parent!!.subIndexStart + position

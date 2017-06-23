@@ -32,7 +32,7 @@ class TransactionsModel : Parcelable {
 
     var mostRecentEdit: Edit? = null
 
-    private constructor() {}
+    private constructor()
 
     constructor(cursor: Cursor) {
         id = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_ID))
@@ -91,7 +91,7 @@ class TransactionsModel : Parcelable {
             return transaction
         }
 
-        @JvmField final val CREATOR: Parcelable.Creator<TransactionsModel> = object : Parcelable.Creator<TransactionsModel> {
+        @JvmField val CREATOR: Parcelable.Creator<TransactionsModel> = object : Parcelable.Creator<TransactionsModel> {
             override fun createFromParcel(source: Parcel): TransactionsModel {
                 return TransactionsModel(source)
             }
