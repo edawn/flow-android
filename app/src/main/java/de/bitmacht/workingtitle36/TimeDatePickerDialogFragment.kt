@@ -14,32 +14,36 @@
  * limitations under the License.
  */
 
-package de.bitmacht.workingtitle36;
+package de.bitmacht.workingtitle36
 
-import android.app.DialogFragment;
-import android.os.Bundle;
+import android.app.DialogFragment
+import android.os.Bundle
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
+import java.util.Calendar
+import java.util.GregorianCalendar
 
-public abstract class TimeDatePickerDialogFragment extends DialogFragment {
-
-    // The initial time that this dialog should show
-    public static final String BUNDLE_TIME = "time";
+abstract class TimeDatePickerDialogFragment : DialogFragment() {
 
     /**
      * Return a Calendar having its time set to the time passed in by the arguments
      * @return A Calendar with a time set to the time contained in the argument Bundle or to the
-     * current time if the argument has not been set
+     * * current time if the argument has not been set
      */
-    final Calendar getCalendarFromArguments() {
-        Bundle bundle = getArguments();
-        long time = System.currentTimeMillis();
-        if (bundle != null && bundle.containsKey(BUNDLE_TIME)) {
-            time = bundle.getLong(BUNDLE_TIME);
+    internal val calendarFromArguments: Calendar
+        get() {
+            val bundle = arguments
+            var time = System.currentTimeMillis()
+            if (bundle != null && bundle.containsKey(BUNDLE_TIME)) {
+                time = bundle.getLong(BUNDLE_TIME)
+            }
+            val calendar = GregorianCalendar()
+            calendar.timeInMillis = time
+            return calendar
         }
-        GregorianCalendar calendar = new GregorianCalendar();
-        calendar.setTimeInMillis(time);
-        return calendar;
+
+    companion object {
+
+        // The initial time that this dialog should show
+        val BUNDLE_TIME = "time"
     }
 }
