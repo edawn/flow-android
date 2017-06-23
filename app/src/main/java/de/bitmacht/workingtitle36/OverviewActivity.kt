@@ -176,7 +176,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
         dayRecycler!!.layoutManager = LinearLayoutManager(this)
         dayRecycler!!.adapter = adapter!!.subAdapter
 
-        val itemClickListener = BaseTransactionsAdapter.OnItemClickListener { adapter, adapterPosition ->
+        val itemClickListener: ClickListener = { adapter, adapterPosition ->
             val transaction = (adapter as TransactionsArrayAdapter).getModel(adapterPosition)
             if (transaction != null) {
                 val intent = Intent(this@OverviewActivity, TransactionEditActivity::class.java)
@@ -184,6 +184,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
                 startActivityForResult(intent, REQUEST_TRANSACTION_EDIT)
             }
         }
+
         adapter!!.setOnItemClickListener(itemClickListener)
         adapter!!.subAdapter.setOnItemClickListener(itemClickListener)
 
@@ -441,7 +442,7 @@ class OverviewActivity : AppCompatActivity(), View.OnClickListener {
 
             }
         }
-        adapter!!.setData(transactions, startOfDayMillis, endOfDayMillis)
+        adapter!!.setData(transactions!!, startOfDayMillis, endOfDayMillis)
         spentDay = valueDay
         spentBeforeDay = valueBeforeDay
         updateOverview()
