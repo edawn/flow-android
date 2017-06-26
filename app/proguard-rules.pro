@@ -43,3 +43,5 @@
     java.lang.Object writeReplace();
     java.lang.Object readResolve();
 }
+
+-assumenosideeffects class de.bitmacht.workingtitle36.LogKt { *; }
