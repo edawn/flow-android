@@ -32,8 +32,6 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 
 import org.joda.time.DateTimeConstants
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import java.util.Calendar
 import java.util.GregorianCalendar
@@ -253,8 +251,6 @@ class RegularEditActivity : AppCompatActivity(), View.OnClickListener, DatePicke
         }
 
     companion object {
-
-        private val logger = LoggerFactory.getLogger(RegularEditActivity::class.java)
 
         /**
          * An optional extra containing a RegularModel that will be edited

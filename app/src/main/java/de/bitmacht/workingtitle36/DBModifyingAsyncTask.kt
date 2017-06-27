@@ -22,8 +22,6 @@ import android.os.AsyncTask
 import android.support.annotation.CallSuper
 import android.support.v4.content.LocalBroadcastManager
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 /**
  * Any AsyncTask that modifies the underlying data necessary to calculate the budget should be
@@ -40,17 +38,13 @@ abstract class DBModifyingAsyncTask protected constructor(context: Context) : As
 
     @CallSuper
     override fun onPostExecute(success: Boolean?) {
-        if (BuildConfig.DEBUG) {
-            logger.trace("-")
-        }
+        logd("-")
         //TODO add success extra
         val broadcastManager = LocalBroadcastManager.getInstance(appContext)
         broadcastManager.sendBroadcast(Intent(ACTION_DB_MODIFIED))
     }
 
     companion object {
-
-        private val logger = LoggerFactory.getLogger(DBModifyingAsyncTask::class.java)
 
         val ACTION_DB_MODIFIED = "de.bitmacht.workingtitle36.action.DB_MODIFIED"
     }

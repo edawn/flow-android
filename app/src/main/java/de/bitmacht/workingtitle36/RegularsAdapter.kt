@@ -19,8 +19,6 @@ package de.bitmacht.workingtitle36
 import android.view.LayoutInflater
 import android.view.ViewGroup
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import de.bitmacht.workingtitle36.view.RegularView
 
@@ -68,16 +66,9 @@ class RegularsAdapter : BaseTransactionsAdapter<BaseTransactionsAdapter<*>.BaseT
         try {
             return regulars!![position]
         } catch (e: IndexOutOfBoundsException) {
-            if (BuildConfig.DEBUG) {
-                logger.trace("No item at requested position: {}", e)
-            }
+            logd("No item at requested position: $position", e)
         }
 
         return null
-    }
-
-    companion object {
-
-        private val logger = LoggerFactory.getLogger(RegularsAdapter::class.java)
     }
 }

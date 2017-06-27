@@ -19,8 +19,6 @@ package de.bitmacht.workingtitle36
 import android.view.LayoutInflater
 import android.view.ViewGroup
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import de.bitmacht.workingtitle36.view.TransactionView
 
@@ -131,9 +129,7 @@ class TransactionsArrayAdapter : BaseTransactionsAdapter<BaseTransactionsAdapter
             }
             return transactions!![position]
         } catch (e: IndexOutOfBoundsException) {
-            if (BuildConfig.DEBUG) {
-                logger.trace("No item at requested position: {}", e)
-            }
+            logd("No item at requested position: {}", e)
         }
 
         return null
@@ -189,9 +185,7 @@ class TransactionsArrayAdapter : BaseTransactionsAdapter<BaseTransactionsAdapter
             endIndex = 0
             startIndex = endIndex
         } else if (endIndex < startIndex) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("start/end index {}/{} for start/end time {}/{}", startIndex, endIndex, startTime, endTime)
-            }
+            logw("start/end index $startIndex/$endIndex for start/end time $startTime/$endTime")
             endIndex = 0
             startIndex = endIndex
         }
@@ -199,10 +193,4 @@ class TransactionsArrayAdapter : BaseTransactionsAdapter<BaseTransactionsAdapter
         subIndexEnd = endIndex
         sub!!.notifyDataSetChanged()
     }
-
-    companion object {
-
-        private val logger = LoggerFactory.getLogger(TransactionsArrayAdapter::class.java)
-    }
-
 }

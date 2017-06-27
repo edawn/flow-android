@@ -25,7 +25,7 @@ import android.util.AttributeSet
 import android.widget.TextView
 import de.bitmacht.workingtitle36.BuildConfig
 import de.bitmacht.workingtitle36.R
-import org.slf4j.LoggerFactory
+import de.bitmacht.workingtitle36.logd
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
@@ -100,17 +100,13 @@ class TimeView : TextView {
             if (lastThreadId == null || threadId != lastThreadId) {
                 update = true
                 lastThreadId = threadId
-                if (BuildConfig.DEBUG) {
-                    logger.debug("thread updated; new tid: {}", threadId)
-                }
+                logd("thread updated; new tid: $threadId")
             }
             val contextHash = context.hashCode()
             if (lastContextHash == null || contextHash != lastContextHash) {
                 update = true
                 lastContextHash = contextHash
-                if (BuildConfig.DEBUG) {
-                    logger.debug("context updated; new context hash: {}", contextHash)
-                }
+                logd("context updated; new context hash: $contextHash")
             }
 
             if (update) {
@@ -131,18 +127,14 @@ class TimeView : TextView {
                             TIME_FORMATS[timeFormatStyle]
                         else
                             TIME_FORMATS_12[timeFormatStyle]
-                        if (BuildConfig.DEBUG) {
-                            logger.debug("locale: {} raw pattern: {}", locale, pattern)
-                        }
+                        logd("locale: $locale raw pattern: $pattern")
                         pattern = DateFormat.getBestDateTimePattern(locale, pattern)
                     } else {
                         pattern = TIME_FORMATS_OLD_API[timeFormatStyle]
                     }
                 }
 
-                if (BuildConfig.DEBUG) {
-                    logger.debug("pattern: {}", pattern)
-                }
+                logd("pattern: $pattern")
                 timeFormat = SimpleDateFormat(pattern, locale)
                 timeFormats[timeFormatStyle] = timeFormat
             }
@@ -160,8 +152,6 @@ class TimeView : TextView {
     }
 
     companion object {
-
-        private val logger = LoggerFactory.getLogger(TimeView::class.java)
 
         const val TIME_FORMAT_TIME = 0
         const val TIME_FORMAT_DATE = 1

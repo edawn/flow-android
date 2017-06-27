@@ -23,7 +23,6 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.preference.ListPreference
 import android.support.v7.preference.PreferenceFragmentCompat
 
-import org.slf4j.LoggerFactory
 import java.util.Currency
 import java.util.Locale
 import java.util.TreeMap
@@ -51,9 +50,7 @@ class SettingsActivity : AppCompatActivity() {
             try {
                 defaultCurrencyCode = Currency.getInstance(Locale.getDefault()).currencyCode
             } catch (e: IllegalArgumentException) {
-                if (BuildConfig.DEBUG) {
-                    logger.warn("no currency for default locale")
-                }
+                logw("no currency for default locale")
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -66,9 +63,7 @@ class SettingsActivity : AppCompatActivity() {
                     try {
                         currency = Currency.getInstance(locale)
                     } catch (e: IllegalArgumentException) {
-                        if (BuildConfig.DEBUG) {
-                            logger.warn("locale without currency: {}", locale)
-                        }
+                        logw("locale without currency: $locale")
                         continue
                     }
 
@@ -106,10 +101,5 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         override fun onCreatePreferences(bundle: Bundle?, s: String?) {}
-    }
-
-    companion object {
-
-        private val logger = LoggerFactory.getLogger(SettingsActivity::class.java)
     }
 }

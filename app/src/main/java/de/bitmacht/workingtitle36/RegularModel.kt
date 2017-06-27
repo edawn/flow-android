@@ -29,8 +29,6 @@ import org.joda.time.Days
 import org.joda.time.Months
 import org.joda.time.Period
 import org.joda.time.base.BaseSingleFieldPeriod
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
@@ -170,7 +168,7 @@ class RegularModel : Parcelable {
 
         if (BuildConfig.DEBUG) {
             if (pnStart < 0 || pnEnd < 0) {
-                logger.error("pnStart: {} pnEnd: {}; neither should be below zero", pnStart, pnEnd)
+                loge("pnStart: $pnStart pnEnd: $pnEnd; neither should be below zero")
             }
         }
 
@@ -186,7 +184,7 @@ class RegularModel : Parcelable {
                 sb.append(dt).append(" / ")
                 pn++
             }
-            logger.trace("regular: {} in: {} - {}:\nvalue: {}\n{}", description, start, end, value, sb)
+            logd("regular: $description in: $start - $end:\nvalue: $value\n$sb")
         }
         return value
     }
@@ -293,8 +291,6 @@ class RegularModel : Parcelable {
     }
 
     companion object {
-
-        private val logger = LoggerFactory.getLogger(RegularModel::class.java)
 
         @JvmField val CREATOR: Parcelable.Creator<RegularModel> = object : Parcelable.Creator<RegularModel> {
             override fun createFromParcel(`in`: Parcel): RegularModel {

@@ -40,7 +40,6 @@ import kotlinx.android.synthetic.main.activity_overview.*
 import org.joda.time.DateTime
 import org.joda.time.Days
 import org.joda.time.Interval
-import org.slf4j.LoggerFactory
 import java.lang.annotation.Retention
 import java.lang.annotation.RetentionPolicy
 import java.util.*
@@ -82,9 +81,7 @@ class OverviewActivity : AppCompatActivity() {
 
     private val dataModifiedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (BuildConfig.DEBUG) {
-                logger.trace("received: {}", intent)
-            }
+            logd("received: $intent")
 
             loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
                     Bundle().apply { putParcelable(TransactionsLoader.ARG_PERIODS, periods) }, transactionsListener)
@@ -94,9 +91,7 @@ class OverviewActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (BuildConfig.DEBUG) {
-            logger.trace("savedInstanceState: {}", savedInstanceState)
-        }
+        logd("savedInstanceState: $savedInstanceState")
 
         dbHelper = DBHelper(this)
 
@@ -229,9 +224,7 @@ class OverviewActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        if (BuildConfig.DEBUG) {
-            logger.trace("-")
-        }
+        logd("-")
 
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(dataModifiedReceiver, IntentFilter(DBModifyingAsyncTask.ACTION_DB_MODIFIED))
@@ -241,9 +234,7 @@ class OverviewActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        if (BuildConfig.DEBUG) {
-            logger.trace("-")
-        }
+        logd("-")
         LocalBroadcastManager.getInstance(this).unregisterReceiver(dataModifiedReceiver)
         super.onStop()
     }
@@ -362,9 +353,7 @@ class OverviewActivity : AppCompatActivity() {
                 try {
                     valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit!!.value)
                 } catch (e: Value.CurrencyMismatchException) {
-                    if (BuildConfig.DEBUG) {
-                        logger.warn("unable to add: {}", transact.mostRecentEdit)
-                    }
+                    logw("unable to add: ${transact.mostRecentEdit}")
                 }
 
             } else if (transactionTime < endOfDayMillis) {
@@ -372,9 +361,7 @@ class OverviewActivity : AppCompatActivity() {
                     valueDay = valueDay.add(transact.mostRecentEdit!!.value)
                     hasTransactionsDay = true
                 } catch (e: Value.CurrencyMismatchException) {
-                    if (BuildConfig.DEBUG) {
-                        logger.warn("unable to add: {}", transact.mostRecentEdit)
-                    }
+                    logw("unable to add: ${transact.mostRecentEdit}")
                 }
 
             }
@@ -387,9 +374,7 @@ class OverviewActivity : AppCompatActivity() {
 
     private fun updateOverview() {
         if (regulars == null || transactions == null || spentDay == null || spentBeforeDay == null) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("not initialized yet")
-            }
+            logw("not initialized yet")
             return
         }
 
@@ -398,17 +383,13 @@ class OverviewActivity : AppCompatActivity() {
         var transactionsSum = Value(currencyCode, 0)
         for (transaction in transactions!!) {
             if (transaction.mostRecentEdit == null) {
-                if (BuildConfig.DEBUG) {
-                    logger.warn("mostRecentEdit is null: transaction: {}", transaction)
-                }
+                logw("mostRecentEdit is null: transaction: $transaction")
                 continue
             }
             try {
                 transactionsSum = transactionsSum.add(transaction.mostRecentEdit!!.value)
             } catch (e: Value.CurrencyMismatchException) {
-                if (BuildConfig.DEBUG) {
-                    logger.warn("adding value failed")
-                }
+                logw("adding value failed")
             }
         }
 
@@ -416,23 +397,17 @@ class OverviewActivity : AppCompatActivity() {
         try {
             regularsSum = regularsSum.addAll(regulars!!.map { it.getCumulativeValue(periods.longStart!!, periods.longEnd) })
         } catch (e: Value.CurrencyMismatchException) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("adding values failed", e)
-            }
+            logw("adding values failed", e)
         }
 
         var remaining = Value(currencyCode, 0)
         try {
             remaining = regularsSum.add(transactionsSum)
         } catch (e: Value.CurrencyMismatchException) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("subtraction failed", e)
-            }
+            logw("subtraction failed", e)
         }
 
-        if (BuildConfig.DEBUG) {
-            logger.trace("regsum: {} trsum: {} rem: {}", regularsSum, transactionsSum, regularsSum)
-        }
+        logd("regsum: $regularsSum trsum: $transactionsSum rem: $remaining")
 
         month_balance_remain_value.text = remaining.string
         month_balance_spent_value.text = transactionsSum.withAmount(-transactionsSum.amount).string
@@ -451,9 +426,7 @@ class OverviewActivity : AppCompatActivity() {
             day_balance_available_value.text = remFromDayPerDay.string
             adjustExpandButton(day_transactions_button, hasTransactionsDay, transactions_day)
         } catch (e: Value.CurrencyMismatchException) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("unable to add", e)
-            }
+            logw("unable to add", e)
         }
     }
 
@@ -499,8 +472,6 @@ class OverviewActivity : AppCompatActivity() {
     }
 
     companion object {
-
-        private val logger = LoggerFactory.getLogger(OverviewActivity::class.java)
 
         private val STATE_REGULARS = "regulars"
         private val STATE_TRANSACTIONS = "transactions"

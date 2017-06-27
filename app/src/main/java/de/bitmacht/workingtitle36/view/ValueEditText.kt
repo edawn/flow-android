@@ -26,20 +26,13 @@ import android.text.Spanned
 import android.text.TextWatcher
 import android.util.AttributeSet
 import android.util.Pair
+import de.bitmacht.workingtitle36.*
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import java.text.DecimalFormatSymbols
 import java.util.Currency
 import java.util.Locale
 import java.util.regex.Pattern
-
-import de.bitmacht.workingtitle36.BuildConfig
-import de.bitmacht.workingtitle36.MyApplication
-import de.bitmacht.workingtitle36.R
-import de.bitmacht.workingtitle36.Utils
-import de.bitmacht.workingtitle36.Value
 
 class ValueEditText : AppCompatEditText, ValueWidget {
 
@@ -206,15 +199,11 @@ class ValueEditText : AppCompatEditText, ValueWidget {
         }
 
         override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {
-            if (BuildConfig.DEBUG) {
-                logger.trace("{} start: {} count: {} after: {}", s, start, count, after)
-            }
+            logd("$s start: $start count: $count after: $after")
         }
 
         override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
-            if (BuildConfig.DEBUG) {
-                logger.trace("{} start: {} before: {} count: {}", s, start, before, count)
-            }
+            logd("$s start: $start before: $before count: $count")
         }
 
         override fun afterTextChanged(s: Editable) {
@@ -226,9 +215,7 @@ class ValueEditText : AppCompatEditText, ValueWidget {
                 var isValid = pattern.matcher(s).matches()
                 isValid = isValid && extractValueString(s.toString()).length <= MAX_DEC_LEN
 
-                if (BuildConfig.DEBUG) {
-                    logger.trace("{} isValid: {}", s, isValid)
-                }
+                logd("$s isValid: $isValid")
 
                 if (isValid) {
                     return
@@ -236,9 +223,7 @@ class ValueEditText : AppCompatEditText, ValueWidget {
 
                 var i = 0
                 while (i < s.length) {
-                    if (BuildConfig.DEBUG) {
-                        logger.trace("i: {} s: {}", i, s)
-                    }
+                    logd("i: $i s: $s")
                     if (!Character.isDigit(s[i])) {
                         s.delete(i, i + 1)
                     } else {
@@ -246,9 +231,7 @@ class ValueEditText : AppCompatEditText, ValueWidget {
                     }
                 }
 
-                if (BuildConfig.DEBUG) {
-                    logger.trace("plain: {}", s)
-                }
+                logd("plain: $s")
 
                 // remove excess leading zeros
                 while (s.length > fracts + 1 && s[0] == '0') {
@@ -272,21 +255,15 @@ class ValueEditText : AppCompatEditText, ValueWidget {
                 // add the currency symbol
                 s.append(symbol)
 
-                if (BuildConfig.DEBUG) {
-                    logger.trace("revalidated: {}", s)
-                }
+                logd("revalidated: $s")
             } finally {
                 isModfiying = false
-                if (BuildConfig.DEBUG) {
-                    logger.trace("final")
-                }
+                logd("final")
             }
         }
     }
 
     companion object {
-
-        private val logger = LoggerFactory.getLogger(ValueEditText::class.java)
 
         // The maximum length of the absolute value of a decimal number that will fit into a long
         val MAX_DEC_LEN = 18

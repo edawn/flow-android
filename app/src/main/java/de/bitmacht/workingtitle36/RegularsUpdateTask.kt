@@ -20,8 +20,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 class RegularsUpdateTask(context: Context, private val regular: RegularModel) : DBModifyingAsyncTask(context) {
 
@@ -43,20 +41,11 @@ class RegularsUpdateTask(context: Context, private val regular: RegularModel) : 
                 db.endTransaction()
             }
         } catch (e: Exception) {
-            if (BuildConfig.DEBUG) {
-                logger.error("modifying database failed")
-            }
+            loge("modifying database failed")
             return false
         }
 
-        if (BuildConfig.DEBUG) {
-            logger.trace("finished inserting")
-        }
+        logd("finished inserting")
         return true
-    }
-
-    companion object {
-
-        private val logger = LoggerFactory.getLogger(RegularsUpdateTask::class.java)
     }
 }

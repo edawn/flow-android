@@ -32,8 +32,6 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.TimePicker
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import java.util.Calendar
 import java.util.GregorianCalendar
@@ -100,9 +98,7 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
                     locationView!!.setText(parentEdit.transactionLocation)
                     value = parentEdit.value
                 } else {
-                    if (BuildConfig.DEBUG) {
-                        logger.warn("A transaction without an edit: id: {}", transaction.id)
-                    }
+                    logw("A transaction without an edit: id: ${transaction.id}")
                 }
             } else {
                 // focus value input only when not editing an existing transaction
@@ -160,9 +156,7 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
         if (id == R.id.accept_button || id == R.id.cancel_button) {
             if (id == R.id.accept_button) {
                 val edit = edit
-                if (BuildConfig.DEBUG) {
-                    logger.trace("edit: {}", edit)
-                }
+                logd("edit: $edit")
                 TransactionsUpdateTask(this, edit).execute()
                 //TODO wait for the update to finish
                 finish()
@@ -226,8 +220,6 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
     }
 
     companion object {
-
-        private val logger = LoggerFactory.getLogger(TransactionEditActivity::class.java)
 
         /**
          * An optional extra containing a TransactionsModel that will be edited

@@ -19,8 +19,6 @@ package de.bitmacht.workingtitle36
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 //TODO merge with RegularsUpdateTask or make it an inner class of OverviewRegularsActivity
 class RegularsRemoveTask(context: Context, private val regularId: Long) : DBModifyingAsyncTask(context) {
@@ -39,7 +37,7 @@ class RegularsRemoveTask(context: Context, private val regularId: Long) : DBModi
                 val count = db.delete(DBHelper.REGULARS_TABLE_NAME, DBHelper.REGULARS_KEY_ID + " = ?", arrayOf(regularId.toString()))
                 if (BuildConfig.DEBUG) {
                     if (count != 1) {
-                        logger.trace("{} rows deleted; expected one; regular id: {}", count, regularId)
+                        logd("$count rows deleted; expected one; regular id: $regularId")
                     }
                 }
                 db.setTransactionSuccessful()
@@ -47,20 +45,11 @@ class RegularsRemoveTask(context: Context, private val regularId: Long) : DBModi
                 db.endTransaction()
             }
         } catch (e: Exception) {
-            if (BuildConfig.DEBUG) {
-                logger.error("modifying database failed")
-            }
+            loge("modifying database failed")
             return false
         }
 
-        if (BuildConfig.DEBUG) {
-            logger.trace("finished deleting")
-        }
+        logd("finished deleting")
         return true
-    }
-
-    companion object {
-
-        private val logger = LoggerFactory.getLogger(RegularsRemoveTask::class.java)
     }
 }

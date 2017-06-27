@@ -21,29 +21,19 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import de.bitmacht.workingtitle36.BuildConfig
+import de.bitmacht.workingtitle36.logd
 
 class WidgetProvider : AppWidgetProvider() {
 
     override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
-        if (BuildConfig.DEBUG) {
-            logger.trace("-")
-        }
+        logd("-")
         context.startService(Intent(context, WidgetService::class.java))
     }
 
     override fun onDisabled(context: Context) {
-        if (BuildConfig.DEBUG) {
-            logger.trace("-")
-        }
+        logd("-")
         context.stopService(Intent(context, WidgetService::class.java))
-    }
-
-    companion object {
-
-        private val logger = LoggerFactory.getLogger(WidgetProvider::class.java)
     }
 }

@@ -20,8 +20,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 class TransactionsDeleteTask(context: Context, private val transaction: TransactionsModel) : DBModifyingAsyncTask(context) {
 
@@ -48,20 +46,11 @@ class TransactionsDeleteTask(context: Context, private val transaction: Transact
             }
 
         } catch (e: Exception) {
-            if (BuildConfig.DEBUG) {
-                logger.error("modifying database failed", e)
-            }
+            loge("modifying database failed", e)
             return false
         }
 
-        if (BuildConfig.DEBUG) {
-            logger.trace("finished inserting")
-        }
+        logd("finished inserting")
         return true
-    }
-
-    companion object {
-
-        private val logger = LoggerFactory.getLogger(TransactionsDeleteTask::class.java)
     }
 }

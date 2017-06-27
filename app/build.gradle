@@ -43,9 +43,7 @@ android {
 
 ext {
     support_version = "25.3.1"
-    logback_version = "1.1.1-6"
     joda_version = "2.9.6"
-    slf4j_version = "1.7.21"
 }
 
 dependencies {
@@ -53,9 +51,6 @@ dependencies {
     compile "com.android.support:recyclerview-v7:$support_version"
     compile "com.android.support:preference-v7:$support_version"
     compile "com.android.support:design:$support_version"
-    compile "com.github.tony19:logback-android-classic:$logback_version"
-    compile "com.github.tony19:logback-android-core:$logback_version"
-    compile "org.slf4j:slf4j-api:$slf4j_version"
     compile "joda-time:joda-time:$joda_version"
     androidTestCompile('com.android.support.test:runner:0.5', {
         exclude group: 'com.android.support', module: 'support-annotations'

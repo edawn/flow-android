@@ -32,29 +32,13 @@ import android.support.v4.app.TaskStackBuilder
 import android.support.v4.content.LocalBroadcastManager
 import android.support.v4.graphics.ColorUtils
 import android.widget.RemoteViews
+import de.bitmacht.workingtitle36.*
 
 import org.joda.time.DateTime
 import org.joda.time.Days
 import org.joda.time.Interval
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import java.util.ArrayList
-
-import de.bitmacht.workingtitle36.BuildConfig
-import de.bitmacht.workingtitle36.DBHelper
-import de.bitmacht.workingtitle36.DBModifyingAsyncTask
-import de.bitmacht.workingtitle36.MyApplication
-import de.bitmacht.workingtitle36.OverviewActivity
-import de.bitmacht.workingtitle36.Periods
-import de.bitmacht.workingtitle36.R
-import de.bitmacht.workingtitle36.RegularModel
-import de.bitmacht.workingtitle36.RegularsLoader
-import de.bitmacht.workingtitle36.TransactionEditActivity
-import de.bitmacht.workingtitle36.TransactionsLoader
-import de.bitmacht.workingtitle36.TransactionsModel
-import de.bitmacht.workingtitle36.Utils
-import de.bitmacht.workingtitle36.Value
 
 class WidgetService : Service() {
     private lateinit var dbHelper: DBHelper
@@ -70,9 +54,7 @@ class WidgetService : Service() {
 
     private val dataModifiedReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (BuildConfig.DEBUG) {
-                logger.trace("received: {}", intent)
-            }
+            logd("received: $intent")
             start()
         }
     }
@@ -90,17 +72,13 @@ class WidgetService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        if (BuildConfig.DEBUG) {
-            logger.trace("-")
-        }
+        logd("-")
         dbHelper = DBHelper(this)
         LocalBroadcastManager.getInstance(this).registerReceiver(dataModifiedReceiver, IntentFilter(DBModifyingAsyncTask.ACTION_DB_MODIFIED))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (BuildConfig.DEBUG) {
-            logger.trace("-")
-        }
+        logd("-")
         start()
         return Service.START_STICKY
     }
@@ -125,9 +103,7 @@ class WidgetService : Service() {
     }
 
     override fun onDestroy() {
-        if (BuildConfig.DEBUG) {
-            logger.trace("-")
-        }
+        logd("-")
         LocalBroadcastManager.getInstance(this).unregisterReceiver(dataModifiedReceiver)
 
         (getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(alarmPendingIntent)
@@ -210,18 +186,14 @@ class WidgetService : Service() {
                 try {
                     valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit!!.value)
                 } catch (e: Value.CurrencyMismatchException) {
-                    if (BuildConfig.DEBUG) {
-                        logger.warn("unable to add: {}", transact.mostRecentEdit)
-                    }
+                    logw("unable to add: ${transact.mostRecentEdit}")
                 }
 
             } else if (transactionTime < endOfDayMillis) {
                 try {
                     valueDay = valueDay.add(transact.mostRecentEdit!!.value)
                 } catch (e: Value.CurrencyMismatchException) {
-                    if (BuildConfig.DEBUG) {
-                        logger.warn("unable to add: {}", transact.mostRecentEdit)
-                    }
+                    logw("unable to add: ${transact.mostRecentEdit}")
                 }
 
             }
@@ -238,9 +210,7 @@ class WidgetService : Service() {
         try {
             regularsSum = regularsSum.addAll(regularsValues)
         } catch (e: Value.CurrencyMismatchException) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("adding values failed", e)
-            }
+            logw("adding values failed", e)
         }
 
         val daysTotal = Days.daysBetween(periods.longStart, periods.longEnd).days
@@ -252,24 +222,18 @@ class WidgetService : Service() {
             val remainingDay = remFromDayPerDay.add(spentDay)
             setWidgetValue(remainingDay)
         } catch (e: Value.CurrencyMismatchException) {
-            if (BuildConfig.DEBUG) {
-                logger.warn("unable to add", e)
-            }
+            logw("unable to add", e)
         }
 
     }
 
     private fun setWidgetValue(remaining: Value) {
         val remainingText = remaining.string
-        if (BuildConfig.DEBUG) {
-            logger.trace("setting value: {}", remainingText)
-        }
+        logd("setting value: $remainingText")
 
         val widgetManager = AppWidgetManager.getInstance(this)
         val widgetIds = widgetManager.getAppWidgetIds(ComponentName(this, WidgetProvider::class.java))
-        if (BuildConfig.DEBUG) {
-            logger.trace("ids: {}", widgetIds)
-        }
+        logd("ids: $widgetIds")
 
         var bgColor = resources.getColor(R.color.widgetBackground)
         val alphaInt = (255 * alpha).toInt()
@@ -303,7 +267,6 @@ class WidgetService : Service() {
     companion object {
         val LOADER_ID_REGULARS = 0
         val LOADER_ID_TRANSACTIONS = 1
-        private val logger = LoggerFactory.getLogger(WidgetService::class.java)
     }
 
 }

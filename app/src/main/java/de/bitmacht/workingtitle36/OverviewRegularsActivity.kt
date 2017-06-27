@@ -30,8 +30,6 @@ import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
 import android.view.View
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import java.util.ArrayList
 
@@ -80,9 +78,7 @@ class OverviewRegularsActivity : AppCompatActivity() {
                 intent.putExtra(RegularEditActivity.EXTRA_REGULAR, regular)
                 startActivityForResult(intent, REQUEST_REGULAR_EDIT)
             } else {
-                if (BuildConfig.DEBUG) {
-                    logger.warn("no such item")
-                }
+                logw("no such item")
             }
         }
 
@@ -164,8 +160,6 @@ class OverviewRegularsActivity : AppCompatActivity() {
     }
 
     companion object {
-
-        private val logger = LoggerFactory.getLogger(OverviewRegularsActivity::class.java)
 
         private val LOADER_ID_REGULARS = 0
 

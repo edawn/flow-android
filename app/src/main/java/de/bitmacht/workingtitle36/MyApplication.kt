@@ -20,8 +20,6 @@ import android.app.Application
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import java.util.Currency
 import java.util.Locale
@@ -30,7 +28,7 @@ class MyApplication : Application() {
 
     // necessary to hold a strong reference
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener({sharedPreferences, key ->
-        logger.info("pref changed")
+        logd("pref changed")
         if (key == getString(R.string.pref_currency_key)) {
             updateCurrency(sharedPreferences)
         }
@@ -60,25 +58,18 @@ class MyApplication : Application() {
             try {
                 newCurrency = Currency.getInstance(currencyCode)
             } catch (e: IllegalArgumentException) {
-                if (BuildConfig.DEBUG) {
-                    logger.warn("unknown currency code: {}", currencyCode)
-                }
+                logw("unknown currency code: $currencyCode")
             }
         }
         if (newCurrency == null) {
-            if(BuildConfig.DEBUG) {
-                logger.warn("loading currency from preferences failed")
-            }
+            logw("loading currency from preferences failed")
         } else {
             currency = newCurrency
         }
-        if (BuildConfig.DEBUG) {
-            logger.info("new currency: {}", currency)
-        }
+        logd("new currency: $currency")
     }
 
     companion object {
-        private val logger = LoggerFactory.getLogger(MyApplication::class.java)
 
         var currency: Currency = Currency.getInstance(Locale.getDefault())
     }

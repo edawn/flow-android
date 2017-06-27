@@ -21,8 +21,6 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 class TransactionsUpdateTask(context: Context, private val edit: Edit) : DBModifyingAsyncTask(context) {
 
@@ -56,7 +54,7 @@ class TransactionsUpdateTask(context: Context, private val edit: Edit) : DBModif
                         createNewTransaction = false
                         if (BuildConfig.DEBUG) {
                             if (transactionsCount > 1) {
-                                logger.warn("this should not happen: more than one resulting row")
+                                logw("this should not happen: more than one resulting row")
                             }
                         }
                     }
@@ -70,9 +68,7 @@ class TransactionsUpdateTask(context: Context, private val edit: Edit) : DBModif
                 } else {
                     val cursor = db.rawQuery(DBHelper.EDITS_FOR_TRANSACTION_QUERY, arrayOf(java.lang.Long.toString(transactionId!!)))
                     try {
-                        if (BuildConfig.DEBUG) {
-                            logger.trace("{} edits for transaction {}", cursor.count, transactionId)
-                        }
+                        logd("${cursor.count} edits for transaction $transactionId")
                         while (cursor.moveToNext()) {
                             val tmpEdit = Edit(cursor)
                             sequence = Math.max(sequence, tmpEdit.sequence!! + 1)
@@ -105,20 +101,11 @@ class TransactionsUpdateTask(context: Context, private val edit: Edit) : DBModif
             }
 
         } catch (e: Exception) {
-            if (BuildConfig.DEBUG) {
-                logger.error("modifying database failed", e)
-            }
+            loge("modifying database failed", e)
             return false
         }
 
-        if (BuildConfig.DEBUG) {
-            logger.trace("finished inserting")
-        }
+        logd("finished inserting")
         return true
-    }
-
-    companion object {
-
-        private val logger = LoggerFactory.getLogger(TransactionsUpdateTask::class.java)
     }
 }
