@@ -18,8 +18,6 @@ package de.bitmacht.workingtitle36
 
 import android.app.Activity
 import android.app.LoaderManager
-import android.content.AsyncTaskLoader
-import android.content.Context
 import android.content.Intent
 import android.content.Loader
 import android.os.Bundle
@@ -28,17 +26,14 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
-import android.view.View
-
-
-import java.util.ArrayList
+import kotlinx.android.synthetic.main.activity_regulars_overview.*
+import java.util.*
 
 class OverviewRegularsActivity : AppCompatActivity() {
 
     private lateinit var dbHelper: DBHelper
 
-    private var regularsRecycler: RecyclerView? = null
-    private var regularsAdapter: RegularsAdapter? = null
+    private lateinit var regularsAdapter: RegularsAdapter
 
     private var regularsModified = false
 
@@ -49,46 +44,42 @@ class OverviewRegularsActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_regulars_overview)
 
-        regularsRecycler = findViewById(R.id.regulars) as RecyclerView
-        regularsRecycler!!.layoutManager = LinearLayoutManager(this)
+        regulars.layoutManager = LinearLayoutManager(this)
         regularsAdapter = RegularsAdapter()
-        regularsRecycler!!.adapter = regularsAdapter
+        regulars.adapter = regularsAdapter
 
-        ItemTouchHelper(
-                object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+        val swipeCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val regular = regularsAdapter.removeItem(viewHolder as BaseTransactionsAdapter<*>.BaseTransactionVH)
+                RegularsRemoveTask(this@OverviewRegularsActivity, regular.id!!).execute()
+                regularsModified = true
+                setResult(Activity.RESULT_OK)
+                Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG)
+                        .setAction(R.string.snackbar_undo, {
+                            RegularsUpdateTask(this@OverviewRegularsActivity, regular).execute()
+                        }).show()
+            }
+        }
 
-                    override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean {
-                        return false
-                    }
+        ItemTouchHelper(swipeCallback).attachToRecyclerView(regulars)
 
-                    override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                        val regular = regularsAdapter!!.removeItem(viewHolder as BaseTransactionsAdapter<BaseTransactionsAdapter<RecyclerView.ViewHolder>.BaseTransactionVH>.BaseTransactionVH)
-                        val rut = RegularsRemoveTask(this@OverviewRegularsActivity, regular.id!!)
-                        rut.execute()
-                        regularsModified = true
-                        setResult(Activity.RESULT_OK)
-                        Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG).setAction(R.string.snackbar_undo, UndoClickListener(regular)).show()
-                    }
-                }).attachToRecyclerView(regularsRecycler)
-
-        regularsAdapter!!.setOnItemClickListener { adapter, position ->
+        regularsAdapter.setOnItemClickListener { adapter, position ->
             val regular = (adapter as RegularsAdapter).getModel(position)
             if (regular != null) {
-                val intent = Intent(this@OverviewRegularsActivity, RegularEditActivity::class.java)
-                intent.putExtra(RegularEditActivity.EXTRA_REGULAR, regular)
-                startActivityForResult(intent, REQUEST_REGULAR_EDIT)
+                startActivityForResult(Intent(this@OverviewRegularsActivity, RegularEditActivity::class.java)
+                        .apply { putExtra(RegularEditActivity.EXTRA_REGULAR, regular) }, REQUEST_REGULAR_EDIT)
             } else {
                 logw("no such item")
             }
         }
 
-
         findViewById(R.id.fab).setOnClickListener { v -> startActivityForResult(Intent(v.context, RegularEditActivity::class.java), REQUEST_REGULAR_EDIT) }
 
         loaderManager.initLoader(LOADER_ID_REGULARS, null, regularsLoaderListener)
 
-        if (savedInstanceState != null) {
-            if (savedInstanceState.getBoolean(REGULARS_MODIFIED_KEY)) {
+        savedInstanceState?.apply {
+            if (getBoolean(REGULARS_MODIFIED_KEY)) {
                 regularsModified = true
                 setResult(Activity.RESULT_OK)
             }
@@ -113,50 +104,13 @@ class OverviewRegularsActivity : AppCompatActivity() {
 
     private val regularsLoaderListener = object : LoaderManager.LoaderCallbacks<ArrayList<RegularModel>> {
 
-        override fun onCreateLoader(id: Int, args: Bundle?): Loader<ArrayList<RegularModel>> {
-            return RegularsLoader(this@OverviewRegularsActivity, dbHelper, args)
-        }
+        override fun onCreateLoader(id: Int, args: Bundle?): Loader<ArrayList<RegularModel>> =
+                RegularsLoader(this@OverviewRegularsActivity, dbHelper)
 
-        override fun onLoadFinished(loader: Loader<ArrayList<RegularModel>>, data: ArrayList<RegularModel>) {
-            regularsAdapter!!.setData(data)
-        }
+        override fun onLoadFinished(loader: Loader<ArrayList<RegularModel>>, data: ArrayList<RegularModel>) =
+                regularsAdapter.setData(data)
 
         override fun onLoaderReset(loader: Loader<ArrayList<RegularModel>>) {}
-    }
-
-    private class RegularsLoader internal constructor(context: Context, private val dbHelper: DBHelper, args: Bundle?) : AsyncTaskLoader<ArrayList<RegularModel>>(context) {
-        private var result: ArrayList<RegularModel>? = null
-
-        override fun loadInBackground(): ArrayList<RegularModel> {
-            return DBHelper.queryRegulars(dbHelper, true)
-        }
-
-        override fun deliverResult(result: ArrayList<RegularModel>) {
-            this.result = result
-            super.deliverResult(result)
-        }
-
-        override fun onStartLoading() {
-            if (result != null) {
-                deliverResult(result as ArrayList<RegularModel>)
-            }
-            if (takeContentChanged() || result == null) {
-                forceLoad()
-            }
-        }
-
-        override fun onReset() {
-            super.onReset()
-            result = null
-        }
-    }
-
-    private inner class UndoClickListener internal constructor(private val regular: RegularModel) : View.OnClickListener {
-
-        override fun onClick(v: View) {
-            val rut = RegularsUpdateTask(this@OverviewRegularsActivity, regular)
-            rut.execute()
-        }
     }
 
     companion object {
