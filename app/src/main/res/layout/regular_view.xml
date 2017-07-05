@@ -21,13 +21,13 @@
     style="@style/Transaction">
 
     <de.bitmacht.workingtitle36.view.ValueTextView
-        android:id="@+id/value"
+        android:id="@+id/value_input"
         style="@style/TransactionItemValue" />
 
     <TextView
         android:id="@+id/period"
-        android:layout_toEndOf="@id/value"
-        android:layout_toRightOf="@id/value"
+        android:layout_toEndOf="@id/value_input"
+        android:layout_toRightOf="@id/value_input"
         style="@style/TransactionItemPeriod" />
 
     <de.bitmacht.workingtitle36.view.DescriptionView

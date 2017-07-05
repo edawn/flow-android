@@ -27,15 +27,15 @@
         />
 
     <de.bitmacht.workingtitle36.view.ValueTextView
-        android:id="@+id/value"
+        android:id="@+id/value_input"
         android:layout_toEndOf="@id/time"
         android:layout_toRightOf="@id/time"
         style="@style/TransactionItemValue" />
 
     <de.bitmacht.workingtitle36.view.DescriptionView
         android:id="@+id/description"
-        android:layout_toEndOf="@id/value"
-        android:layout_toRightOf="@id/value"
+        android:layout_toEndOf="@id/value_input"
+        android:layout_toRightOf="@id/value_input"
         style="@style/TransactionItemDescription"
         custom:isConcise="true" />
 

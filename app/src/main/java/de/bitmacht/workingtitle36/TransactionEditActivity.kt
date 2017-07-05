@@ -16,31 +16,22 @@
 
 package de.bitmacht.workingtitle36
 
+
 import android.app.DialogFragment
 import android.app.LoaderManager
 import android.app.TimePickerDialog
-import android.content.Intent
 import android.content.Loader
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.Toolbar
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
-import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.TimePicker
+import kotlinx.android.synthetic.main.accept_dismiss_toolbar.*
+import kotlinx.android.synthetic.main.activity_transaction_edit.*
+import java.util.*
 
-
-import java.util.Calendar
-import java.util.GregorianCalendar
-
-import de.bitmacht.workingtitle36.view.TimeView
-import de.bitmacht.workingtitle36.view.ValueInput
-import de.bitmacht.workingtitle36.view.ValueWidget
-
-class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener {
+class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener {
 
     private var transactionId: Long? = null
     private var parentId: Long? = null
@@ -48,15 +39,7 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
 
     private var dbHelper: DBHelper? = null
 
-    private var toolbar: Toolbar? = null
-    private var cancelButton: ImageButton? = null
-    private var acceptButton: ImageButton? = null
-    private var timeView: TimeView? = null
-    private var dateView: TimeView? = null
-    private var valueWidget: ValueWidget? = null
-    private var descriptionView: EditText? = null
-    private var locationView: EditText? = null
-    private var focusValueInput = false
+    private var focusValueInput: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,28 +48,32 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
 
         setContentView(R.layout.activity_transaction_edit)
 
-        toolbar = findViewById(R.id.toolbar) as Toolbar
-        cancelButton = findViewById(R.id.cancel_button) as ImageButton
-        acceptButton = findViewById(R.id.accept_button) as ImageButton
-        timeView = findViewById(R.id.time) as TimeView
-        dateView = findViewById(R.id.date) as TimeView
-        valueWidget = findViewById(R.id.value) as ValueWidget
-        descriptionView = findViewById(R.id.description) as EditText
-        locationView = findViewById(R.id.location) as EditText
-
         setSupportActionBar(toolbar)
 
         supportActionBar!!.setDisplayShowTitleEnabled(false)
 
-        cancelButton!!.setOnClickListener(this)
-        acceptButton!!.setOnClickListener(this)
+        //TODO if there was any data entered, show confirmation dialog
+        // or: save the data, finish and show a snackbar
+        cancel_button.setOnClickListener({ finish() })
+        accept_button.setOnClickListener({
+            logd("edit: $edit")
+            TransactionsUpdateTask(this, edit).execute()
+            //TODO wait for the update to finish
+            finish()
+        })
 
-        timeView!!.setOnClickListener(this)
-        dateView!!.setOnClickListener(this)
+        class TimeDateClickListener(val frag: DialogFragment) : View.OnClickListener {
+            override fun onClick(v: View?) {
+                frag.arguments = Bundle()
+                        .apply { putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, transactionTime.timeInMillis) }
+                frag.show(fragmentManager, "TimeDatePicker")
+                (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(window.decorView.windowToken, 0)
+            }}
+        time.setOnClickListener(TimeDateClickListener(TimePickerFragment()))
+        date.setOnClickListener(TimeDateClickListener(DatePickerFragment()))
 
         var value: Value? = null
         if (savedInstanceState == null) {
-            val intent = intent
             if (intent.hasExtra(EXTRA_TRANSACTION)) {
                 val transaction = intent.getParcelableExtra<TransactionsModel>(EXTRA_TRANSACTION)
                 if (transaction.mostRecentEdit != null) {
@@ -94,8 +81,8 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
                     val parentEdit = transaction.mostRecentEdit
                     parentId = parentEdit!!.id
                     transactionTime.timeInMillis = parentEdit.transactionTime
-                    descriptionView!!.setText(parentEdit.transactionDescription)
-                    locationView!!.setText(parentEdit.transactionLocation)
+                    description.setText(parentEdit.transactionDescription)
+                    location.setText(parentEdit.transactionLocation)
                     value = parentEdit.value
                 } else {
                     logw("A transaction without an edit: id: ${transaction.id}")
@@ -105,12 +92,14 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
                 focusValueInput = true
             }
         } else {
-            if (savedInstanceState.containsKey(DBHelper.TRANSACTIONS_KEY_ID)) {
-                transactionId = savedInstanceState.getLong(DBHelper.TRANSACTIONS_KEY_ID)
-                parentId = savedInstanceState.getLong(DBHelper.EDITS_KEY_PARENT)
+            with(savedInstanceState) {
+                if (containsKey(DBHelper.TRANSACTIONS_KEY_ID)) {
+                    transactionId = getLong(DBHelper.TRANSACTIONS_KEY_ID)
+                    parentId = getLong(DBHelper.EDITS_KEY_PARENT)
+                }
+                transactionTime.timeInMillis = getLong(DBHelper.EDITS_KEY_TRANSACTION_TIME)
+                value = getParcelable<Value>(STATE_VALUE_KEY)
             }
-            transactionTime.timeInMillis = savedInstanceState.getLong(DBHelper.EDITS_KEY_TRANSACTION_TIME)
-            value = savedInstanceState.getParcelable<Value>(STATE_VALUE_KEY)
         }
 
         updateTimeViews()
@@ -119,81 +108,59 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
             value = Value(MyApplication.currency.currencyCode, 0)
         }
 
-        if (valueWidget is ValueInput) {
-            valueWidget!!.value = value
-        }
+        value_input.value = value
 
-        var args = Bundle()
-        args.putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_DESCRIPTION)
-        loaderManager.initLoader(0, args, suggestionsListener)
+        loaderManager.initLoader(0, Bundle().apply {
+            putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_DESCRIPTION)
+        }, suggestionsListener)
 
-        args = Bundle()
-        args.putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_LOCATION)
-        loaderManager.initLoader(1, args, suggestionsListener)
+        loaderManager.initLoader(1, Bundle().apply {
+            putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_LOCATION)
+        }, suggestionsListener)
     }
 
     override fun onResume() {
         super.onResume()
         if (focusValueInput) {
-            (valueWidget as ValueInput).focusEditText()
+            value_input.focusEditText()
             focusValueInput = false
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        if (transactionId != null) {
-            outState.putLong(DBHelper.TRANSACTIONS_KEY_ID, transactionId!!)
-            // the existence of parentId depends on the existence of transactionId
-            outState.putLong(DBHelper.EDITS_KEY_PARENT, parentId!!)
-        }
-        outState.putLong(DBHelper.EDITS_KEY_TRANSACTION_TIME, transactionTime.timeInMillis)
-        outState.putParcelable(STATE_VALUE_KEY, valueWidget!!.value)
-    }
-
-    override fun onClick(v: View) {
-        val id = v.id
-        if (id == R.id.accept_button || id == R.id.cancel_button) {
-            if (id == R.id.accept_button) {
-                val edit = edit
-                logd("edit: $edit")
-                TransactionsUpdateTask(this, edit).execute()
-                //TODO wait for the update to finish
-                finish()
-            } else {
-                //TODO if there was any data entered, show confirmation dialog
-                // or: save the data, finish and show a snackbar
-                finish()
+        with(outState) {
+            if (transactionId != null) {
+                putLong(DBHelper.TRANSACTIONS_KEY_ID, transactionId!!)
+                // the existence of parentId depends on the existence of transactionId
+                putLong(DBHelper.EDITS_KEY_PARENT, parentId!!)
             }
-
-        } else if (id == R.id.time || id == R.id.date) {
-            val frag = if (id == R.id.time) TimePickerFragment() else DatePickerFragment()
-            val bundle = Bundle()
-            bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, transactionTime.timeInMillis)
-            frag.arguments = bundle
-            frag.show(fragmentManager, if (id == R.id.time) "timePicker" else "datePicker")
-
-            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(window.decorView.windowToken, 0)
+            putLong(DBHelper.EDITS_KEY_TRANSACTION_TIME, transactionTime.timeInMillis)
+            putParcelable(STATE_VALUE_KEY, value_input.value)
         }
     }
 
     override fun onDateSet(id: Int, year: Int, monthOfYear: Int, dayOfMonth: Int) {
-        transactionTime.set(Calendar.YEAR, year)
-        transactionTime.set(Calendar.MONTH, monthOfYear)
-        transactionTime.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+        with(transactionTime) {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, monthOfYear)
+            set(Calendar.DAY_OF_MONTH, dayOfMonth)
+        }
         updateTimeViews()
     }
 
     override fun onTimeSet(view: TimePicker, hourOfDay: Int, minute: Int) {
-        transactionTime.set(Calendar.HOUR_OF_DAY, hourOfDay)
-        transactionTime.set(Calendar.MINUTE, minute)
+        with(transactionTime) {
+            set(Calendar.HOUR_OF_DAY, hourOfDay)
+            set(Calendar.MINUTE, minute)
+        }
         updateTimeViews()
     }
 
     private fun updateTimeViews() {
-        val time = transactionTime.timeInMillis
-        timeView!!.time = time
-        dateView!!.time = time
+        val timeMillis = transactionTime.timeInMillis
+        time.time = timeMillis
+        date.time = timeMillis
     }
 
     /**
@@ -201,20 +168,15 @@ class TransactionEditActivity : AppCompatActivity(), View.OnClickListener, TimeP
      */
     private val edit: Edit
         get() = Edit(parentId, transactionId, transactionTime.timeInMillis,
-                descriptionView!!.text.toString(), locationView!!.text.toString(), valueWidget!!.value!!)
+                description.text.toString(), location.text.toString(), value_input.value!!)
 
     private val suggestionsListener = object : LoaderManager.LoaderCallbacks<ArrayAdapter<String>> {
-        override fun onCreateLoader(id: Int, args: Bundle): Loader<ArrayAdapter<String>> {
-            return TransactionsSuggestionsLoader(this@TransactionEditActivity, dbHelper!!, args)
-        }
+        override fun onCreateLoader(id: Int, args: Bundle): Loader<ArrayAdapter<String>> =
+                TransactionsSuggestionsLoader(this@TransactionEditActivity, dbHelper!!, args)
 
-        override fun onLoadFinished(loader: Loader<ArrayAdapter<String>>, data: ArrayAdapter<String>) {
-            val destinationView = (if ((loader as TransactionsSuggestionsLoader<*>).column == TransactionsSuggestionsLoader.COLUMN_DESCRIPTION)
-                descriptionView
-            else
-                locationView) as AutoCompleteTextView
-            destinationView.setAdapter(data)
-        }
+        override fun onLoadFinished(loader: Loader<ArrayAdapter<String>>, data: ArrayAdapter<String>) =
+                (if ((loader as TransactionsSuggestionsLoader<*>).column == TransactionsSuggestionsLoader.COLUMN_DESCRIPTION)
+                    description else location).setAdapter(data)
 
         override fun onLoaderReset(loader: Loader<ArrayAdapter<String>>) {}
     }

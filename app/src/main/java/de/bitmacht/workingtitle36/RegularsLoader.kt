@@ -25,9 +25,7 @@ import java.util.ArrayList
 class RegularsLoader(context: Context, private val dbHelper: DBHelper) : AsyncTaskLoader<ArrayList<RegularModel>>(context) {
     private var result: ArrayList<RegularModel>? = null
 
-    override fun loadInBackground(): ArrayList<RegularModel> {
-        return DBHelper.queryRegulars(dbHelper)
-    }
+    override fun loadInBackground(): ArrayList<RegularModel> = DBHelper.queryRegulars(dbHelper)
 
     override fun deliverResult(result: ArrayList<RegularModel>) {
         this.result = result

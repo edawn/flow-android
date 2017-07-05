@@ -16,30 +16,21 @@
 
 package de.bitmacht.workingtitle36
 
-import android.app.DialogFragment
-import android.content.Intent
+import android.app.Activity
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.SwitchCompat
-import android.support.v7.widget.Toolbar
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.Spinner
-
-import org.joda.time.DateTimeConstants
-
-import java.util.Calendar
-import java.util.GregorianCalendar
-
+import android.widget.*
 import de.bitmacht.workingtitle36.view.TimeView
 import de.bitmacht.workingtitle36.view.ValueWidget
+import kotlinx.android.synthetic.main.accept_dismiss_toolbar.*
+import kotlinx.android.synthetic.main.activity_regular_edit.*
+import org.joda.time.DateTimeConstants
+import java.util.*
 
-class RegularEditActivity : AppCompatActivity(), View.OnClickListener, DatePickerFragment.OnDateSetListener {
+class RegularEditActivity : AppCompatActivity(), DatePickerFragment.OnDateSetListener {
 
     private var regularId: Long? = null
     private val timeFirst = GregorianCalendar()
@@ -47,62 +38,56 @@ class RegularEditActivity : AppCompatActivity(), View.OnClickListener, DatePicke
     private var isLastIndefinite = true
     private var value: Value? = null
 
-    private var toolbar: Toolbar? = null
-    private var cancelButton: ImageButton? = null
-    private var acceptButton: ImageButton? = null
-    private var enabledSwitch: SwitchCompat? = null
-    private var dateFirstView: TimeView? = null
-    private var dateLastIndefButton: Button? = null
-    private var dateLastContainer: LinearLayout? = null
-    private var dateLastClearButton: ImageButton? = null
-    private var dateLastView: TimeView? = null
-    private var valueWidget: ValueWidget? = null
-    private var repetitionSpinner: Spinner? = null
-    private var descriptionView: EditText? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_regular_edit)
 
-        toolbar = findViewById(R.id.toolbar) as Toolbar
-        cancelButton = findViewById(R.id.cancel_button) as ImageButton
-        acceptButton = findViewById(R.id.accept_button) as ImageButton
-        enabledSwitch = findViewById(R.id.enabled) as SwitchCompat
-        dateFirstView = findViewById(R.id.date_first) as TimeView
-        dateLastIndefButton = findViewById(R.id.date_last_indef_button) as Button
-        dateLastContainer = findViewById(R.id.date_last_container) as LinearLayout
-        dateLastClearButton = findViewById(R.id.date_last_clear_button) as ImageButton
-        dateLastView = findViewById(R.id.date_last) as TimeView
-        valueWidget = findViewById(R.id.value) as ValueWidget
-        repetitionSpinner = findViewById(R.id.repetition) as Spinner
-        descriptionView = findViewById(R.id.description) as EditText
-
         setSupportActionBar(toolbar)
 
         supportActionBar!!.setDisplayShowTitleEnabled(false)
 
-        cancelButton!!.setOnClickListener(this)
-        acceptButton!!.setOnClickListener(this)
+        cancel_button.setOnClickListener({ finish() })
+        accept_button.setOnClickListener({
+            RegularsUpdateTask(this, regular).execute()
+            setResult(Activity.RESULT_OK)
+            finish()
+        })
 
-        dateFirstView!!.setOnClickListener(this)
+        class DateClickListener(val timeGetter: () -> Calendar, val timeMin: Calendar? = null) : View.OnClickListener {
+            override fun onClick(v: View) {
+                val args = Bundle()
+                args.putInt(DatePickerFragment.ARG_ID, v.id)
+                timeMin?.let { args.putLong(DatePickerFragment.ARG_MIN_DATE, it.timeInMillis) }
+                args.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, timeGetter().timeInMillis)
+                DatePickerFragment().apply { arguments = args }.show(fragmentManager, "datePicker")
+                (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager)
+                        .hideSoftInputFromWindow(window.decorView.windowToken, 0)
+            }
+        }
+        date_first.setOnClickListener(DateClickListener({ timeFirst }))
+        date_last.setOnClickListener(DateClickListener({ timeLast!! }, timeFirst))
 
-        dateLastIndefButton!!.setOnClickListener(this)
-        dateLastClearButton!!.setOnClickListener(this)
-        dateLastView!!.setOnClickListener(this)
+        date_last_indef_button.setOnClickListener({
+            isLastIndefinite = false
+            updateLastTimeInput()
+        })
+        date_last_clear_button.setOnClickListener({
+            isLastIndefinite = true
+            updateLastTimeInput()
+        })
 
-        val intervalAdapter = ArrayAdapter.createFromResource(this, R.array.interval_names, android.R.layout.simple_spinner_item)
-        intervalAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        repetitionSpinner!!.adapter = intervalAdapter
+        repetition.adapter =
+                ArrayAdapter.createFromResource(this, R.array.interval_names, android.R.layout.simple_spinner_item)
+                        .apply { setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
         if (savedInstanceState == null) {
-            val intent = intent
             if (intent.hasExtra(EXTRA_REGULAR)) {
                 // edit an existing regular
                 val regular = intent.getParcelableExtra<RegularModel>(EXTRA_REGULAR)
                 regularId = regular.id
                 value = regular.value
-                enabledSwitch!!.isChecked = !regular.isDisabled
+                enabled.isChecked = !regular.isDisabled
                 timeFirst.timeInMillis = regular.timeFirst
                 if (regular.timeLast < 0) {
                     isLastIndefinite = true
@@ -112,28 +97,31 @@ class RegularEditActivity : AppCompatActivity(), View.OnClickListener, DatePicke
                     timeLast!!.timeInMillis = regular.timeLast
                 }
 
-                repetitionSpinner!!.setSelection(regular.periodIndex)
-                descriptionView!!.setText(regular.description)
+                repetition.setSelection(regular.periodIndex)
+                description.setText(regular.description)
             } else {
                 value = Value(MyApplication.currency.currencyCode, 0)
                 // corresponds to 'Monthly' in R.array.interval_names
-                repetitionSpinner!!.setSelection(2)
+                repetition.setSelection(2)
             }
         } else {
-            regularId = if (savedInstanceState.containsKey(DBHelper.REGULARS_KEY_ID))
-                savedInstanceState.getLong(DBHelper.REGULARS_KEY_ID)
-            else
-                null
-            timeFirst.timeInMillis = savedInstanceState.getLong(DBHelper.REGULARS_KEY_TIME_FIRST)
-            isLastIndefinite = savedInstanceState.getBoolean(STATE_IS_LAST_INDEFINITE_KEY)
-            if (savedInstanceState.containsKey(DBHelper.REGULARS_KEY_TIME_LAST)) {
-                timeLast = GregorianCalendar()
-                timeLast!!.timeInMillis = savedInstanceState.getLong(DBHelper.REGULARS_KEY_TIME_LAST)
+            with(savedInstanceState) {
+                regularId = if (containsKey(DBHelper.REGULARS_KEY_ID))
+                    getLong(DBHelper.REGULARS_KEY_ID)
+                else
+                    null
+                timeFirst.timeInMillis = getLong(DBHelper.REGULARS_KEY_TIME_FIRST)
+                isLastIndefinite = getBoolean(STATE_IS_LAST_INDEFINITE_KEY)
+                if (containsKey(DBHelper.REGULARS_KEY_TIME_LAST)) {
+                    timeLast = GregorianCalendar().apply {
+                        timeInMillis = getLong(DBHelper.REGULARS_KEY_TIME_LAST)
+                    }
+                }
+                value = getParcelable<Value>(STATE_VALUE_KEY)
             }
-            value = savedInstanceState.getParcelable<Value>(STATE_VALUE_KEY)
         }
 
-        valueWidget!!.value = value
+        value_input.value = value
         updateTimeViews()
         updateLastTimeInput()
     }
@@ -151,74 +139,39 @@ class RegularEditActivity : AppCompatActivity(), View.OnClickListener, DatePicke
         outState.putParcelable(STATE_VALUE_KEY, value)
     }
 
-    override fun onClick(v: View) {
-        val id = v.id
-        if (id == R.id.accept_button || id == R.id.cancel_button) {
-            if (id == R.id.accept_button) {
-                val rut = RegularsUpdateTask(this, regular)
-                rut.execute()
-                setResult(RESULT_OK)
-                finish()
-                //TODO wait for the update to finish
-            } else {
-                finish()
-            }
-        } else if (id == R.id.date_first || id == R.id.date_last) {
-            val frag = DatePickerFragment()
-            val bundle = Bundle()
-            bundle.putInt(DatePickerFragment.ARG_ID, id)
-            val time: Calendar
-            if (id == R.id.date_first) {
-                time = timeFirst
-            } else {
-                time = timeLast!!
-                bundle.putLong(DatePickerFragment.ARG_MIN_DATE, timeFirst.timeInMillis)
-            }
-            bundle.putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, time.timeInMillis)
-            frag.arguments = bundle
-            frag.show(fragmentManager, "datePicker")
-            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(window.decorView.windowToken, 0)
-        } else if (id == R.id.date_last_indef_button) {
-            isLastIndefinite = false
-            updateLastTimeInput()
-        } else if (id == R.id.date_last_clear_button) {
-            isLastIndefinite = true
-            updateLastTimeInput()
-        }
-    }
-
     override fun onDateSet(id: Int, year: Int, monthOfYear: Int, dayOfMonth: Int) {
-        val dst = if (id == R.id.date_first) timeFirst else timeLast!!
-        dst.set(Calendar.YEAR, year)
-        dst.set(Calendar.MONTH, monthOfYear)
-        dst.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+        with(if (id == R.id.date_first) timeFirst else timeLast!!) {
+            set(Calendar.YEAR, year)
+            set(Calendar.MONTH, monthOfYear)
+            set(Calendar.DAY_OF_MONTH, dayOfMonth)
+        }
         updateTimeViews()
     }
 
     private fun updateTimeViews() {
-        dateFirstView!!.time = timeFirst.timeInMillis
+        date_first.time = timeFirst.timeInMillis
         if (timeLast != null) {
             if (!timeFirst.before(timeLast)) {
                 timeLast!!.timeInMillis = timeFirst.timeInMillis + 1
             }
-            dateLastView!!.time = timeLast!!.timeInMillis
+            date_last.time = timeLast!!.timeInMillis
         }
     }
 
     private fun updateLastTimeInput() {
         if (isLastIndefinite) {
-            dateLastIndefButton!!.visibility = View.VISIBLE
-            dateLastContainer!!.visibility = View.GONE
+            date_last_indef_button.visibility = View.VISIBLE
+            date_last_container.visibility = View.GONE
         } else {
-            dateLastIndefButton!!.visibility = View.GONE
-            dateLastContainer!!.visibility = View.VISIBLE
+            date_last_indef_button.visibility = View.GONE
+            date_last_container.visibility = View.VISIBLE
             if (timeLast == null) {
                 timeLast = GregorianCalendar()
                 if (!timeFirst.before(timeLast)) {
                     timeLast!!.timeInMillis = timeFirst.timeInMillis + 1
                 }
             }
-            dateLastView!!.time = timeLast!!.timeInMillis
+            date_last.time = timeLast!!.timeInMillis
         }
     }
 
@@ -228,7 +181,7 @@ class RegularEditActivity : AppCompatActivity(), View.OnClickListener, DatePicke
             // monthly
     val regular: RegularModel
         get() {
-            val spinnerPos = repetitionSpinner!!.selectedItemPosition
+            val spinnerPos = repetition.selectedItemPosition
             var periodType = DBHelper.REGULARS_PERIOD_TYPE_DAILY
             var periodMultiplier = 1
             when (spinnerPos) {
@@ -240,12 +193,12 @@ class RegularEditActivity : AppCompatActivity(), View.OnClickListener, DatePicke
                 2 -> periodType = DBHelper.REGULARS_PERIOD_TYPE_MONTHLY
             }
 
-            val cv = valueWidget!!.value
+            val cv = value_input.value
 
             val regular = RegularModel(timeFirst.timeInMillis,
                     if (isLastIndefinite || timeLast == null) -1 else timeLast!!.timeInMillis,
-                    periodType, periodMultiplier, false, !enabledSwitch!!.isChecked,
-                    cv!!.amount, cv.currencyCode, descriptionView!!.text.toString())
+                    periodType, periodMultiplier, false, !enabled.isChecked,
+                    cv!!.amount, cv.currencyCode, description.text.toString())
             regular.id = regularId
             return regular
         }

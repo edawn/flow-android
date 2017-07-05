@@ -154,7 +154,7 @@
                     android:text="@string/value" />
 
                 <de.bitmacht.workingtitle36.view.ValueInput
-                    android:id="@+id/value"
+                    android:id="@+id/value_input"
                     style="@style/TransactionEditorItemActionValueContainer" />
 
             </RelativeLayout>

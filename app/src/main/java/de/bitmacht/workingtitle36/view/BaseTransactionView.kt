@@ -49,7 +49,7 @@ abstract class BaseTransactionView : RelativeLayout {
     override fun onFinishInflate() {
         super.onFinishInflate()
 
-        valueView = findViewById(R.id.value) as ValueTextView
+        valueView = findViewById(R.id.value_input) as ValueTextView
         descriptionView = findViewById(R.id.description) as DescriptionView
     }
 
