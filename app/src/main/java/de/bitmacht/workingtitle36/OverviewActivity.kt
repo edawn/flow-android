@@ -298,29 +298,29 @@ class OverviewActivity : AppCompatActivity() {
     }
 
     private fun changeMonth(@PeriodModifier periodModifier: Int) {
-        var newPeriods = if (periodModifier == PERIOD_BEFORE) periods.previousLong() else periods.nextLong()
-        periodHistory[newPeriods.longStart?.millis]?.let { newPeriods = it }
+        var newPeriods = if (periodModifier == PERIOD_BEFORE) periods.previousLong else periods.nextLong
+        periodHistory[newPeriods.longStart.millis]?.let { newPeriods = it }
         loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
                 Bundle().apply { putParcelable(TransactionsLoader.ARG_PERIODS, newPeriods) }, transactionsListener)
     }
 
     private fun changeDay(@PeriodModifier periodModifier: Int) {
-        periods = (if (periodModifier == PERIOD_BEFORE) periods.previousShort() else periods.nextShort()) ?: return
+        periods = (if (periodModifier == PERIOD_BEFORE) periods.previousShort else periods.nextShort) ?: return
         onPeriodChanged()
         updateTransactions()
     }
 
     private fun onPeriodChanged() {
-        periodHistory.put(periods.longStart!!.millis, periods)
+        periodHistory.put(periods.longStart.millis, periods)
 
         val now = DateTime.now()
         // update the action bar
         // the next month would be in the future
         setButtonEnabled(next_button, !periods.longEnd.isAfter(now))
-        supportActionBar!!.title = getString(R.string.overview_title, periods.longStart!!.toGregorianCalendar())
+        supportActionBar!!.title = getString(R.string.overview_title, periods.longStart.toGregorianCalendar())
 
         // the first day of the month
-        setButtonEnabled(day_before_button, periods.shortStart!!.isAfter(periods.longStart))
+        setButtonEnabled(day_before_button, periods.shortStart.isAfter(periods.longStart))
         // the last day of the month
         setButtonEnabled(day_next_button, periods.longEnd.isAfter(periods.shortEnd))
 
@@ -328,7 +328,7 @@ class OverviewActivity : AppCompatActivity() {
         dayLabel.text = if (isViewingToday)
             getString(R.string.overview_today)
         else
-            getString(R.string.overview_day, periods.shortStart!!.dayOfMonth().get())
+            getString(R.string.overview_day, periods.shortStart.dayOfMonth().get())
     }
 
     /**
@@ -340,7 +340,7 @@ class OverviewActivity : AppCompatActivity() {
         //TODO applying to a result that does not include the current day makes only little sense
         //TODO somehow merge this with TransactionsArrayAdapter#setSubRange()
         val transactions = transactions ?: return
-        val startOfDayMillis = periods.shortStart!!.millis
+        val startOfDayMillis = periods.shortStart.millis
         val endOfDayMillis = periods.shortEnd.millis
         val currencyCode = MyApplication.currency.currencyCode
         var valueBeforeDay = Value(currencyCode, 0)
@@ -395,7 +395,7 @@ class OverviewActivity : AppCompatActivity() {
 
         var regularsSum = Value(currencyCode, 0)
         try {
-            regularsSum = regularsSum.addAll(regulars!!.map { it.getCumulativeValue(periods.longStart!!, periods.longEnd) })
+            regularsSum = regularsSum.addAll(regulars!!.map { it.getCumulativeValue(periods.longStart, periods.longEnd) })
         } catch (e: Value.CurrencyMismatchException) {
             logw("adding values failed", e)
         }

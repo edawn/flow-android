@@ -22,65 +22,34 @@ import android.os.Parcelable
 import org.joda.time.DateTime
 import org.joda.time.Period
 
-class Periods : Parcelable {
+class Periods(val longStart: DateTime, val longPeriod: Period, val shortStart: DateTime, val shortPeriod: Period) : Parcelable {
 
-    var longStart: DateTime? = null
-        private set
-    var longPeriod: Period? = null
-        private set
-    var shortStart: DateTime? = null
-        private set
-    var shortPeriod: Period? = null
-        private set
+    /** by default the view is set to the start of the current month and day */
+    constructor(viewTime: DateTime = DateTime.now()) : this(viewTime.withDayOfMonth(1).withTimeAtStartOfDay(),
+            DEFAULT_LONG_PERIOD, viewTime.withTimeAtStartOfDay(), DEFAULT_SHORT_PERIOD)
 
-    /**
-     * Create a new instance; by default the view is set to the start of the current month and day
-     */
-    @JvmOverloads constructor(viewTime: DateTime = DateTime.now()) {
-        longStart = viewTime.withDayOfMonth(1).withTimeAtStartOfDay()
-        longPeriod = DEFAULT_LONG_PERIOD
+    val longEnd: DateTime by lazy { longStart.plus(longPeriod) }
 
-        shortStart = viewTime.withTimeAtStartOfDay()
-        shortPeriod = DEFAULT_SHORT_PERIOD
+    val shortEnd: DateTime by lazy { shortStart.plus(shortPeriod) }
+
+    val previousLong: Periods by lazy {
+        val start = longStart.minus(longPeriod)
+        Periods(start, longPeriod, start, shortPeriod)
     }
 
-    constructor(longStart: DateTime, longPeriod: Period, shortStart: DateTime, shortPeriod: Period) {
-        this.longStart = longStart
-        this.longPeriod = longPeriod
-        this.shortStart = shortStart
-        this.shortPeriod = shortPeriod
+    val nextLong: Periods by lazy {
+        val start = longStart.plus(longPeriod)
+        Periods(start, longPeriod, start, shortPeriod)
     }
 
-    val longEnd: DateTime
-        get() = longStart!!.plus(longPeriod)
-
-    val shortEnd: DateTime
-        get() = shortStart!!.plus(shortPeriod)
-
-    fun previousLong(): Periods {
-        val start = longStart!!.minus(longPeriod)
-        return Periods(start, longPeriod!!, start, shortPeriod!!)
+    val previousShort: Periods? by lazy {
+        val start = shortStart.minus(shortPeriod)
+        if (start.isBefore(longStart)) null else Periods(longStart, longPeriod, start, shortPeriod)
     }
 
-    fun nextLong(): Periods {
-        val start = longStart!!.plus(longPeriod)
-        return Periods(start, longPeriod!!, start, shortPeriod!!)
-    }
-
-    fun previousShort(): Periods? {
-        val start = shortStart!!.minus(shortPeriod)
-        if (start.isBefore(longStart)) {
-            return null
-        }
-        return Periods(longStart!!, longPeriod!!, start, shortPeriod!!)
-    }
-
-    fun nextShort(): Periods? {
-        val start = shortStart!!.plus(shortPeriod)
-        if (!longEnd.isAfter(start)) {
-            return null
-        }
-        return Periods(longStart!!, longPeriod!!, start, shortPeriod!!)
+    val nextShort: Periods? by lazy {
+        val start = shortStart.plus(shortPeriod)
+        if (!longEnd.isAfter(start)) null else Periods(longStart, longPeriod, start, shortPeriod)
     }
 
     override fun describeContents(): Int {
@@ -88,18 +57,16 @@ class Periods : Parcelable {
     }
 
     override fun writeToParcel(dest: Parcel, flags: Int) {
-        dest.writeSerializable(longStart)
-        dest.writeSerializable(longPeriod)
-        dest.writeSerializable(shortStart)
-        dest.writeSerializable(shortPeriod)
+        with(dest) {
+            writeSerializable(longStart)
+            writeSerializable(longPeriod)
+            writeSerializable(shortStart)
+            writeSerializable(shortPeriod)
+        }
     }
 
-    private constructor(src: Parcel) {
-        longStart = src.readSerializable() as DateTime
-        longPeriod = src.readSerializable() as Period
-        shortStart = src.readSerializable() as DateTime
-        shortPeriod = src.readSerializable() as Period
-    }
+    private constructor(src: Parcel) : this(src.readSerializable() as DateTime, src.readSerializable() as Period,
+            src.readSerializable() as DateTime, src.readSerializable() as Period)
 
     companion object {
 

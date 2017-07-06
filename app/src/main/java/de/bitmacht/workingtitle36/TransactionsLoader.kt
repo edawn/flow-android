@@ -28,8 +28,7 @@ import java.util.ArrayList
 class TransactionsLoader : AsyncTaskLoader<ArrayList<TransactionsModel>> {
 
     private val dbHelper: DBHelper
-    var periods: Periods? = null
-        private set
+    val periods: Periods
     private var result: ArrayList<TransactionsModel>? = null
 
     constructor(context: Context, dbHelper: DBHelper, args: Bundle) : super(context) {
@@ -44,8 +43,8 @@ class TransactionsLoader : AsyncTaskLoader<ArrayList<TransactionsModel>> {
 
     override fun loadInBackground(): ArrayList<TransactionsModel> {
         val db = dbHelper.readableDatabase
-        val start = periods!!.longStart!!.millis
-        val end = periods!!.longEnd.millis
+        val start = periods.longStart.millis
+        val end = periods.longEnd.millis
         val cursor = db.rawQuery(DBHelper.TRANSACTIONS_EDITS_TIME_SPAN_QUERY, arrayOf(start.toString(), end.toString()))
 
         val result = ArrayList<TransactionsModel>(cursor.count)
