@@ -25,19 +25,7 @@ import android.os.Parcelable
  * This represents a transaction
  * @see DBHelper.TRANSACTIONS_TABLE_NAME
  */
-class TransactionsModel : Parcelable {
-
-    var id: Long = 0
-    var isRemoved: Boolean = false
-
-    var mostRecentEdit: Edit? = null
-
-    private constructor()
-
-    constructor(cursor: Cursor) {
-        id = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_ID))
-        isRemoved = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_IS_REMOVED)) != 0
-    }
+class TransactionsModel private constructor(val id: Long = 0, var isRemoved: Boolean = false, var mostRecentEdit: Edit? = null) : Parcelable {
 
     /**
      * Map this instance to the ContentValues
@@ -46,31 +34,22 @@ class TransactionsModel : Parcelable {
      * *
      * @return the same instance from the arguments
      */
-    fun toContentValues(cv: ContentValues): ContentValues {
-        cv.put(DBHelper.TRANSACTIONS_KEY_ID, id)
-        cv.put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, isRemoved)
-        return cv
+    fun toContentValues(cv: ContentValues) = cv.apply {
+        put(DBHelper.TRANSACTIONS_KEY_ID, id)
+        put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, isRemoved)
     }
 
-    override fun toString(): String {
-        return "id: $id isRe: $isRemoved moRE: $mostRecentEdit"
+    override fun toString(): String = "id: $id isRe: $isRemoved moRE: $mostRecentEdit"
+
+    override fun describeContents(): Int = 0
+
+    override fun writeToParcel(dest: Parcel, flags: Int) = with(dest) {
+        writeLong(id)
+        writeInt(if (isRemoved) 1 else 0)
+        writeParcelable(mostRecentEdit, flags)
     }
 
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    override fun writeToParcel(dest: Parcel, flags: Int) {
-        dest.writeLong(id)
-        dest.writeInt(if (isRemoved) 1 else 0)
-        dest.writeParcelable(mostRecentEdit, flags)
-    }
-
-    constructor(src: Parcel) {
-        id = src.readLong()
-        isRemoved = src.readInt() == 1
-        mostRecentEdit = src.readParcelable<Edit>(Edit::class.java.classLoader)
-    }
+    constructor(src: Parcel) : this(src.readLong(), src.readInt() == 1, src.readParcelable<Edit>(Edit::class.java.classLoader))
 
     companion object {
 
@@ -83,22 +62,14 @@ class TransactionsModel : Parcelable {
          * *
          * @return A new [TransactionsModel] with the field [TransactionsModel.mostRecentEdit] set.
          */
-        fun getInstanceWithEdit(cursor: Cursor): TransactionsModel {
-            val transaction = TransactionsModel()
-            transaction.id = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION))
-            transaction.isRemoved = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_IS_REMOVED)) != 0
-            transaction.mostRecentEdit = Edit(cursor)
-            return transaction
-        }
+        fun getInstanceWithEdit(cursor: Cursor): TransactionsModel = TransactionsModel(
+                cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.EDITS_KEY_TRANSACTION)),
+                cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.TRANSACTIONS_KEY_IS_REMOVED)) != 0,
+                Edit(cursor))
 
         @JvmField val CREATOR: Parcelable.Creator<TransactionsModel> = object : Parcelable.Creator<TransactionsModel> {
-            override fun createFromParcel(source: Parcel): TransactionsModel {
-                return TransactionsModel(source)
-            }
-
-            override fun newArray(size: Int): Array<TransactionsModel?> {
-                return arrayOfNulls(size)
-            }
+            override fun createFromParcel(source: Parcel): TransactionsModel = TransactionsModel(source)
+            override fun newArray(size: Int): Array<TransactionsModel?> = arrayOfNulls(size)
         }
     }
 }

@@ -19,47 +19,26 @@ package de.bitmacht.workingtitle36
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.Pair
-
 import java.text.DecimalFormatSymbols
-import java.util.Currency
-import java.util.Locale
+import java.util.*
 
 /**
  * Combines an amount and a ISO 4217 currency code
+ *
+ * @param currencyCode The ISO 4217 currency code
+ * @param amount The number of minor currency units
  */
-class Value : Parcelable {
-    /**
-     * The ISO 4217 currency code associated with this object
-     */
-    val currencyCode: String
-    /**
-     * The number of minor currency units represented by this object
-     */
-    val amount: Long
-
-    /**
-     * Create a new instance of Value
-     * @param amount The number of minor currency units
-     * *
-     * @param currencyCode The ISO 4217 currency code
-     */
-    constructor(currencyCode: String, amount: Long) {
-        this.currencyCode = currencyCode
-        this.amount = amount
-    }
+class Value(val currencyCode: String, val amount: Long) : Parcelable {
 
     /**
      * Returns a new Value having the currency of this amount, but with a different amount
      */
-    fun withAmount(amount: Long): Value {
-        return Value(this.currencyCode, amount)
-    }
+    fun withAmount(amount: Long): Value = Value(this.currencyCode, amount)
 
     /**
      * Returns the Currency associated with this object's currency code
      */
-    val currency: Currency
-        get() = Currency.getInstance(currencyCode)
+    val currency: Currency by lazy { Currency.getInstance(currencyCode) }
 
     /**
      * Returns a new Value with the sum of this and the other Value
@@ -67,9 +46,8 @@ class Value : Parcelable {
      */
     @Throws(CurrencyMismatchException::class)
     fun add(other: Value): Value {
-        if (currencyCode != other.currencyCode) {
-            throw CurrencyMismatchException("Unable to add " + other.currencyCode + " to " + currencyCode)
-        }
+        if (currencyCode != other.currencyCode)
+            throw CurrencyMismatchException("Unable to add ${other.currencyCode} to $currencyCode")
         return Value(currencyCode, amount + other.amount)
     }
 
@@ -78,30 +56,12 @@ class Value : Parcelable {
      * @throws CurrencyMismatchException If any currency code differs from this
      */
     @Throws(CurrencyMismatchException::class)
-    fun addAll(others: Array<Value>): Value {
-        var sumount = amount
-        for (other in others) {
-            if (currencyCode != other.currencyCode) {
-                throw CurrencyMismatchException("Unable to add " + other.currencyCode + " to " + currencyCode)
-            }
-            sumount += other.amount
-        }
-        return Value(currencyCode, sumount)
-    }
-
-    /**
-     * Return a new Value with the sum of this and all Values from others
-     * @throws CurrencyMismatchException If any currency code differs from this
-     */
-    @Throws(CurrencyMismatchException::class)
     fun addAll(others: Collection<Value>): Value {
-        var sumount = amount
-        for (other in others) {
-            if (currencyCode != other.currencyCode) {
-                throw CurrencyMismatchException("Unable to add " + other.currencyCode + " to " + currencyCode)
-            }
-            sumount += other.amount
-        }
+        val sumount = others.fold(amount, { acc, other ->
+            if (currencyCode != other.currencyCode)
+                throw CurrencyMismatchException("Unable to add ${other.currencyCode} to $currencyCode")
+            acc + other.amount
+        })
         return Value(currencyCode, sumount)
     }
 
@@ -116,7 +76,7 @@ class Value : Parcelable {
     /**
      * Builds an appropriate String for a given currency and amount.
      * @param locale The Locale to use for the decimal separator
-     * *
+     *
      * @return The generated String
      */
     fun getString(locale: Locale): String {
@@ -125,7 +85,6 @@ class Value : Parcelable {
     }
 
     fun getValueAndSymbolStrings(locale: Locale): Pair<String, String> {
-        val currency = currency
         val fractionDigits = currency.defaultFractionDigits
         val symbol = currency.symbol
         val decimalSeparator = DecimalFormatSymbols.getInstance(locale).monetaryDecimalSeparator
@@ -149,36 +108,24 @@ class Value : Parcelable {
         return Pair(valueString, symbol)
     }
 
-    override fun describeContents(): Int {
-        return 0
+    override fun describeContents(): Int = 0
+
+    override fun writeToParcel(dest: Parcel, flags: Int) = with(dest) {
+        writeString(currencyCode)
+        writeLong(amount)
     }
 
-    override fun writeToParcel(dest: Parcel, flags: Int) {
-        dest.writeString(currencyCode)
-        dest.writeLong(amount)
-    }
-
-    private constructor(src: Parcel) {
-        currencyCode = src.readString()
-        amount = src.readLong()
-    }
+    private constructor(src: Parcel) : this(src.readString(), src.readLong())
 
     class CurrencyMismatchException(s: String) : Exception(s)
 
-    override fun toString(): String {
-        return currencyCode + ":" + amount
-    }
+    override fun toString(): String = "$currencyCode : $amount"
 
     companion object {
 
         @JvmField val CREATOR: Parcelable.Creator<Value> = object : Parcelable.Creator<Value> {
-            override fun createFromParcel(source: Parcel): Value {
-                return Value(source)
-            }
-
-            override fun newArray(size: Int): Array<Value?> {
-                return arrayOfNulls(size)
-            }
+            override fun createFromParcel(source: Parcel): Value = Value(source)
+            override fun newArray(size: Int): Array<Value?> = arrayOfNulls(size)
         }
     }
 }

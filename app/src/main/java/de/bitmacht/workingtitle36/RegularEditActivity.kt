@@ -195,12 +195,10 @@ class RegularEditActivity : AppCompatActivity(), DatePickerFragment.OnDateSetLis
 
             val cv = value_input.value
 
-            val regular = RegularModel(timeFirst.timeInMillis,
+            return RegularModel(regularId, timeFirst.timeInMillis,
                     if (isLastIndefinite || timeLast == null) -1 else timeLast!!.timeInMillis,
                     periodType, periodMultiplier, false, !enabled.isChecked,
                     cv!!.amount, cv.currencyCode, description.text.toString())
-            regular.id = regularId
-            return regular
         }
 
     companion object {

@@ -22,123 +22,76 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import android.support.annotation.IntDef
-
 import org.joda.time.DateTime
-import org.joda.time.DateTimeConstants
 import org.joda.time.Days
 import org.joda.time.Months
 import org.joda.time.Period
-import org.joda.time.base.BaseSingleFieldPeriod
 
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
-
-class RegularModel : Parcelable {
+class RegularModel(
+        val id: Long? = null,
+        val timeFirst: Long = 0,
+        val timeLast: Long = 0,
+        @PeriodType
+        val periodType: Int = DBHelper.REGULARS_PERIOD_TYPE_DAILY,
+        val periodMultiplier: Int = 0,
+        val isSpread: Boolean = false,
+        val isDisabled: Boolean = false,
+        val amount: Long = 0,
+        val currency: String,
+        val description: String)
+    : Parcelable {
 
     @IntDef(DBHelper.REGULARS_PERIOD_TYPE_DAILY.toLong(), DBHelper.REGULARS_PERIOD_TYPE_MONTHLY.toLong())
-    @Retention(RetentionPolicy.SOURCE)
+    @Retention(AnnotationRetention.SOURCE)
     annotation class PeriodType
 
-    var id: Long? = null
-    var timeFirst: Long = 0
-    var timeLast: Long = 0
-    @PeriodType
-    var periodType: Int = 0
-    var periodMultiplier: Int = 0
-    var isSpread = false
-    var isDisabled = false
-    var amount: Long = 0
-    var currency: String
-    var description: String
+    val period: org.joda.time.base.BaseSingleFieldPeriod by lazy {
+        when (periodType) {
+            DBHelper.REGULARS_PERIOD_TYPE_DAILY -> Days.days(periodMultiplier)
+            DBHelper.REGULARS_PERIOD_TYPE_MONTHLY -> Months.months(periodMultiplier)
+            else -> throw IllegalStateException("Unknown period type: $periodType")
+        }
+    }
+
+    val value: Value by lazy { Value(currency, amount) }
 
     /**
      * Creates a new instance
      */
-    constructor(timeFirst: Long, timeLast: Long, @PeriodType periodType: Int, periodMultiplier: Int,
-                isSpread: Boolean, isDisabled: Boolean, amount: Long, currency: String, description: String) {
-        this.timeFirst = timeFirst
-        this.timeLast = timeLast
-        this.periodType = periodType
-        this.periodMultiplier = periodMultiplier
-        this.isSpread = isSpread
-        this.isDisabled = isDisabled
-        this.amount = amount
-        this.currency = currency
-        this.description = description
-    }
+    constructor(timeFirst: Long, timeLast: Long, periodType: Int, periodMultiplier: Int, isSpread: Boolean,
+                isDisabled: Boolean, amount: Long, currency: String, description: String) :
+            this(null, timeFirst, timeLast, periodType, periodMultiplier, isSpread, isDisabled, amount, currency, description)
 
-    constructor(cursor: Cursor) {
-        id = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_ID))
-        timeFirst = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_TIME_FIRST))
-        timeLast = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_TIME_LAST))
+    constructor(cursor: Cursor) : this(
+            cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_ID)),
+            cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_TIME_FIRST)),
+            cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_TIME_LAST)),
+            cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_PERIOD_TYPE)),
+            cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_PERIOD_MULTIPLIER)),
+            cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_SPREAD)) != 0,
+            cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_DISABLED)) != 0,
+            cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_AMOUNT)),
+            cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_CURRENCY)),
+            cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_DESCRIPTION))
+    )
 
-        periodType = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_PERIOD_TYPE))
-        periodMultiplier = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_PERIOD_MULTIPLIER))
-        isSpread = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_SPREAD)) != 0
-        isDisabled = cursor.getInt(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_IS_DISABLED)) != 0
-        amount = cursor.getLong(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_AMOUNT))
-        currency = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_CURRENCY))
-        description = cursor.getString(cursor.getColumnIndexOrThrow(DBHelper.REGULARS_KEY_DESCRIPTION))
-    }
-
-    //TODO merge getPeriodNumberForStart and getPeriodNumberForEnd into getPeriodNumberRange
-    private fun getPeriodNumberForStart(dtStart: DateTime): Int {
-        if (dtStart.isEqual(timeFirst)) {
-            return 0
-        }
+    private fun getPeriodNumber(time: DateTime): Int {
+        if (time.isEqual(timeFirst)) return 0
 
         val dtFirst = DateTime(timeFirst)
-        val periodsBetween: Int
+
         val period = period
-
-        if (period is Days) {
-            periodsBetween = Days.daysBetween(dtFirst, dtStart).days / period.days
-        } else if (period is Months) {
-            periodsBetween = Months.monthsBetween(dtFirst, dtStart).months / period.months
-        } else {
-            throw IllegalArgumentException("Unsupported period type")
+        val periodsBetween = when (period) {
+            is Days -> Days.daysBetween(dtFirst, time).days / period.days
+            is Months -> Months.monthsBetween(dtFirst, time).months / period.months
+            else -> throw IllegalArgumentException("Unsupported period type")
         }
 
-        val periodPeriod = Period(period)
-        val discreteToStart = dtFirst.plus(periodPeriod.multipliedBy(periodsBetween))
-        if (dtStart.isBefore(dtFirst)) {
-            return periodsBetween
-        } else {
-            return if (discreteToStart.isEqual(dtStart)) periodsBetween else periodsBetween + 1
-        }
-    }
-
-    private fun getPeriodNumberForEnd(dtEnd: DateTime): Int {
-        if (dtEnd.isEqual(timeFirst)) {
-            return 0
-        }
-
-        val dtFirst = DateTime(timeFirst)
-        val periodsBetween: Int
-        val period = period
-
-        if (period is Days) {
-            periodsBetween = Days.daysBetween(dtFirst, dtEnd).days / period.days
-        } else if (period is Months) {
-            periodsBetween = Months.monthsBetween(dtFirst, dtEnd).months / period.months
-        } else {
-            throw IllegalArgumentException("Unsupported period type")
-        }
-
-        val periodPeriod = Period(period)
-        val discreteToEnd = dtFirst.plus(periodPeriod.multipliedBy(periodsBetween))
-        if (dtEnd.isBefore(dtFirst)) {
-            return periodsBetween
-        } else {
-            return if (discreteToEnd.isEqual(dtEnd)) periodsBetween else periodsBetween + 1
-        }
-    }
-
-    val period: org.joda.time.base.BaseSingleFieldPeriod
-        get() = if (periodType == DBHelper.REGULARS_PERIOD_TYPE_DAILY)
-            org.joda.time.Days.days(periodMultiplier)
+        return if (time.isBefore(dtFirst) || dtFirst.plus(Period(period).multipliedBy(periodsBetween)).isEqual(time))
+            periodsBetween
         else
-            org.joda.time.Months.months(periodMultiplier)
+            periodsBetween + 1
+    }
 
     /**
      * Returns the cumulative value of this regular for a given time span
@@ -147,24 +100,13 @@ class RegularModel : Parcelable {
      * @param end The end of the time span; excluding
      */
     fun getCumulativeValue(start: DateTime, end: DateTime): Value {
-        if (!start.isBefore(end)) {
+        if (!start.isBefore(end))
             throw IllegalArgumentException("start must be before end")
-        }
 
-        val pnStart: Int
-        var pnEnd: Int
-        if (!start.isAfter(timeFirst)) {
-            pnStart = 0
-        } else {
-            pnStart = getPeriodNumberForStart(start)
-        }
-
-        if (timeLast >= 0 && !end.isBefore(timeLast)) {
-            pnEnd = getPeriodNumberForEnd(DateTime(timeLast))
-        } else {
-            pnEnd = getPeriodNumberForEnd(end)
-        }
-        pnEnd = Math.max(pnStart, pnEnd)
+        val pnStart = if (!start.isAfter(timeFirst)) 0 else getPeriodNumber(start)
+        val pnEnd = Math.max(pnStart,
+                if (timeLast >= 0 && !end.isBefore(timeLast)) getPeriodNumber(DateTime(timeLast))
+                else getPeriodNumber(end))
 
         if (BuildConfig.DEBUG) {
             if (pnStart < 0 || pnEnd < 0) {
@@ -189,20 +131,16 @@ class RegularModel : Parcelable {
         return value
     }
 
-    val value: Value
-        get() = Value(currency, amount)
-
     /**
      * Return a textual representation of this period
      */
     fun getPeriodString(context: Context): String {
         val i = periodIndex
-        if (i == -1) {
-            //TODO return something like "every n days/months"
-            return periodType.toString() + ":" + periodMultiplier.toString()
-        } else {
-            return context.resources.getStringArray(R.array.interval_names)[i]
-        }
+        return if (i == -1)
+        //TODO return something like "every n days/months"
+            "$periodType:$periodMultiplier"
+        else
+            context.resources.getStringArray(R.array.interval_names)[i]
     }
 
     /**
@@ -210,28 +148,7 @@ class RegularModel : Parcelable {
      * @return An index; if the stored period number does not have a corresponding entry in
      * * [R.array.interval_names], -1 will be returned.
      */
-    // daily
-    // weekly
-    // monthly
-    // yearly
-    val periodIndex: Int
-        get() {
-            var i = -1
-            if (periodType == DBHelper.REGULARS_PERIOD_TYPE_DAILY) {
-                if (periodMultiplier == 1) {
-                    i = 0
-                } else if (periodMultiplier == 7) {
-                    i = 1
-                }
-            } else if (periodType == DBHelper.REGULARS_PERIOD_TYPE_MONTHLY) {
-                if (periodMultiplier == 1) {
-                    i = 2
-                } else if (periodMultiplier == 12) {
-                    i = 3
-                }
-            }
-            return i
-        }
+    val periodIndex: Int by lazy { periodIndexMap[periodType]?.get(periodMultiplier) ?: -1 }
 
     /**
      * Map this instance to the ContentValues
@@ -240,66 +157,52 @@ class RegularModel : Parcelable {
      * *
      * @return the same instance from the arguments
      */
-    fun toContentValues(cv: ContentValues): ContentValues {
-        cv.put(DBHelper.REGULARS_KEY_ID, id)
-        cv.put(DBHelper.REGULARS_KEY_TIME_FIRST, timeFirst)
-        cv.put(DBHelper.REGULARS_KEY_TIME_LAST, timeLast)
-        cv.put(DBHelper.REGULARS_KEY_PERIOD_TYPE, periodType)
-        cv.put(DBHelper.REGULARS_KEY_PERIOD_MULTIPLIER, periodMultiplier)
-        cv.put(DBHelper.REGULARS_KEY_IS_SPREAD, isSpread)
-        cv.put(DBHelper.REGULARS_KEY_IS_DISABLED, isDisabled)
-        cv.put(DBHelper.REGULARS_KEY_DESCRIPTION, description)
-        cv.put(DBHelper.REGULARS_KEY_CURRENCY, currency)
-        cv.put(DBHelper.REGULARS_KEY_AMOUNT, amount)
-        return cv
+    fun toContentValues(cv: ContentValues) = cv.apply {
+        put(DBHelper.REGULARS_KEY_ID, id)
+        put(DBHelper.REGULARS_KEY_TIME_FIRST, timeFirst)
+        put(DBHelper.REGULARS_KEY_TIME_LAST, timeLast)
+        put(DBHelper.REGULARS_KEY_PERIOD_TYPE, periodType)
+        put(DBHelper.REGULARS_KEY_PERIOD_MULTIPLIER, periodMultiplier)
+        put(DBHelper.REGULARS_KEY_IS_SPREAD, isSpread)
+        put(DBHelper.REGULARS_KEY_IS_DISABLED, isDisabled)
+        put(DBHelper.REGULARS_KEY_DESCRIPTION, description)
+        put(DBHelper.REGULARS_KEY_CURRENCY, currency)
+        put(DBHelper.REGULARS_KEY_AMOUNT, amount)
     }
 
-    override fun describeContents(): Int {
-        return 0
+    override fun describeContents(): Int = 0
+
+    override fun writeToParcel(dest: Parcel, flags: Int) = with(dest) {
+        writeValue(id)
+        writeLong(timeFirst)
+        writeLong(timeLast)
+        writeInt(periodType)
+        writeInt(periodMultiplier)
+        writeBooleanArray(booleanArrayOf(isSpread))
+        writeBooleanArray(booleanArrayOf(isDisabled))
+        writeLong(amount)
+        writeString(currency)
+        writeString(description)
     }
 
-    override fun writeToParcel(dest: Parcel, flags: Int) {
-        dest.writeValue(id)
-        dest.writeLong(timeFirst)
-        dest.writeLong(timeLast)
-        dest.writeInt(periodType)
-        dest.writeInt(periodMultiplier)
-        dest.writeBooleanArray(booleanArrayOf(isSpread, isDisabled))
-        dest.writeLong(amount)
-        dest.writeString(currency)
-        dest.writeString(description)
-    }
+    private constructor(src: Parcel) : this(src.readValue(Long::class.java.classLoader) as Long,
+            src.readLong(), src.readLong(), src.readInt(), src.readInt(),
+            BooleanArray(1).also { src.readBooleanArray(it) }[0],
+            BooleanArray(1).also { src.readBooleanArray(it) }[0],
+            src.readLong(), src.readString(), src.readString())
 
-    private constructor(src: Parcel) {
-        id = src.readValue(Long::class.java.classLoader) as Long
-        timeFirst = src.readLong()
-        timeLast = src.readLong()
-
-        periodType = src.readInt()
-        periodMultiplier = src.readInt()
-        val bools = BooleanArray(2)
-        src.readBooleanArray(bools)
-        isSpread = bools[0]
-        isDisabled = bools[1]
-        amount = src.readLong()
-        currency = src.readString()
-        description = src.readString()
-    }
-
-    override fun equals(o: Any?): Boolean {
-        return id != null && o is RegularModel && o.id != null && id == o.id
-    }
+    override fun equals(other: Any?): Boolean = id != null && other is RegularModel && other.id != null && id == other.id
 
     companion object {
 
         @JvmField val CREATOR: Parcelable.Creator<RegularModel> = object : Parcelable.Creator<RegularModel> {
-            override fun createFromParcel(`in`: Parcel): RegularModel {
-                return RegularModel(`in`)
-            }
-
-            override fun newArray(size: Int): Array<RegularModel?> {
-                return arrayOfNulls(size)
-            }
+            override fun createFromParcel(source: Parcel): RegularModel = RegularModel(source)
+            override fun newArray(size: Int): Array<RegularModel?> = arrayOfNulls(size)
         }
+
+        val periodIndexMap = mapOf(
+                DBHelper.REGULARS_PERIOD_TYPE_DAILY to mapOf(1 to 0, 7 to 1),
+                DBHelper.REGULARS_PERIOD_TYPE_MONTHLY to mapOf(1 to 2, 12 to 3)
+        )
     }
 }
