@@ -210,7 +210,7 @@ class WidgetService : Service() {
         try {
             regularsSum = regularsSum.addAll(regularsValues)
         } catch (e: Value.CurrencyMismatchException) {
-            logw("adding values failed", e)
+            logw("adding values failed: ${e.message}")
         }
 
         val daysTotal = Days.daysBetween(periods.longStart, periods.longEnd).days
@@ -222,7 +222,7 @@ class WidgetService : Service() {
             val remainingDay = remFromDayPerDay.add(spentDay)
             setWidgetValue(remainingDay)
         } catch (e: Value.CurrencyMismatchException) {
-            logw("unable to add", e)
+            logw("unable to add: ${e.message}")
         }
 
     }

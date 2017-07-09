@@ -40,8 +40,6 @@ import kotlinx.android.synthetic.main.activity_overview.*
 import org.joda.time.DateTime
 import org.joda.time.Days
 import org.joda.time.Interval
-import java.lang.annotation.Retention
-import java.lang.annotation.RetentionPolicy
 import java.util.*
 
 class OverviewActivity : AppCompatActivity() {
@@ -51,7 +49,7 @@ class OverviewActivity : AppCompatActivity() {
     private var helpScreen: HoleyLayout? = null
 
     @IntDef(PERIOD_BEFORE.toLong(), PERIOD_NEXT.toLong())
-    @Retention(RetentionPolicy.SOURCE)
+    @Retention(AnnotationRetention.SOURCE)
     annotation class PeriodModifier
 
     private lateinit var drawerToggle: ActionBarDrawerToggle
@@ -155,7 +153,7 @@ class OverviewActivity : AppCompatActivity() {
         class SwipeCallback(private val adapter: TransactionsArrayAdapter) : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val transaction = adapter.removeItem(viewHolder as BaseTransactionsAdapter<BaseTransactionsAdapter<RecyclerView.ViewHolder>.BaseTransactionVH>.BaseTransactionVH)
+                val transaction = adapter.removeItem(viewHolder as BaseTransactionsAdapter<*>.BaseTransactionVH)
                 transaction.isRemoved = true
                 TransactionsDeleteTask(this@OverviewActivity, transaction).execute()
                 //TODO this should be shown only after a successful removal
@@ -353,7 +351,7 @@ class OverviewActivity : AppCompatActivity() {
                 try {
                     valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit!!.value)
                 } catch (e: Value.CurrencyMismatchException) {
-                    logw("unable to add: ${transact.mostRecentEdit}")
+                    logw("unable to add: ${transact.mostRecentEdit}: ${e.message}")
                 }
 
             } else if (transactionTime < endOfDayMillis) {
@@ -361,7 +359,7 @@ class OverviewActivity : AppCompatActivity() {
                     valueDay = valueDay.add(transact.mostRecentEdit!!.value)
                     hasTransactionsDay = true
                 } catch (e: Value.CurrencyMismatchException) {
-                    logw("unable to add: ${transact.mostRecentEdit}")
+                    logw("unable to add: ${transact.mostRecentEdit}: ${e.message}")
                 }
 
             }
@@ -397,14 +395,14 @@ class OverviewActivity : AppCompatActivity() {
         try {
             regularsSum = regularsSum.addAll(regulars!!.map { it.getCumulativeValue(periods.longStart, periods.longEnd) })
         } catch (e: Value.CurrencyMismatchException) {
-            logw("adding values failed", e)
+            logw("adding values failed: ${e.message}")
         }
 
         var remaining = Value(currencyCode, 0)
         try {
             remaining = regularsSum.add(transactionsSum)
         } catch (e: Value.CurrencyMismatchException) {
-            logw("subtraction failed", e)
+            logw("subtraction failed: ${e.message}")
         }
 
         logd("regsum: $regularsSum trsum: $transactionsSum rem: $remaining")
@@ -426,7 +424,7 @@ class OverviewActivity : AppCompatActivity() {
             day_balance_available_value.text = remFromDayPerDay.string
             adjustExpandButton(day_transactions_button, hasTransactionsDay, transactions_day)
         } catch (e: Value.CurrencyMismatchException) {
-            logw("unable to add", e)
+            logw("unable to add: ${e.message}")
         }
     }
 

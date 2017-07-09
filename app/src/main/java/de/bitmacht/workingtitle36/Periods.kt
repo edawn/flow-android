@@ -52,17 +52,13 @@ class Periods(val longStart: DateTime, val longPeriod: Period, val shortStart: D
         if (!longEnd.isAfter(start)) null else Periods(longStart, longPeriod, start, shortPeriod)
     }
 
-    override fun describeContents(): Int {
-        return 0
-    }
+    override fun describeContents(): Int = 0
 
-    override fun writeToParcel(dest: Parcel, flags: Int) {
-        with(dest) {
-            writeSerializable(longStart)
-            writeSerializable(longPeriod)
-            writeSerializable(shortStart)
-            writeSerializable(shortPeriod)
-        }
+    override fun writeToParcel(dest: Parcel, flags: Int) = with(dest) {
+        writeSerializable(longStart)
+        writeSerializable(longPeriod)
+        writeSerializable(shortStart)
+        writeSerializable(shortPeriod)
     }
 
     private constructor(src: Parcel) : this(src.readSerializable() as DateTime, src.readSerializable() as Period,
@@ -81,13 +77,8 @@ class Periods(val longStart: DateTime, val longPeriod: Period, val shortStart: D
         val DEFAULT_SHORT_PERIOD = Period.days(1)
 
         @JvmField val CREATOR: Parcelable.Creator<Periods> = object : Parcelable.Creator<Periods> {
-            override fun createFromParcel(src: Parcel): Periods {
-                return Periods(src)
-            }
-
-            override fun newArray(size: Int): Array<Periods?> {
-                return arrayOfNulls(size)
-            }
+            override fun createFromParcel(src: Parcel): Periods = Periods(src)
+            override fun newArray(size: Int): Array<Periods?> = arrayOfNulls(size)
         }
     }
 

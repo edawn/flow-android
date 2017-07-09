@@ -19,12 +19,9 @@ package de.bitmacht.workingtitle36
 import android.app.Activity
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.SwitchCompat
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.*
-import de.bitmacht.workingtitle36.view.TimeView
-import de.bitmacht.workingtitle36.view.ValueWidget
+import android.widget.ArrayAdapter
 import kotlinx.android.synthetic.main.accept_dismiss_toolbar.*
 import kotlinx.android.synthetic.main.activity_regular_edit.*
 import org.joda.time.DateTimeConstants
@@ -49,7 +46,7 @@ class RegularEditActivity : AppCompatActivity(), DatePickerFragment.OnDateSetLis
 
         cancel_button.setOnClickListener({ finish() })
         accept_button.setOnClickListener({
-            RegularsUpdateTask(this, regular).execute()
+            RegularsUpdateTask(this, getRegular()).execute()
             setResult(Activity.RESULT_OK)
             finish()
         })
@@ -175,31 +172,25 @@ class RegularEditActivity : AppCompatActivity(), DatePickerFragment.OnDateSetLis
         }
     }
 
-    private // case 0 is intrinsic
-            // weekly
-            // yearly
-            // monthly
-    val regular: RegularModel
-        get() {
-            val spinnerPos = repetition.selectedItemPosition
-            var periodType = DBHelper.REGULARS_PERIOD_TYPE_DAILY
-            var periodMultiplier = 1
-            when (spinnerPos) {
-                1 -> periodMultiplier = DateTimeConstants.DAYS_PER_WEEK
-                3 -> {
-                    periodMultiplier = 12
-                    periodType = DBHelper.REGULARS_PERIOD_TYPE_MONTHLY
-                }
-                2 -> periodType = DBHelper.REGULARS_PERIOD_TYPE_MONTHLY
+    private fun getRegular(): RegularModel {
+        val spinnerPos = repetition.selectedItemPosition
+        var periodType = DBHelper.REGULARS_PERIOD_TYPE_DAILY
+        var periodMultiplier = 1
+        when (spinnerPos) {
+            1 -> periodMultiplier = DateTimeConstants.DAYS_PER_WEEK
+            2 -> periodType = DBHelper.REGULARS_PERIOD_TYPE_MONTHLY
+            3 -> {
+                periodMultiplier = 12; periodType = DBHelper.REGULARS_PERIOD_TYPE_MONTHLY
             }
-
-            val cv = value_input.value
-
-            return RegularModel(regularId, timeFirst.timeInMillis,
-                    if (isLastIndefinite || timeLast == null) -1 else timeLast!!.timeInMillis,
-                    periodType, periodMultiplier, false, !enabled.isChecked,
-                    cv!!.amount, cv.currencyCode, description.text.toString())
         }
+
+        val cv = value_input.value
+
+        return RegularModel(regularId, timeFirst.timeInMillis,
+                if (isLastIndefinite || timeLast == null) -1 else timeLast!!.timeInMillis,
+                periodType, periodMultiplier, false, !enabled.isChecked,
+                cv!!.amount, cv.currencyCode, description.text.toString())
+    }
 
     companion object {
 
