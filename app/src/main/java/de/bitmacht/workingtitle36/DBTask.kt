@@ -40,7 +40,6 @@ class DBTask private constructor(context: Context, private val action: TaskActio
                     setTransactionSuccessful()
                 } finally {
                     endTransaction()
-                    close()
                 }
             }
         } catch (e: Exception) {
@@ -71,7 +70,7 @@ class DBTask private constructor(context: Context, private val action: TaskActio
 
         fun createRegularsRemoveTask(context: Context, regularId: Long): DBTask {
             return DBTask(context, { db: SQLiteDatabase ->
-                val count = db.delete(DBHelper.REGULARS_TABLE_NAME, "$DBHelper.REGULARS_KEY_ID = ?", arrayOf(regularId.toString()))
+                val count = db.delete(DBHelper.REGULARS_TABLE_NAME, "${DBHelper.REGULARS_KEY_ID} = ?", arrayOf(regularId.toString()))
                 if (count != 1) logw("$count rows deleted; expected one; regular id: $regularId")
             }, "regular removal")
         }
