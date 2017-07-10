@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Kamil Sartys
+ * Copyright 2017 Kamil Sartys
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,73 @@ package de.bitmacht.workingtitle36
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.Cursor
+import android.content.Intent
 import android.database.sqlite.SQLiteDatabase
+import android.os.AsyncTask
+import android.support.annotation.CallSuper
+import android.support.v4.content.LocalBroadcastManager
 
-class TransactionsUpdateTask(context: Context, private val edit: Edit) : DBModifyingAsyncTask(context) {
+typealias TaskAction = (SQLiteDatabase) -> Unit
+
+class DBTask private constructor(context: Context, private val action: TaskAction, private val actionName: String = "") : AsyncTask<Void, Void, Boolean>() {
 
     private val dbHelper = DBHelper(context)
+    private val appContext = context.applicationContext
 
     override fun doInBackground(vararg voids: Void): Boolean? {
         try {
-            val db = dbHelper.writableDatabase
-            db.beginTransaction()
-            try {
+            with(dbHelper.writableDatabase) {
+                beginTransaction()
+                try {
+                    action(this)
+                    setTransactionSuccessful()
+                } finally {
+                    endTransaction()
+                    close()
+                }
+            }
+        } catch (e: Exception) {
+            loge("$actionName failed", e)
+            return false
+        }
+
+        logd("finished $actionName")
+        return true
+    }
+
+    @CallSuper
+    override fun onPostExecute(success: Boolean?) {
+        //TODO add success extra
+        LocalBroadcastManager.getInstance(appContext).sendBroadcast(Intent(ACTION_DB_MODIFIED))
+    }
+
+    companion object {
+
+        val ACTION_DB_MODIFIED = "de.bitmacht.workingtitle36.action.DB_MODIFIED"
+
+        fun createRegularsUpdateTask(context: Context, regular: RegularModel): DBTask {
+            return DBTask(context, { db: SQLiteDatabase ->
+                db.insertWithOnConflict(DBHelper.REGULARS_TABLE_NAME, null,
+                        regular.toContentValues(ContentValues(10)), SQLiteDatabase.CONFLICT_REPLACE)
+            }, "regular update")
+        }
+
+        fun createRegularsRemoveTask(context: Context, regularId: Long): DBTask {
+            return DBTask(context, { db: SQLiteDatabase ->
+                val count = db.delete(DBHelper.REGULARS_TABLE_NAME, "$DBHelper.REGULARS_KEY_ID = ?", arrayOf(regularId.toString()))
+                if (count != 1) logw("$count rows deleted; expected one; regular id: $regularId")
+            }, "regular removal")
+        }
+
+        fun createTransactionUpdateTask(context: Context, transaction: TransactionsModel): DBTask {
+            return DBTask(context, { db: SQLiteDatabase ->
+                db.insertWithOnConflict(DBHelper.TRANSACTIONS_TABLE_NAME, null,
+                        transaction.toContentValues(ContentValues(2)), SQLiteDatabase.CONFLICT_REPLACE)
+            }, "transaction update")
+        }
+
+        fun createEditUpdateTask(context: Context, edit: Edit): DBTask {
+            return DBTask(context, { db: SQLiteDatabase ->
                 var transactionId = edit.transaction
                 var parentId: Long? = null
                 var sequence = 0
@@ -75,18 +130,7 @@ class TransactionsUpdateTask(context: Context, private val edit: Edit) : DBModif
                     put(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY, edit.transactionCurrency)
                     put(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT, edit.transactionAmount)
                 })
-
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
-                db.close()
-            }
-        } catch (e: Exception) {
-            loge("modifying database failed", e)
-            return false
+            }, "edit update")
         }
-
-        logd("finished inserting")
-        return true
     }
 }

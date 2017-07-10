@@ -74,7 +74,7 @@ class WidgetService : Service() {
         super.onCreate()
         logd("-")
         dbHelper = DBHelper(this)
-        LocalBroadcastManager.getInstance(this).registerReceiver(dataModifiedReceiver, IntentFilter(DBModifyingAsyncTask.ACTION_DB_MODIFIED))
+        LocalBroadcastManager.getInstance(this).registerReceiver(dataModifiedReceiver, IntentFilter(DBTask.ACTION_DB_MODIFIED))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

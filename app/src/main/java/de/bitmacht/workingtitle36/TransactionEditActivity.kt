@@ -57,7 +57,7 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
         cancel_button.setOnClickListener({ finish() })
         accept_button.setOnClickListener({
             logd("edit: $edit")
-            TransactionsUpdateTask(this, edit).execute()
+            DBTask.createEditUpdateTask(this, edit).execute()
             //TODO wait for the update to finish
             finish()
         })

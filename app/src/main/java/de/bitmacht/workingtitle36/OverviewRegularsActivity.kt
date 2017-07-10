@@ -52,12 +52,12 @@ class OverviewRegularsActivity : AppCompatActivity() {
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val regular = regularsAdapter.removeItem(viewHolder as BaseTransactionsAdapter<*>.BaseTransactionVH)
-                RegularsRemoveTask(this@OverviewRegularsActivity, regular.id!!).execute()
+                DBTask.createRegularsRemoveTask(this@OverviewRegularsActivity, regular.id!!).execute()
                 regularsModified = true
                 setResult(Activity.RESULT_OK)
                 Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG)
                         .setAction(R.string.snackbar_undo, {
-                            RegularsUpdateTask(this@OverviewRegularsActivity, regular).execute()
+                            DBTask.createRegularsUpdateTask(this@OverviewRegularsActivity, regular).execute()
                         }).show()
             }
         }

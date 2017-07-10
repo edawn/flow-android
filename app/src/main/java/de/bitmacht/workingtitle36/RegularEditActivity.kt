@@ -46,7 +46,7 @@ class RegularEditActivity : AppCompatActivity(), DatePickerFragment.OnDateSetLis
 
         cancel_button.setOnClickListener({ finish() })
         accept_button.setOnClickListener({
-            RegularsUpdateTask(this, getRegular()).execute()
+            DBTask.createRegularsUpdateTask(this, getRegular()).execute()
             setResult(Activity.RESULT_OK)
             finish()
         })

@@ -155,13 +155,13 @@ class OverviewActivity : AppCompatActivity() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val transaction = adapter.removeItem(viewHolder as BaseTransactionsAdapter<*>.BaseTransactionVH)
                 transaction.isRemoved = true
-                TransactionsDeleteTask(this@OverviewActivity, transaction).execute()
+                DBTask.createTransactionUpdateTask(this@OverviewActivity, transaction).execute()
                 //TODO this should be shown only after a successful removal
 
                 Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG)
                         .setAction(R.string.snackbar_undo, {
                             transaction.isRemoved = false
-                            TransactionsDeleteTask(this@OverviewActivity, transaction).execute()
+                            DBTask.createTransactionUpdateTask(this@OverviewActivity, transaction).execute()
                         }).show()
                 transactions!!.remove(transaction)
                 updateOverview()
@@ -225,7 +225,7 @@ class OverviewActivity : AppCompatActivity() {
         logd("-")
 
         LocalBroadcastManager.getInstance(this)
-                .registerReceiver(dataModifiedReceiver, IntentFilter(DBModifyingAsyncTask.ACTION_DB_MODIFIED))
+                .registerReceiver(dataModifiedReceiver, IntentFilter(DBTask.ACTION_DB_MODIFIED))
 
         loaderManager.initLoader(LOADER_ID_TRANSACTIONS,
                 Bundle().apply { putParcelable(TransactionsLoader.ARG_PERIODS, periods) }, transactionsListener)
