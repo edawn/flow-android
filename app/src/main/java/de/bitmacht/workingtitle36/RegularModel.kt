@@ -157,7 +157,7 @@ class RegularModel(
      * *
      * @return the same instance from the arguments
      */
-    fun toContentValues(cv: ContentValues) = cv.apply {
+    fun toContentValues(cv: ContentValues = ContentValues(10)) = cv.apply {
         put(DBHelper.REGULARS_KEY_ID, id)
         put(DBHelper.REGULARS_KEY_TIME_FIRST, timeFirst)
         put(DBHelper.REGULARS_KEY_TIME_LAST, timeLast)

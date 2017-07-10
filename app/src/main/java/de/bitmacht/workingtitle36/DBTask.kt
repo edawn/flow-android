@@ -65,7 +65,7 @@ class DBTask private constructor(context: Context, private val action: TaskActio
         fun createRegularsUpdateTask(context: Context, regular: RegularModel): DBTask {
             return DBTask(context, { db: SQLiteDatabase ->
                 db.insertWithOnConflict(DBHelper.REGULARS_TABLE_NAME, null,
-                        regular.toContentValues(ContentValues(10)), SQLiteDatabase.CONFLICT_REPLACE)
+                        regular.toContentValues(), SQLiteDatabase.CONFLICT_REPLACE)
             }, "regular update")
         }
 
@@ -79,7 +79,7 @@ class DBTask private constructor(context: Context, private val action: TaskActio
         fun createTransactionUpdateTask(context: Context, transaction: TransactionsModel): DBTask {
             return DBTask(context, { db: SQLiteDatabase ->
                 db.insertWithOnConflict(DBHelper.TRANSACTIONS_TABLE_NAME, null,
-                        transaction.toContentValues(ContentValues(2)), SQLiteDatabase.CONFLICT_REPLACE)
+                        transaction.toContentValues(), SQLiteDatabase.CONFLICT_REPLACE)
             }, "transaction update")
         }
 

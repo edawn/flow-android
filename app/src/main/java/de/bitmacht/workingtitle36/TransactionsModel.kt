@@ -34,7 +34,7 @@ class TransactionsModel private constructor(val id: Long = 0, var isRemoved: Boo
      * *
      * @return the same instance from the arguments
      */
-    fun toContentValues(cv: ContentValues) = cv.apply {
+    fun toContentValues(cv: ContentValues = ContentValues(2)) = cv.apply {
         put(DBHelper.TRANSACTIONS_KEY_ID, id)
         put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, isRemoved)
     }
