@@ -17,35 +17,26 @@
 package de.bitmacht.workingtitle36
 
 import android.content.Context
-import android.database.sqlite.SQLiteDatabase
 
-
-//TODO merge with RegularsUpdateTask or make it an inner class of OverviewRegularsActivity
 class RegularsRemoveTask(context: Context, private val regularId: Long) : DBModifyingAsyncTask(context) {
 
-    private val dbHelper: DBHelper
-
-    init {
-        dbHelper = DBHelper(context)
-    }
+    private val dbHelper = DBHelper(context)
 
     override fun doInBackground(vararg voids: Void): Boolean? {
         try {
-            val db = dbHelper.writableDatabase
-            db.beginTransaction()
-            try {
-                val count = db.delete(DBHelper.REGULARS_TABLE_NAME, DBHelper.REGULARS_KEY_ID + " = ?", arrayOf(regularId.toString()))
-                if (BuildConfig.DEBUG) {
-                    if (count != 1) {
-                        logd("$count rows deleted; expected one; regular id: $regularId")
-                    }
+            with(dbHelper.writableDatabase) {
+                beginTransaction()
+                try {
+                    val count = delete(DBHelper.REGULARS_TABLE_NAME, DBHelper.REGULARS_KEY_ID + " = ?", arrayOf(regularId.toString()))
+                    if (count != 1) logw("$count rows deleted; expected one; regular id: $regularId")
+                    setTransactionSuccessful()
+                } finally {
+                    endTransaction()
+                    close()
                 }
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
             }
         } catch (e: Exception) {
-            loge("modifying database failed")
+            loge("modifying database failed", e)
             return false
         }
 

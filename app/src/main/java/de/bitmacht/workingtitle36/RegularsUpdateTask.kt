@@ -20,28 +20,25 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 
-
 class RegularsUpdateTask(context: Context, private val regular: RegularModel) : DBModifyingAsyncTask(context) {
 
-    private val dbHelper: DBHelper
-
-    init {
-        dbHelper = DBHelper(context)
-    }
+    private val dbHelper = DBHelper(context)
 
     override fun doInBackground(vararg voids: Void): Boolean? {
         try {
-            val db = dbHelper.writableDatabase
-            db.beginTransaction()
-            try {
-                db.insertWithOnConflict(DBHelper.REGULARS_TABLE_NAME, null,
-                        regular.toContentValues(ContentValues(10)), SQLiteDatabase.CONFLICT_REPLACE)
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
+            with(dbHelper.writableDatabase) {
+                beginTransaction()
+                try {
+                    insertWithOnConflict(DBHelper.REGULARS_TABLE_NAME, null,
+                            regular.toContentValues(ContentValues(10)), SQLiteDatabase.CONFLICT_REPLACE)
+                    setTransactionSuccessful()
+                } finally {
+                    endTransaction()
+                    close()
+                }
             }
         } catch (e: Exception) {
-            loge("modifying database failed")
+            loge("modifying database failed", e)
             return false
         }
 

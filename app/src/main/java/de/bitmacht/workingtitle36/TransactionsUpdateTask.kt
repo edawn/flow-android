@@ -21,85 +21,66 @@ import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 
-
 class TransactionsUpdateTask(context: Context, private val edit: Edit) : DBModifyingAsyncTask(context) {
 
-    private val dbHelper: DBHelper
-
-    init {
-        dbHelper = DBHelper(context)
-    }
+    private val dbHelper = DBHelper(context)
 
     override fun doInBackground(vararg voids: Void): Boolean? {
-        val db: SQLiteDatabase
         try {
-            db = dbHelper.writableDatabase
+            val db = dbHelper.writableDatabase
             db.beginTransaction()
             try {
-                val cv = ContentValues(10)
-
                 var transactionId = edit.transaction
                 var parentId: Long? = null
                 var sequence = 0
 
                 var createNewTransaction = true
                 if (transactionId != null) {
-                    val cursor = db.rawQuery(DBHelper.TRANSACTION_QUERY, arrayOf(java.lang.Long.toString(transactionId)))
-                    val transactionsCount = cursor.count
-                    cursor.close()
+                    val transactionsCount =
+                            db.rawQuery(DBHelper.TRANSACTION_QUERY, arrayOf(java.lang.Long.toString(transactionId))).use { it.count }
                     if (transactionsCount == 0) {
                         transactionId = null
                     } else {
                         parentId = edit.parent
                         createNewTransaction = false
-                        if (BuildConfig.DEBUG) {
-                            if (transactionsCount > 1) {
-                                logw("this should not happen: more than one resulting row")
-                            }
-                        }
+                        if (transactionsCount > 1) logw("this should not happen: more than one resulting row")
                     }
                 }
 
                 if (createNewTransaction) {
                     // transaction does not exist; insert new
-                    cv.put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, false)
-                    transactionId = db.insertOrThrow(DBHelper.TRANSACTIONS_TABLE_NAME, null, cv)
-                    cv.clear()
+                    transactionId = db.insertOrThrow(DBHelper.TRANSACTIONS_TABLE_NAME, null,
+                            ContentValues().apply { put(DBHelper.TRANSACTIONS_KEY_IS_REMOVED, false) })
                 } else {
-                    val cursor = db.rawQuery(DBHelper.EDITS_FOR_TRANSACTION_QUERY, arrayOf(java.lang.Long.toString(transactionId!!)))
-                    try {
+                    db.rawQuery(DBHelper.EDITS_FOR_TRANSACTION_QUERY, arrayOf(java.lang.Long.toString(transactionId!!))).use { cursor ->
                         logd("${cursor.count} edits for transaction $transactionId")
                         while (cursor.moveToNext()) {
                             val tmpEdit = Edit(cursor)
                             sequence = Math.max(sequence, tmpEdit.sequence!! + 1)
-                            if (edit.parent == tmpEdit.id) {
-                                parentId = edit.parent
-                            }
+                            if (edit.parent == tmpEdit.id) parentId = edit.parent
                         }
-                    } finally {
-                        cursor.close()
                     }
-                    if (parentId == null) {
-                        throw Exception("No parent found for edit " + edit.id + " in transaction " + transactionId)
-                    }
+                    if (parentId == null)
+                        throw Exception("No parent found for edit ${edit.id} in transaction $transactionId")
                 }
 
-                cv.put(DBHelper.EDITS_KEY_PARENT, parentId)
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION, transactionId)
-                cv.put(DBHelper.EDITS_KEY_SEQUENCE, sequence)
-                cv.put(DBHelper.EDITS_KEY_IS_PENDING, false)
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_TIME, edit.transactionTime)
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, edit.transactionDescription)
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_LOCATION, edit.transactionLocation)
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY, edit.transactionCurrency)
-                cv.put(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT, edit.transactionAmount)
-                db.insertOrThrow(DBHelper.EDITS_TABLE_NAME, null, cv)
+                db.insertOrThrow(DBHelper.EDITS_TABLE_NAME, null, ContentValues(10).apply {
+                    put(DBHelper.EDITS_KEY_PARENT, parentId)
+                    put(DBHelper.EDITS_KEY_TRANSACTION, transactionId)
+                    put(DBHelper.EDITS_KEY_SEQUENCE, sequence)
+                    put(DBHelper.EDITS_KEY_IS_PENDING, false)
+                    put(DBHelper.EDITS_KEY_TRANSACTION_TIME, edit.transactionTime)
+                    put(DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION, edit.transactionDescription)
+                    put(DBHelper.EDITS_KEY_TRANSACTION_LOCATION, edit.transactionLocation)
+                    put(DBHelper.EDITS_KEY_TRANSACTION_CURRENCY, edit.transactionCurrency)
+                    put(DBHelper.EDITS_KEY_TRANSACTION_AMOUNT, edit.transactionAmount)
+                })
 
                 db.setTransactionSuccessful()
             } finally {
                 db.endTransaction()
+                db.close()
             }
-
         } catch (e: Exception) {
             loge("modifying database failed", e)
             return false

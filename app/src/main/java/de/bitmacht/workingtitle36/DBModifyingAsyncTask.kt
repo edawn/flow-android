@@ -22,7 +22,6 @@ import android.os.AsyncTask
 import android.support.annotation.CallSuper
 import android.support.v4.content.LocalBroadcastManager
 
-
 /**
  * Any AsyncTask that modifies the underlying data necessary to calculate the budget should be
  * derived from this class.
@@ -30,18 +29,13 @@ import android.support.v4.content.LocalBroadcastManager
  */
 abstract class DBModifyingAsyncTask protected constructor(context: Context) : AsyncTask<Void, Void, Boolean>() {
 
-    protected val appContext: Context
-
-    init {
-        appContext = context.applicationContext
-    }
+    protected val appContext: Context = context.applicationContext
 
     @CallSuper
     override fun onPostExecute(success: Boolean?) {
         logd("-")
         //TODO add success extra
-        val broadcastManager = LocalBroadcastManager.getInstance(appContext)
-        broadcastManager.sendBroadcast(Intent(ACTION_DB_MODIFIED))
+        LocalBroadcastManager.getInstance(appContext).sendBroadcast(Intent(ACTION_DB_MODIFIED))
     }
 
     companion object {

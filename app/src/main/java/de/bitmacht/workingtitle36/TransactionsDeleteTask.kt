@@ -20,31 +20,23 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 
-
 class TransactionsDeleteTask(context: Context, private val transaction: TransactionsModel) : DBModifyingAsyncTask(context) {
 
-    private val dbHelper: DBHelper
-
-    init {
-        dbHelper = DBHelper(context)
-    }
+    private val dbHelper = DBHelper(context)
 
     override fun doInBackground(vararg voids: Void): Boolean? {
-        val db: SQLiteDatabase
         try {
-            db = dbHelper.writableDatabase
-            db.beginTransaction()
-            try {
-                val cv = ContentValues(2)
-
-                db.insertWithOnConflict(DBHelper.TRANSACTIONS_TABLE_NAME, null,
-                        transaction.toContentValues(cv), SQLiteDatabase.CONFLICT_REPLACE)
-
-                db.setTransactionSuccessful()
-            } finally {
-                db.endTransaction()
+            with(dbHelper.writableDatabase) {
+                beginTransaction()
+                try {
+                    insertWithOnConflict(DBHelper.TRANSACTIONS_TABLE_NAME, null,
+                            transaction.toContentValues(ContentValues(2)), SQLiteDatabase.CONFLICT_REPLACE)
+                    setTransactionSuccessful()
+                } finally {
+                    endTransaction()
+                    close()
+                }
             }
-
         } catch (e: Exception) {
             loge("modifying database failed", e)
             return false
