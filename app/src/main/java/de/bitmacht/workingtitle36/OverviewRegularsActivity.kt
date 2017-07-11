@@ -102,15 +102,14 @@ class OverviewRegularsActivity : AppCompatActivity() {
         }
     }
 
-    private val regularsLoaderListener = object : LoaderManager.LoaderCallbacks<ArrayList<RegularModel>> {
+    private val regularsLoaderListener = object<T: ArrayList<RegularModel>> : LoaderManager.LoaderCallbacks<T> {
 
-        override fun onCreateLoader(id: Int, args: Bundle?): Loader<ArrayList<RegularModel>> =
-                RegularsLoader(this@OverviewRegularsActivity, dbHelper)
+        override fun onCreateLoader(id: Int, args: Bundle?) =
+                DBLoader.createRegularsLoader(this@OverviewRegularsActivity) as Loader<T>
 
-        override fun onLoadFinished(loader: Loader<ArrayList<RegularModel>>, data: ArrayList<RegularModel>) =
-                regularsAdapter.setData(data)
+        override fun onLoadFinished(loader: Loader<T>, data: T) = regularsAdapter.setData(data)
 
-        override fun onLoaderReset(loader: Loader<ArrayList<RegularModel>>) {}
+        override fun onLoaderReset(loader: Loader<T>) {}
     }
 
     companion object {

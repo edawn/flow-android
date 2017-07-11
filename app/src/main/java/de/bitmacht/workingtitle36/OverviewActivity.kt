@@ -82,7 +82,7 @@ class OverviewActivity : AppCompatActivity() {
             logd("received: $intent")
 
             loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                    Bundle().apply { putParcelable(TransactionsLoader.ARG_PERIODS, periods) }, transactionsListener)
+                    Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) }, transactionsListener)
         }
     }
 
@@ -120,7 +120,7 @@ class OverviewActivity : AppCompatActivity() {
                     recyclerView.visibility = newVisibility
                     if (newVisibility == View.VISIBLE) {
                         loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                                Bundle().apply { putParcelable(TransactionsLoader.ARG_PERIODS, periods) },
+                                Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) },
                                 transactionsListener)
                     } else {
                         (button as Button).setText(R.string.overview_transactions_show)
@@ -228,7 +228,7 @@ class OverviewActivity : AppCompatActivity() {
                 .registerReceiver(dataModifiedReceiver, IntentFilter(DBTask.ACTION_DB_MODIFIED))
 
         loaderManager.initLoader(LOADER_ID_TRANSACTIONS,
-                Bundle().apply { putParcelable(TransactionsLoader.ARG_PERIODS, periods) }, transactionsListener)
+                Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) }, transactionsListener)
     }
 
     override fun onStop() {
@@ -274,7 +274,7 @@ class OverviewActivity : AppCompatActivity() {
         when (requestCode) {
             REQUEST_TRANSACTION_NEW, REQUEST_TRANSACTION_EDIT -> if (resultCode == RESULT_OK) {
                 loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                        Bundle().apply { putParcelable(TransactionsLoader.ARG_PERIODS, periods) }, transactionsListener)
+                        Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) }, transactionsListener)
             }
             REQUEST_REGULARS_OVERVIEW -> if (resultCode == RESULT_OK) {
                 loaderManager.restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener)
@@ -283,7 +283,7 @@ class OverviewActivity : AppCompatActivity() {
                 //TODO check if settings actually changed before updating
                 loaderManager.restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener)
                 loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                        Bundle().apply { putParcelable(TransactionsLoader.ARG_PERIODS, periods) }, transactionsListener)
+                        Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) }, transactionsListener)
             }
         }
     }
@@ -299,7 +299,7 @@ class OverviewActivity : AppCompatActivity() {
         var newPeriods = if (periodModifier == PERIOD_BEFORE) periods.previousLong else periods.nextLong
         periodHistory[newPeriods.longStart.millis]?.let { newPeriods = it }
         loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                Bundle().apply { putParcelable(TransactionsLoader.ARG_PERIODS, newPeriods) }, transactionsListener)
+                Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, newPeriods) }, transactionsListener)
     }
 
     private fun changeDay(@PeriodModifier periodModifier: Int) {
@@ -443,30 +443,31 @@ class OverviewActivity : AppCompatActivity() {
         }
     }
 
-    private val regularsLoaderListener = object : LoaderManager.LoaderCallbacks<ArrayList<RegularModel>> {
-        override fun onCreateLoader(id: Int, args: Bundle?): Loader<ArrayList<RegularModel>> =
-                RegularsLoader(this@OverviewActivity, dbHelper)
+    private val regularsLoaderListener = object<T: ArrayList<RegularModel>> : LoaderManager.LoaderCallbacks<T> {
 
-        override fun onLoadFinished(loader: Loader<ArrayList<RegularModel>>, data: ArrayList<RegularModel>?) {
+        override fun onCreateLoader(id: Int, args: Bundle?) =
+                DBLoader.createRegularsLoader(this@OverviewActivity) as Loader<T>
+
+        override fun onLoadFinished(loader: Loader<T>, data: T?) {
             regulars = data
             updateOverview()
         }
 
-        override fun onLoaderReset(loader: Loader<ArrayList<RegularModel>>) {}
+        override fun onLoaderReset(loader: Loader<T>) {}
     }
 
-    private val transactionsListener = object : LoaderManager.LoaderCallbacks<ArrayList<TransactionsModel>> {
-        override fun onCreateLoader(id: Int, args: Bundle?): Loader<ArrayList<TransactionsModel>> =
-                TransactionsLoader(this@OverviewActivity, dbHelper, args!!)
+    private val transactionsListener = object<T: DBLoader.TransactionsResult> : LoaderManager.LoaderCallbacks<T> {
+        override fun onCreateLoader(id: Int, args: Bundle?) =
+                DBLoader.createTransactionsLoader(this@OverviewActivity, args!!) as Loader<T>
 
-        override fun onLoadFinished(loader: Loader<ArrayList<TransactionsModel>>, data: ArrayList<TransactionsModel>?) {
-            transactions = data
-            periods = (loader as TransactionsLoader).periods!!
+        override fun onLoadFinished(loader: Loader<T>, data: T?) {
+            transactions = data!!.transactions
+            periods = data.periods
             onPeriodChanged()
             updateTransactions()
         }
 
-        override fun onLoaderReset(loader: Loader<ArrayList<TransactionsModel>>) {}
+        override fun onLoaderReset(loader: Loader<T>) {}
     }
 
     companion object {

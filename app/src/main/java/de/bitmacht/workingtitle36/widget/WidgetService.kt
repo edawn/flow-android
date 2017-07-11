@@ -42,8 +42,8 @@ import java.util.ArrayList
 
 class WidgetService : Service() {
     private lateinit var dbHelper: DBHelper
-    private var regularsLoader: RegularsLoader? = null
-    private var transactionsLoader: TransactionsLoader? = null
+    private var regularsLoader: DBLoader<ArrayList<RegularModel>>? = null
+    private var transactionsLoader: DBLoader<DBLoader.TransactionsResult>? = null
 
     private var regulars: ArrayList<RegularModel>? = null
     private var requestPeriods: Periods? = null
@@ -64,9 +64,9 @@ class WidgetService : Service() {
         updateWidget()
     }
 
-    private val transactionsLoadCompleteListener = Loader.OnLoadCompleteListener<ArrayList<TransactionsModel>> { loader, data ->
-        transactions = data
-        requestPeriods = (loader as TransactionsLoader).periods
+    private val transactionsLoadCompleteListener = Loader.OnLoadCompleteListener<DBLoader.TransactionsResult> { loader, data ->
+        transactions = data!!.transactions
+        requestPeriods = data.periods
         updateWidget()
     }
 
@@ -137,7 +137,7 @@ class WidgetService : Service() {
         if (regularsLoader != null) {
             regularsLoader!!.reset()
         }
-        regularsLoader = RegularsLoader(this, dbHelper)
+        regularsLoader = DBLoader.createRegularsLoader(this)
 
         regularsLoader!!.registerListener(LOADER_ID_REGULARS, regularsLoadCompleteListener)
         regularsLoader!!.startLoading()
@@ -146,7 +146,7 @@ class WidgetService : Service() {
             transactionsLoader!!.reset()
         }
 
-        transactionsLoader = TransactionsLoader(this, dbHelper, Periods())
+        transactionsLoader = DBLoader.createTransactionsLoader(this, Periods())
 
         transactionsLoader!!.registerListener(LOADER_ID_TRANSACTIONS, transactionsLoadCompleteListener)
         transactionsLoader!!.startLoading()
