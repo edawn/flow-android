@@ -29,25 +29,28 @@ import java.util.ArrayList
 
 class TransactionsSuggestionsLoader<T>(context: Context, private val dbHelper: DBHelper, args: Bundle) : AsyncTaskLoader<T>(context) where T: ListAdapter {
     val column: String
+    val query: String
     private var result: T? = null
 
     init {
-
         column = args.getString(ARG_COLUMN)
         if (column != COLUMN_DESCRIPTION && column != COLUMN_LOCATION) {
             throw IllegalArgumentException("Unknown column name: " + column)
         }
+        query = args.getString(ARG_QUERY)
     }
 
     override fun loadInBackground(): T {
         val db = dbHelper.readableDatabase
 
-        val cursor = db.rawQuery(String.format(DBHelper.SUGGESTIONS_QUERY, column), null)
+        logd("querying $query in $column")
+        val cursor = db.rawQuery(String.format(DBHelper.SUGGESTIONS_QUERY, column), arrayOf("$query%"))
 
         val resultArray = ArrayList<String>(cursor.count)
 
         while (cursor.moveToNext()) {
             val fs = FrequencyString(cursor)
+            logd("res: ${fs.text}:${fs.count}")
             if (fs.text.length == 0) {
                 continue
             }
@@ -98,7 +101,8 @@ class TransactionsSuggestionsLoader<T>(context: Context, private val dbHelper: D
 
     companion object {
 
-        val ARG_COLUMN = "column"
+        const val ARG_COLUMN = "column"
+        const val ARG_QUERY = "query"
 
         /**
          * A valid value for [TransactionsSuggestionsLoader.ARG_COLUMN]

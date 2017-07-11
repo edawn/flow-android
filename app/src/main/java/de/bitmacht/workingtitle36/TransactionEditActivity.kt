@@ -112,10 +112,12 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
 
         loaderManager.initLoader(0, Bundle().apply {
             putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_DESCRIPTION)
+            putString(TransactionsSuggestionsLoader.ARG_QUERY, description.text.toString())
         }, suggestionsListener)
 
         loaderManager.initLoader(1, Bundle().apply {
             putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_LOCATION)
+            putString(TransactionsSuggestionsLoader.ARG_QUERY, location.text.toString())
         }, suggestionsListener)
     }
 

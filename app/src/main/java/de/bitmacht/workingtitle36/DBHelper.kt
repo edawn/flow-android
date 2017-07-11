@@ -225,12 +225,15 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DBHelper.DATABASE_N
 
         /**
          * Returns distinct fields and their frequency in the given column selected from
-         * the most current, not pending edit for every transaction
+         * the most current, not pending edit for every transaction, ordered by descending frequency
+         * and being like ?
          */
         const val SUGGESTIONS_QUERY =
-                "SELECT TRIM(%s) AS result, COUNT(*) FROM $EDITS_TABLE_NAME INNER JOIN (SELECT $EDITS_KEY_ID, MAX($EDITS_KEY_SEQUENCE) AS " +
-                        "maxsequence FROM $EDITS_TABLE_NAME WHERE NOT $EDITS_KEY_IS_PENDING GROUP BY $EDITS_KEY_TRANSACTION) editsmax ON " +
-                        "$EDITS_TABLE_NAME.$EDITS_KEY_ID = editsmax.$EDITS_KEY_ID GROUP BY result ORDER BY result"
+                "SELECT result, COUNT(*) as count FROM " +
+                        "(SELECT TRIM(%s) as result, id FROM edits WHERE result LIKE ?) $EDITS_TABLE_NAME INNER JOIN " +
+                        "(SELECT $EDITS_KEY_ID, MAX($EDITS_KEY_SEQUENCE) AS maxsequence FROM $EDITS_TABLE_NAME " +
+                        "WHERE NOT $EDITS_KEY_IS_PENDING GROUP BY $EDITS_KEY_TRANSACTION) editsmax ON " +
+                        "$EDITS_TABLE_NAME.$EDITS_KEY_ID = editsmax.$EDITS_KEY_ID GROUP BY result ORDER BY count DESC"
 
         /**
          * Returns all edits for a transaction (selected by the id of its associated transaction id)
