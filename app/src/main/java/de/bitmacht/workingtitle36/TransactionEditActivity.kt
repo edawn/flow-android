@@ -68,7 +68,8 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
                         .apply { putLong(TimeDatePickerDialogFragment.BUNDLE_TIME, transactionTime.timeInMillis) }
                 frag.show(fragmentManager, "TimeDatePicker")
                 (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).hideSoftInputFromWindow(window.decorView.windowToken, 0)
-            }}
+            }
+        }
         time.setOnClickListener(TimeDateClickListener(TimePickerFragment()))
         date.setOnClickListener(TimeDateClickListener(DatePickerFragment()))
 
@@ -111,13 +112,13 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
         value_input.value = value
 
         loaderManager.initLoader(0, Bundle().apply {
-            putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_DESCRIPTION)
-            putString(TransactionsSuggestionsLoader.ARG_QUERY, description.text.toString())
+            putString(DBLoader.ARG_COLUMN, DBLoader.COLUMN_DESCRIPTION)
+            putString(DBLoader.ARG_QUERY, description.text.toString())
         }, suggestionsListener)
 
         loaderManager.initLoader(1, Bundle().apply {
-            putString(TransactionsSuggestionsLoader.ARG_COLUMN, TransactionsSuggestionsLoader.COLUMN_LOCATION)
-            putString(TransactionsSuggestionsLoader.ARG_QUERY, location.text.toString())
+            putString(DBLoader.ARG_COLUMN, DBLoader.COLUMN_LOCATION)
+            putString(DBLoader.ARG_QUERY, location.text.toString())
         }, suggestionsListener)
     }
 
@@ -172,15 +173,22 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
         get() = Edit(parentId, transactionId, transactionTime.timeInMillis,
                 description.text.toString(), location.text.toString(), value_input.value!!)
 
-    private val suggestionsListener = object : LoaderManager.LoaderCallbacks<ArrayAdapter<String>> {
-        override fun onCreateLoader(id: Int, args: Bundle): Loader<ArrayAdapter<String>> =
-                TransactionsSuggestionsLoader(this@TransactionEditActivity, dbHelper!!, args)
+    private val suggestionsListener = object<T : DBLoader.SuggestionsResult> : LoaderManager.LoaderCallbacks<T> {
+        override fun onCreateLoader(id: Int, args: Bundle): Loader<T> =
+                DBLoader.createSuggestionsLoader(this@TransactionEditActivity, args) as Loader<T>
 
-        override fun onLoadFinished(loader: Loader<ArrayAdapter<String>>, data: ArrayAdapter<String>) =
-                (if ((loader as TransactionsSuggestionsLoader<*>).column == TransactionsSuggestionsLoader.COLUMN_DESCRIPTION)
-                    description else location).setAdapter(data)
+        override fun onLoadFinished(loader: Loader<T>, data: T?) {
+            data?.let {
+                when (it.column) {
+                    DBLoader.COLUMN_DESCRIPTION -> description
+                    DBLoader.COLUMN_LOCATION -> location
+                    else -> null
+                }?.setAdapter(ArrayAdapter(this@TransactionEditActivity,
+                        android.R.layout.simple_dropdown_item_1line, it.suggestions.map { it.text }))
+            }
+        }
 
-        override fun onLoaderReset(loader: Loader<ArrayAdapter<String>>) {}
+        override fun onLoaderReset(loader: Loader<T>) {}
     }
 
     companion object {

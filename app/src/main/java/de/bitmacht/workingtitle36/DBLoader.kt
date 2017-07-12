@@ -55,9 +55,24 @@ class DBLoader<T> private constructor(context: Context, private val action: Load
 
     data class TransactionsResult(val transactions: ArrayList<TransactionsModel>, val periods: Periods)
 
+    data class SuggestionsResult(val suggestions: ArrayList<Suggestion>, val column: String, val query: String)
+    data class Suggestion(val text: String, val frequency: Int)
+
     companion object {
 
         const val ARG_PERIODS = "periods"
+
+        const val ARG_COLUMN = "column"
+        const val ARG_QUERY = "query"
+
+        /**
+         * A valid value for [TransactionsSuggestionsLoader.ARG_COLUMN]
+         */
+        const val COLUMN_DESCRIPTION = DBHelper.EDITS_KEY_TRANSACTION_DESCRIPTION
+        /**
+         * A valid value for [TransactionsSuggestionsLoader.ARG_COLUMN]
+         */
+        const val COLUMN_LOCATION = DBHelper.EDITS_KEY_TRANSACTION_LOCATION
 
         fun createTransactionsLoader(context: Context, periods: Periods): DBLoader<TransactionsResult> {
             return DBLoader(context, { db: SQLiteDatabase ->
@@ -84,6 +99,20 @@ class DBLoader<T> private constructor(context: Context, private val action: Load
                                 this
                             }
                         }
+            })
+        }
+
+        fun createSuggestionsLoader(context: Context, args: Bundle): DBLoader<SuggestionsResult> {
+            val column = args.getString(ARG_COLUMN)
+            val query = args.getString(ARG_QUERY)
+            return DBLoader(context, { db: SQLiteDatabase ->
+                SuggestionsResult(db.rawQuery(String.format(DBHelper.SUGGESTIONS_QUERY, column), arrayOf("$query%")).use { cursor ->
+                    ArrayList<Suggestion>(cursor.count).apply {
+                        while (cursor.moveToNext()) {
+                            add(Suggestion(cursor.getString(0), cursor.getInt(1)))
+                        }
+                    }
+                }, column, query)
             })
         }
     }
