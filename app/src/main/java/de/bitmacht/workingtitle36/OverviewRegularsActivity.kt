@@ -31,16 +31,12 @@ import java.util.*
 
 class OverviewRegularsActivity : AppCompatActivity() {
 
-    private lateinit var dbHelper: DBHelper
-
     private lateinit var regularsAdapter: RegularsAdapter
 
     private var regularsModified = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        dbHelper = DBHelper(this)
 
         setContentView(R.layout.activity_regulars_overview)
 

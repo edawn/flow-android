@@ -16,6 +16,7 @@
 
 package de.bitmacht.workingtitle36
 
+import android.annotation.SuppressLint
 import android.app.LoaderManager
 import android.content.*
 import android.content.res.Configuration
@@ -43,8 +44,6 @@ import org.joda.time.Interval
 import java.util.*
 
 class OverviewActivity : AppCompatActivity() {
-
-    private lateinit var dbHelper: DBHelper
 
     private var helpScreen: HoleyLayout? = null
 
@@ -75,6 +74,7 @@ class OverviewActivity : AppCompatActivity() {
     private var spentBeforeDay: Value? = null
     private var spentDay: Value? = null
 
+    @SuppressLint("UseSparseArrays")
     private var periodHistory = HashMap<Long, Periods>()
 
     private val dataModifiedReceiver = object : BroadcastReceiver() {
@@ -90,8 +90,6 @@ class OverviewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         logd("savedInstanceState: $savedInstanceState")
-
-        dbHelper = DBHelper(this)
 
         setContentView(R.layout.activity_overview)
 

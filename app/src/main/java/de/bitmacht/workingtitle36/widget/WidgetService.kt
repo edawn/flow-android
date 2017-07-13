@@ -20,12 +20,7 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.app.Service
 import android.appwidget.AppWidgetManager
-import android.content.BroadcastReceiver
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.content.Loader
+import android.content.*
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.app.TaskStackBuilder
@@ -33,15 +28,12 @@ import android.support.v4.content.LocalBroadcastManager
 import android.support.v4.graphics.ColorUtils
 import android.widget.RemoteViews
 import de.bitmacht.workingtitle36.*
-
 import org.joda.time.DateTime
 import org.joda.time.Days
 import org.joda.time.Interval
-
-import java.util.ArrayList
+import java.util.*
 
 class WidgetService : Service() {
-    private lateinit var dbHelper: DBHelper
     private var regularsLoader: DBLoader<ArrayList<RegularModel>>? = null
     private var transactionsLoader: DBLoader<DBLoader.TransactionsResult>? = null
 
@@ -73,7 +65,6 @@ class WidgetService : Service() {
     override fun onCreate() {
         super.onCreate()
         logd("-")
-        dbHelper = DBHelper(this)
         LocalBroadcastManager.getInstance(this).registerReceiver(dataModifiedReceiver, IntentFilter(DBTask.ACTION_DB_MODIFIED))
     }
 

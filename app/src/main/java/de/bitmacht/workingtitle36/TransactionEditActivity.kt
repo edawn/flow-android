@@ -37,14 +37,10 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
     private var parentId: Long? = null
     private val transactionTime = GregorianCalendar()
 
-    private var dbHelper: DBHelper? = null
-
     private var focusValueInput: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        dbHelper = DBHelper(this)
 
         setContentView(R.layout.activity_transaction_edit)
 
