@@ -50,12 +50,12 @@ class WidgetService : Service() {
         }
     }
 
-    private val regularsLoadCompleteListener = Loader.OnLoadCompleteListener<ArrayList<RegularModel>> { loader, data ->
+    private val regularsLoadCompleteListener = Loader.OnLoadCompleteListener<ArrayList<RegularModel>> { _, data ->
         regulars = data
         updateWidget()
     }
 
-    private val transactionsLoadCompleteListener = Loader.OnLoadCompleteListener<DBLoader.TransactionsResult> { loader, data ->
+    private val transactionsLoadCompleteListener = Loader.OnLoadCompleteListener<DBLoader.TransactionsResult> { _, data ->
         transactions = data!!.transactions
         requestPeriods = data.periods
         updateWidget()
@@ -76,8 +76,7 @@ class WidgetService : Service() {
     private fun start() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val startOfNextDay = DateTime.now().plusDays(1).withTimeAtStartOfDay().millis
-        val intent = Intent(this, WidgetService::class.java)
-        alarmPendingIntent = PendingIntent.getService(this, 0, intent, 0)
+        alarmPendingIntent = PendingIntent.getService(this, 0, Intent(this, WidgetService::class.java), 0)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
             alarmManager.set(AlarmManager.RTC, startOfNextDay, alarmPendingIntent)
         } else {
@@ -87,9 +86,7 @@ class WidgetService : Service() {
         alpha = Utils.getfPref(this, R.string.pref_widget_transparency_key, alpha)
 
         val widgetIds = AppWidgetManager.getInstance(this).getAppWidgetIds(ComponentName(this, WidgetProvider::class.java))
-        if (widgetIds.size > 0) {
-            startLoaders()
-        }
+        if (widgetIds.isNotEmpty()) startLoaders()
     }
 
     override fun onDestroy() {
@@ -127,14 +124,10 @@ class WidgetService : Service() {
         return creator().apply { registerListener(id, listener); startLoading() }
     }
 
-    override fun onBind(intent: Intent): IBinder? {
-        return null
-    }
+    override fun onBind(intent: Intent): IBinder? = null
 
     private fun updateWidget() {
-        if (regulars == null || requestPeriods == null || transactions == null) {
-            return
-        }
+        if (regulars == null || requestPeriods == null || transactions == null) return
 
         val now = DateTime.now()
 

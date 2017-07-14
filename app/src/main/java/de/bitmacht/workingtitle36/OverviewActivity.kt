@@ -387,7 +387,7 @@ class OverviewActivity : AppCompatActivity() {
         }
     }
 
-    private val regularsLoaderListener = object<T: ArrayList<RegularModel>> : LoaderManager.LoaderCallbacks<T> {
+    private val regularsLoaderListener = object<T : ArrayList<RegularModel>> : LoaderManager.LoaderCallbacks<T> {
 
         override fun onCreateLoader(id: Int, args: Bundle?) =
                 DBLoader.createRegularsLoader(this@OverviewActivity) as Loader<T>
@@ -400,7 +400,7 @@ class OverviewActivity : AppCompatActivity() {
         override fun onLoaderReset(loader: Loader<T>) {}
     }
 
-    private val transactionsListener = object<T: DBLoader.TransactionsResult> : LoaderManager.LoaderCallbacks<T> {
+    private val transactionsListener = object<T : DBLoader.TransactionsResult> : LoaderManager.LoaderCallbacks<T> {
         override fun onCreateLoader(id: Int, args: Bundle?) =
                 DBLoader.createTransactionsLoader(this@OverviewActivity, args!!) as Loader<T>
 
