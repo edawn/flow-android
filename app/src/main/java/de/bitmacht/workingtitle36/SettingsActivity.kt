@@ -22,10 +22,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.preference.ListPreference
 import android.support.v7.preference.PreferenceFragmentCompat
-
-import java.util.Currency
-import java.util.Locale
-import java.util.TreeMap
+import java.util.*
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -44,14 +41,6 @@ class SettingsActivity : AppCompatActivity() {
             val currencyListPref = findPreference(getString(R.string.pref_currency_key)) as ListPreference
 
             val currencies: Collection<Currency>
-
-            // default system currency
-            var defaultCurrencyCode: String? = null
-            try {
-                defaultCurrencyCode = Currency.getInstance(Locale.getDefault()).currencyCode
-            } catch (e: IllegalArgumentException) {
-                logw("no currency for default locale")
-            }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 currencies = Currency.getAvailableCurrencies()
@@ -75,25 +64,19 @@ class SettingsActivity : AppCompatActivity() {
                 currencies = codeToCurrency.values
             }
 
-            val currencyCount = currencies.size
+            val currenciesSorted = currencies.sortedBy { it.currencyCode }
+
+            val currencyCount = currenciesSorted.size
             val currencyNames = arrayOfNulls<CharSequence>(currencyCount)
             val currencyCodes = arrayOfNulls<CharSequence>(currencyCount)
-            // reserve room for the default currency at the top of the list
-            // this will fail if the default currency is not in the list of available currencies
-            var i = if (defaultCurrencyCode == null) 0 else 1
-            for (currency in currencies) {
+
+            currenciesSorted.forEachIndexed { index, currency ->
                 val currencyCode = currency.currencyCode
-                var ri = i++
-                if (defaultCurrencyCode != null && defaultCurrencyCode == currencyCode) {
-                    ri = 0
-                    i--
-                }
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                    currencyNames[ri] = getString(R.string.currency_list_item, currency.displayName, currencyCode)
-                } else {
-                    currencyNames[ri] = getString(R.string.currency_list_item, currencyCode)
-                }
-                currencyCodes[ri] = currencyCode
+                currencyNames[index] =
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+                            getString(R.string.currency_list_item, currency.displayName, currencyCode)
+                        else getString(R.string.currency_list_item, currencyCode)
+                currencyCodes[index] = currencyCode
             }
 
             currencyListPref.entries = currencyNames
