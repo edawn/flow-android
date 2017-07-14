@@ -149,32 +149,18 @@ class WidgetService : Service() {
         val periods = requestPeriods!!
 
         val currencyCode = MyApplication.currency.currencyCode
+
         val (spentDay, spentBeforeDay) = ValueUtils.calculateSpent(transactions!!, currencyCode, periods)
-
-        val regularsValues = ArrayList<Value>(regulars!!.size)
-        for (regular in regulars!!) {
-            regularsValues.add(regular.getCumulativeValue(periods.longStart, periods.longEnd))
-        }
-
-        var regularsSum = Value(currencyCode, 0)
-        try {
-            regularsSum = regularsSum.addAll(regularsValues)
-        } catch (e: Value.CurrencyMismatchException) {
-            logw("adding values failed: ${e.message}")
-        }
+        val regularsSum = ValueUtils.calculateIncome(regulars!!, currencyCode, periods)
 
         val daysTotal = Days.daysBetween(periods.longStart, periods.longEnd).days
         val daysBefore = Days.daysBetween(periods.longStart, periods.shortStart).days
 
-        try {
-            val remainingFromDay = regularsSum.add(spentBeforeDay)
-            val remFromDayPerDay = remainingFromDay.withAmount(remainingFromDay.amount / (daysTotal - daysBefore))
-            val remainingDay = remFromDayPerDay.add(spentDay)
-            setWidgetValue(remainingDay)
-        } catch (e: Value.CurrencyMismatchException) {
-            logw("unable to add: ${e.message}")
-        }
-
+        // The amount one can spend during every short period (day) for the rest of the long period (month)
+        // so that one's income and spending would even out
+        val remainingDay = Value(currencyCode,
+                regularsSum.add(spentBeforeDay).amount / (daysTotal - daysBefore)).add(spentDay)
+        setWidgetValue(remainingDay)
     }
 
     private fun setWidgetValue(remaining: Value) {

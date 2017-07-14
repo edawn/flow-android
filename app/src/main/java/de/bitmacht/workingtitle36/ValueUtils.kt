@@ -57,4 +57,12 @@ object ValueUtils {
                 !transactions.isEmpty(), hasTransactionsDay)
     }
 
+    /**
+     * Calculates the income for the long period.
+     * Only regular transactions having currencyCode will be considered
+     */
+    fun calculateIncome(regulars: List<RegularModel>, currencyCode: String, period: Periods): Value {
+        return Value(currencyCode, 0).addAll(regulars.filter { it.currency == currencyCode }
+                .map { it.getCumulativeValue(period.longStart, period.longEnd) })
+    }
 }

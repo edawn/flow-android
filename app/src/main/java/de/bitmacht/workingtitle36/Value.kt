@@ -28,7 +28,7 @@ import java.util.*
  * @param currencyCode The ISO 4217 currency code
  * @param amount The number of minor currency units
  */
-class Value(val currencyCode: String, val amount: Long) : Parcelable {
+class Value(val currencyCode: String, val amount: Long = 0) : Parcelable {
 
     /**
      * Returns a new Value having the currency of this amount, but with a different amount
@@ -46,23 +46,17 @@ class Value(val currencyCode: String, val amount: Long) : Parcelable {
      */
     @Throws(CurrencyMismatchException::class)
     fun add(other: Value): Value {
-        if (currencyCode != other.currencyCode)
+        if (!isSameCurrency(other))
             throw CurrencyMismatchException("Unable to add ${other.currencyCode} to $currencyCode")
-        return Value(currencyCode, amount + other.amount)
+        return withAmount(amount + other.amount)
     }
 
     /**
-     * Return a new Value with the sum of this and all Values from others
-     * @throws CurrencyMismatchException If any currency code differs from this
+     * Return a new Value with the sum of this and all Values from others having the same currency
      */
-    @Throws(CurrencyMismatchException::class)
     fun addAll(others: Collection<Value>): Value {
-        val sumount = others.fold(amount, { acc, other ->
-            if (currencyCode != other.currencyCode)
-                throw CurrencyMismatchException("Unable to add ${other.currencyCode} to $currencyCode")
-            acc + other.amount
-        })
-        return Value(currencyCode, sumount)
+        return withAmount(others.filter { other -> isSameCurrency(other) }
+                .fold(amount, { acc, other -> acc + other.amount }))
     }
 
     /**
@@ -106,6 +100,10 @@ class Value(val currencyCode: String, val amount: Long) : Parcelable {
             String.format("%s%d", sign, major)
 
         return Pair(valueString, symbol)
+    }
+
+    fun isSameCurrency(other: Value): Boolean {
+        return other.currencyCode == currencyCode
     }
 
     override fun describeContents(): Int = 0

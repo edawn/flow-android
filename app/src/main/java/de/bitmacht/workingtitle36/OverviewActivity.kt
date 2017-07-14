@@ -355,20 +355,8 @@ class OverviewActivity : AppCompatActivity() {
         val currencyCode = MyApplication.currency.currencyCode
 
         val transactionsSum = ValueUtils.calculateSpent(transactions!!, currencyCode).total
-
-        var regularsSum = Value(currencyCode, 0)
-        try {
-            regularsSum = regularsSum.addAll(regulars!!.map { it.getCumulativeValue(periods.longStart, periods.longEnd) })
-        } catch (e: Value.CurrencyMismatchException) {
-            logw("adding values failed: ${e.message}")
-        }
-
-        var remaining = Value(currencyCode, 0)
-        try {
-            remaining = regularsSum.add(transactionsSum)
-        } catch (e: Value.CurrencyMismatchException) {
-            logw("subtraction failed: ${e.message}")
-        }
+        val regularsSum = ValueUtils.calculateIncome(regulars!!, currencyCode, periods)
+        val remaining = regularsSum.add(transactionsSum)
 
         logd("regsum: $regularsSum trsum: $transactionsSum rem: $remaining")
 
