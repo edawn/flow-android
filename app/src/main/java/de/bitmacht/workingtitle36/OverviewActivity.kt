@@ -39,7 +39,6 @@ import android.widget.Button
 import de.bitmacht.workingtitle36.view.HoleyLayout
 import kotlinx.android.synthetic.main.activity_overview.*
 import org.joda.time.DateTime
-import org.joda.time.Days
 import org.joda.time.Interval
 import java.util.*
 
@@ -356,29 +355,21 @@ class OverviewActivity : AppCompatActivity() {
 
         val transactionsSum = ValueUtils.calculateSpent(transactions!!, currencyCode).total
         val regularsSum = ValueUtils.calculateIncome(regulars!!, currencyCode, periods)
-        val remaining = regularsSum.add(transactionsSum)
+        val remainingSum = regularsSum.add(transactionsSum)
 
-        logd("regsum: $regularsSum trsum: $transactionsSum rem: $remaining")
+        logd("regsum: $regularsSum trsum: $transactionsSum rem: $remainingSum")
 
-        month_balance_remain_value.text = remaining.string
+        month_balance_remain_value.text = remainingSum.string
         month_balance_spent_value.text = transactionsSum.withAmount(-transactionsSum.amount).string
         month_balance_available_value.text = regularsSum.string
         adjustExpandButton(month_transactions_button, hasTransactionsMonth, transactions_month)
 
-        try {
-            val remainingFromDay = regularsSum.add(spentBeforeDay!!)
-            val remFromDayPerDay = remainingFromDay.withAmount(remainingFromDay.amount /
-                    (Days.daysBetween(periods.longStart, periods.longEnd).days -
-                            Days.daysBetween(periods.longStart, periods.shortStart).days))
-            val remainingDay = remFromDayPerDay.add(spentDay!!)
+        val remainingDay = ValueUtils.calculateRemaining(regularsSum, spentDay!!, spentBeforeDay!!, currencyCode, periods)
 
-            day_balance_remain_value.text = remainingDay.string
-            day_balance_spent_value.text = spentDay!!.withAmount(-spentDay!!.amount).string
-            day_balance_available_value.text = remFromDayPerDay.string
-            adjustExpandButton(day_transactions_button, hasTransactionsDay, transactions_day)
-        } catch (e: Value.CurrencyMismatchException) {
-            logw("unable to add: ${e.message}")
-        }
+        day_balance_remain_value.text = remainingDay.currentDay.string
+        day_balance_spent_value.text = spentDay!!.withAmount(-spentDay!!.amount).string
+        day_balance_available_value.text = remainingDay.perDay.string
+        adjustExpandButton(day_transactions_button, hasTransactionsDay, transactions_day)
     }
 
     private fun adjustExpandButton(expandButton: Button, setEnabled: Boolean, expandedView: View) {

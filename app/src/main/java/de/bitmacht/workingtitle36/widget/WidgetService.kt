@@ -29,7 +29,6 @@ import android.support.v4.graphics.ColorUtils
 import android.widget.RemoteViews
 import de.bitmacht.workingtitle36.*
 import org.joda.time.DateTime
-import org.joda.time.Days
 import org.joda.time.Interval
 import java.util.*
 
@@ -153,13 +152,8 @@ class WidgetService : Service() {
         val (spentDay, spentBeforeDay) = ValueUtils.calculateSpent(transactions!!, currencyCode, periods)
         val regularsSum = ValueUtils.calculateIncome(regulars!!, currencyCode, periods)
 
-        val daysTotal = Days.daysBetween(periods.longStart, periods.longEnd).days
-        val daysBefore = Days.daysBetween(periods.longStart, periods.shortStart).days
+        val (_, remainingDay) = ValueUtils.calculateRemaining(regularsSum, spentDay, spentBeforeDay, currencyCode, periods)
 
-        // The amount one can spend during every short period (day) for the rest of the long period (month)
-        // so that one's income and spending would even out
-        val remainingDay = Value(currencyCode,
-                regularsSum.add(spentBeforeDay).amount / (daysTotal - daysBefore)).add(spentDay)
         setWidgetValue(remainingDay)
     }
 
