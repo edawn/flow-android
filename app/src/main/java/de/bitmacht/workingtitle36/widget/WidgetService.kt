@@ -146,36 +146,10 @@ class WidgetService : Service() {
             return
         }
 
-        val periods = requestPeriods
+        val periods = requestPeriods!!
 
-        //TODO deduplicate from OverviewActivity#updateTransactions() and OverviewActivity#updateOverview()
-        //though there might be no non-ugly solution ...
-
-        val startOfDayMillis = periods!!.shortStart.millis
-        val endOfDayMillis = periods.shortEnd.millis
         val currencyCode = MyApplication.currency.currencyCode
-        var valueBeforeDay = Value(currencyCode, 0)
-        var valueDay = Value(currencyCode, 0)
-        for (transact in transactions!!) {
-            val transactionTime = transact.mostRecentEdit!!.transactionTime
-            if (transactionTime < startOfDayMillis) {
-                try {
-                    valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit!!.value)
-                } catch (e: Value.CurrencyMismatchException) {
-                    logw("unable to add: ${transact.mostRecentEdit}")
-                }
-
-            } else if (transactionTime < endOfDayMillis) {
-                try {
-                    valueDay = valueDay.add(transact.mostRecentEdit!!.value)
-                } catch (e: Value.CurrencyMismatchException) {
-                    logw("unable to add: ${transact.mostRecentEdit}")
-                }
-
-            }
-        }
-        val spentDay = valueDay
-        val spentBeforeDay = valueBeforeDay
+        val (spentDay, spentBeforeDay) = ValueUtils.calculateSpent(transactions!!, currencyCode, periods)
 
         val regularsValues = ArrayList<Value>(regulars!!.size)
         for (regular in regulars!!) {

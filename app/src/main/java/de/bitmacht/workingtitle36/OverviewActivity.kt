@@ -335,36 +335,14 @@ class OverviewActivity : AppCompatActivity() {
         //TODO respect timezone
         //TODO applying to a result that does not include the current day makes only little sense
         //TODO somehow merge this with TransactionsArrayAdapter#setSubRange()
-        val transactions = transactions ?: return
-        val startOfDayMillis = periods.shortStart.millis
-        val endOfDayMillis = periods.shortEnd.millis
-        val currencyCode = MyApplication.currency.currencyCode
-        var valueBeforeDay = Value(currencyCode, 0)
-        var valueDay = Value(currencyCode, 0)
-        hasTransactionsMonth = !transactions.isEmpty()
-        hasTransactionsDay = false
-        for (transact in transactions) {
-            val transactionTime = transact.mostRecentEdit!!.transactionTime
-            if (transactionTime < startOfDayMillis) {
-                try {
-                    valueBeforeDay = valueBeforeDay.add(transact.mostRecentEdit!!.value)
-                } catch (e: Value.CurrencyMismatchException) {
-                    logw("unable to add: ${transact.mostRecentEdit}: ${e.message}")
-                }
 
-            } else if (transactionTime < endOfDayMillis) {
-                try {
-                    valueDay = valueDay.add(transact.mostRecentEdit!!.value)
-                    hasTransactionsDay = true
-                } catch (e: Value.CurrencyMismatchException) {
-                    logw("unable to add: ${transact.mostRecentEdit}: ${e.message}")
-                }
-
-            }
+        with(ValueUtils.calculateSpent(transactions!!, MyApplication.currency.currencyCode, periods)) {
+            spentDay = currentDay
+            spentBeforeDay = beforeCurrentDay
+            hasTransactionsMonth = hasTransactions
+            hasTransactionsDay = hasTransactionsCurrentDay
         }
-        adapter.setData(transactions, startOfDayMillis, endOfDayMillis)
-        spentDay = valueDay
-        spentBeforeDay = valueBeforeDay
+        adapter.setData(transactions!!, periods.shortStart.millis, periods.shortEnd.millis)
         updateOverview()
     }
 
@@ -376,18 +354,7 @@ class OverviewActivity : AppCompatActivity() {
 
         val currencyCode = MyApplication.currency.currencyCode
 
-        var transactionsSum = Value(currencyCode, 0)
-        for (transaction in transactions!!) {
-            if (transaction.mostRecentEdit == null) {
-                logw("mostRecentEdit is null: transaction: $transaction")
-                continue
-            }
-            try {
-                transactionsSum = transactionsSum.add(transaction.mostRecentEdit!!.value)
-            } catch (e: Value.CurrencyMismatchException) {
-                logw("adding value failed")
-            }
-        }
+        val transactionsSum = ValueUtils.calculateSpent(transactions!!, currencyCode).total
 
         var regularsSum = Value(currencyCode, 0)
         try {
