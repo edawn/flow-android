@@ -99,25 +99,16 @@ class WidgetService : Service() {
 
         (getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(alarmPendingIntent)
 
-        if (transactionsLoader != null) {
-
-            transactionsLoader!!.unregisterListener(transactionsLoadCompleteListener)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                transactionsLoader!!.cancelLoad()
-            }
-            transactionsLoader!!.stopLoading()
-        }
-
-        if (regularsLoader != null) {
-
-            regularsLoader!!.unregisterListener(regularsLoadCompleteListener)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-                regularsLoader!!.cancelLoad()
-            }
-            regularsLoader!!.stopLoading()
-        }
+        transactionsLoader?.stopLoader(transactionsLoadCompleteListener)
+        regularsLoader?.stopLoader(regularsLoadCompleteListener)
 
         super.onDestroy()
+    }
+
+    private inline fun <reified T> DBLoader<T>.stopLoader(listener: Loader.OnLoadCompleteListener<T>) {
+        unregisterListener(listener)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) cancelLoad()
+        stopLoading()
     }
 
     private fun startLoaders() {
@@ -125,22 +116,16 @@ class WidgetService : Service() {
         requestPeriods = null
         transactions = null
 
-        if (regularsLoader != null) {
-            regularsLoader!!.reset()
-        }
-        regularsLoader = DBLoader.createRegularsLoader(this)
-
-        regularsLoader!!.registerListener(LOADER_ID_REGULARS, regularsLoadCompleteListener)
-        regularsLoader!!.startLoading()
-
-        if (transactionsLoader != null) {
-            transactionsLoader!!.reset()
-        }
-
-        transactionsLoader = DBLoader.createTransactionsLoader(this, Periods())
-
-        transactionsLoader!!.registerListener(LOADER_ID_TRANSACTIONS, transactionsLoadCompleteListener)
-        transactionsLoader!!.startLoading()
+        regularsLoader = startLoader(regularsLoader, { DBLoader.createRegularsLoader(this) },
+                LOADER_ID_REGULARS, regularsLoadCompleteListener)
+        transactionsLoader = startLoader(transactionsLoader, { DBLoader.Companion.createTransactionsLoader(this, Periods()) },
+                LOADER_ID_TRANSACTIONS, transactionsLoadCompleteListener)
+    }
+    
+    private inline fun <reified T> startLoader(oldLoader: DBLoader<T>?, creator: () -> DBLoader<T>, id: Int,
+                                               listener: Loader.OnLoadCompleteListener<T>): DBLoader<T> {
+        oldLoader?.reset()
+        return creator().apply { registerListener(id, listener); startLoading() }
     }
 
     override fun onBind(intent: Intent): IBinder? {
