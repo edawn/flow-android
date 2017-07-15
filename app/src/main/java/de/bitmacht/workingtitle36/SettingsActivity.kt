@@ -38,8 +38,6 @@ class SettingsActivity : AppCompatActivity() {
 
             addPreferencesFromResource(R.xml.preferences)
 
-            val currencyListPref = findPreference(getString(R.string.pref_currency_key)) as ListPreference
-
             val currencies: Collection<Currency>
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -48,18 +46,14 @@ class SettingsActivity : AppCompatActivity() {
                 val locales = Locale.getAvailableLocales()
                 val codeToCurrency = TreeMap<String, Currency>()
                 for (locale in locales) {
-                    var currency: Currency? = null
                     try {
-                        currency = Currency.getInstance(locale)
+                        with (Currency.getInstance(locale) ?: continue) {
+                            if (!codeToCurrency.containsKey(currencyCode))
+                                codeToCurrency.put(currencyCode, this)
+                        }
                     } catch (e: IllegalArgumentException) {
                         logw("locale without currency: $locale")
-                        continue
                     }
-
-                    if (codeToCurrency.containsKey(currency!!.currencyCode)) {
-                        continue
-                    }
-                    codeToCurrency.put(currency.currencyCode, currency)
                 }
                 currencies = codeToCurrency.values
             }
@@ -79,8 +73,10 @@ class SettingsActivity : AppCompatActivity() {
                 currencyCodes[index] = currencyCode
             }
 
-            currencyListPref.entries = currencyNames
-            currencyListPref.entryValues = currencyCodes
+            with(findPreference(getString(R.string.pref_currency_key)) as ListPreference) {
+                entries = currencyNames
+                entryValues = currencyCodes
+            }
         }
 
         override fun onCreatePreferences(bundle: Bundle?, s: String?) {}
