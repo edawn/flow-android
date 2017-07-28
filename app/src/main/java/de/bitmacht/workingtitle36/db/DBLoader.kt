@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package de.bitmacht.workingtitle36
+package de.bitmacht.workingtitle36.db
 
 import android.content.AsyncTaskLoader
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.os.Bundle
+import de.bitmacht.workingtitle36.Periods
+import de.bitmacht.workingtitle36.RegularModel
+import de.bitmacht.workingtitle36.TransactionsModel
 import java.util.*
 
 typealias LoaderAction<R> = (SQLiteDatabase) -> R
@@ -95,7 +98,7 @@ class DBLoader<T> private constructor(context: Context, private val action: Load
                 db.rawQuery(if (includeDisabled) DBHelper.REGULARS_QUERY else DBHelper.ACTIVE_REGULARS_QUERY, null)
                         .use { cursor ->
                             with(ArrayList<RegularModel>(cursor.count)) {
-                                while (cursor.moveToNext()) add(de.bitmacht.workingtitle36.RegularModel(cursor))
+                                while (cursor.moveToNext()) add(RegularModel(cursor))
                                 this
                             }
                         }

@@ -19,6 +19,7 @@ package de.bitmacht.workingtitle36
 import android.app.Application
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
+import de.bitmacht.workingtitle36.db.DBHelper
 
 
 import java.util.Currency
@@ -36,6 +37,8 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        dbHelper = DBHelper(this)
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         initPrefs(prefs)
@@ -72,5 +75,8 @@ class MyApplication : Application() {
     companion object {
 
         var currency: Currency = Currency.getInstance(Locale.getDefault())
+
+        lateinit var dbHelper: DBHelper
+            private set
     }
 }

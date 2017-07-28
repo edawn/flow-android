@@ -28,12 +28,18 @@ import android.support.v4.content.LocalBroadcastManager
 import android.support.v4.graphics.ColorUtils
 import android.widget.RemoteViews
 import de.bitmacht.workingtitle36.*
+import de.bitmacht.workingtitle36.db.DBLoader
+import de.bitmacht.workingtitle36.db.DBManager
+import de.bitmacht.workingtitle36.db.DBTask
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposables
+import io.reactivex.schedulers.Schedulers
 import org.joda.time.DateTime
 import org.joda.time.Interval
 import java.util.*
 
 class WidgetService : Service() {
-    private var regularsLoader: DBLoader<ArrayList<RegularModel>>? = null
+    private var regularsDisposable = Disposables.disposed()
     private var transactionsLoader: DBLoader<DBLoader.TransactionsResult>? = null
 
     private var regulars: ArrayList<RegularModel>? = null
@@ -48,11 +54,6 @@ class WidgetService : Service() {
             logd("received: $intent")
             start()
         }
-    }
-
-    private val regularsLoadCompleteListener = Loader.OnLoadCompleteListener<ArrayList<RegularModel>> { _, data ->
-        regulars = data
-        updateWidget()
     }
 
     private val transactionsLoadCompleteListener = Loader.OnLoadCompleteListener<DBLoader.TransactionsResult> { _, data ->
@@ -96,7 +97,7 @@ class WidgetService : Service() {
         (getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(alarmPendingIntent)
 
         transactionsLoader?.stopLoader(transactionsLoadCompleteListener)
-        regularsLoader?.stopLoader(regularsLoadCompleteListener)
+        regularsDisposable.dispose()
 
         super.onDestroy()
     }
@@ -112,8 +113,11 @@ class WidgetService : Service() {
         requestPeriods = null
         transactions = null
 
-        regularsLoader = startLoader(regularsLoader, { DBLoader.createRegularsLoader(this) },
-                LOADER_ID_REGULARS, regularsLoadCompleteListener)
+        regularsDisposable = DBManager.instance.getRegularsObservable().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .subscribe { result ->
+                    regulars = result.regulars
+                    updateWidget()
+                }
         transactionsLoader = startLoader(transactionsLoader, { DBLoader.Companion.createTransactionsLoader(this, Periods()) },
                 LOADER_ID_TRANSACTIONS, transactionsLoadCompleteListener)
     }
@@ -188,7 +192,6 @@ class WidgetService : Service() {
     }
 
     companion object {
-        val LOADER_ID_REGULARS = 0
         val LOADER_ID_TRANSACTIONS = 1
     }
 

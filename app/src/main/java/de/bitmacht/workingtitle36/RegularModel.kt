@@ -22,6 +22,7 @@ import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
 import android.support.annotation.IntDef
+import de.bitmacht.workingtitle36.db.DBHelper
 import org.joda.time.DateTime
 import org.joda.time.Days
 import org.joda.time.Months

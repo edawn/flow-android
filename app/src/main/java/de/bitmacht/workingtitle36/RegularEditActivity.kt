@@ -22,6 +22,8 @@ import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import de.bitmacht.workingtitle36.db.DBHelper
+import de.bitmacht.workingtitle36.db.DBManager
 import kotlinx.android.synthetic.main.accept_dismiss_toolbar.*
 import kotlinx.android.synthetic.main.activity_regular_edit.*
 import org.joda.time.DateTimeConstants
@@ -46,7 +48,7 @@ class RegularEditActivity : AppCompatActivity(), DatePickerFragment.OnDateSetLis
 
         cancel_button.setOnClickListener({ finish() })
         accept_button.setOnClickListener({
-            DBTask.createRegularsUpdateTask(this, getRegular()).execute()
+            DBManager.instance.updateRegular(getRegular())
             setResult(Activity.RESULT_OK)
             finish()
         })

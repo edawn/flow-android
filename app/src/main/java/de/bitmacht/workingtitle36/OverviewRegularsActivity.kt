@@ -17,23 +17,26 @@
 package de.bitmacht.workingtitle36
 
 import android.app.Activity
-import android.app.LoaderManager
 import android.content.Intent
-import android.content.Loader
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
+import de.bitmacht.workingtitle36.db.DBManager
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposables
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_regulars_overview.*
-import java.util.*
 
 class OverviewRegularsActivity : AppCompatActivity() {
 
     private lateinit var regularsAdapter: RegularsAdapter
 
     private var regularsModified = false
+
+    private var regularsDisposable = Disposables.disposed()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,12 +51,12 @@ class OverviewRegularsActivity : AppCompatActivity() {
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val regular = regularsAdapter.removeItem(viewHolder as BaseTransactionsAdapter<*>.BaseTransactionVH)
-                DBTask.createRegularsRemoveTask(this@OverviewRegularsActivity, regular.id!!).execute()
+                DBManager.instance.deleteRegular(regular.id!!)
                 regularsModified = true
                 setResult(Activity.RESULT_OK)
                 Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG)
                         .setAction(R.string.snackbar_undo, {
-                            DBTask.createRegularsUpdateTask(this@OverviewRegularsActivity, regular).execute()
+                            DBManager.instance.updateRegular(regular)
                         }).show()
             }
         }
@@ -72,8 +75,6 @@ class OverviewRegularsActivity : AppCompatActivity() {
 
         findViewById(R.id.fab).setOnClickListener { v -> startActivityForResult(Intent(v.context, RegularEditActivity::class.java), REQUEST_REGULAR_EDIT) }
 
-        loaderManager.initLoader(LOADER_ID_REGULARS, null, regularsLoaderListener)
-
         savedInstanceState?.apply {
             if (getBoolean(REGULARS_MODIFIED_KEY)) {
                 regularsModified = true
@@ -82,13 +83,20 @@ class OverviewRegularsActivity : AppCompatActivity() {
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_REGULAR_EDIT && resultCode == Activity.RESULT_OK) {
-            loaderManager.restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener)
-            setResult(Activity.RESULT_OK)
-            regularsModified = true
-        }
+    override fun onStart() {
+        super.onStart()
+        logd("-")
+        regularsDisposable.dispose()
+        regularsDisposable = DBManager.instance.getRegularsObservable().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .doOnNext {
+                    logd("setting: ${it.regulars}")
+                    regularsAdapter.setData(it.regulars)
+                }.subscribe()
+    }
+
+    override fun onStop() {
+        regularsDisposable.dispose()
+        super.onStop()
     }
 
     public override fun onSaveInstanceState(outState: Bundle) {
@@ -98,19 +106,7 @@ class OverviewRegularsActivity : AppCompatActivity() {
         }
     }
 
-    private val regularsLoaderListener = object<T: ArrayList<RegularModel>> : LoaderManager.LoaderCallbacks<T> {
-
-        override fun onCreateLoader(id: Int, args: Bundle?) =
-                DBLoader.createRegularsLoader(this@OverviewRegularsActivity) as Loader<T>
-
-        override fun onLoadFinished(loader: Loader<T>, data: T) = regularsAdapter.setData(data)
-
-        override fun onLoaderReset(loader: Loader<T>) {}
-    }
-
     companion object {
-
-        private val LOADER_ID_REGULARS = 0
 
         val REQUEST_REGULAR_EDIT = 0
 

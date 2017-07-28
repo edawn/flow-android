@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package de.bitmacht.workingtitle36
+package de.bitmacht.workingtitle36.db
 
 import android.content.ContentValues
 import android.content.Context
@@ -23,6 +23,7 @@ import android.database.sqlite.SQLiteDatabase
 import android.os.AsyncTask
 import android.support.annotation.CallSuper
 import android.support.v4.content.LocalBroadcastManager
+import de.bitmacht.workingtitle36.*
 
 typealias TaskAction = (SQLiteDatabase) -> Unit
 
@@ -60,20 +61,6 @@ class DBTask private constructor(context: Context, private val action: TaskActio
     companion object {
 
         val ACTION_DB_MODIFIED = "de.bitmacht.workingtitle36.action.DB_MODIFIED"
-
-        fun createRegularsUpdateTask(context: Context, regular: RegularModel): DBTask {
-            return DBTask(context, { db: SQLiteDatabase ->
-                db.insertWithOnConflict(DBHelper.REGULARS_TABLE_NAME, null,
-                        regular.toContentValues(), SQLiteDatabase.CONFLICT_REPLACE)
-            }, "regular update")
-        }
-
-        fun createRegularsRemoveTask(context: Context, regularId: Long): DBTask {
-            return DBTask(context, { db: SQLiteDatabase ->
-                val count = db.delete(DBHelper.REGULARS_TABLE_NAME, "${DBHelper.REGULARS_KEY_ID} = ?", arrayOf(regularId.toString()))
-                if (count != 1) logw("$count rows deleted; expected one; regular id: $regularId")
-            }, "regular removal")
-        }
 
         fun createTransactionUpdateTask(context: Context, transaction: TransactionsModel): DBTask {
             return DBTask(context, { db: SQLiteDatabase ->

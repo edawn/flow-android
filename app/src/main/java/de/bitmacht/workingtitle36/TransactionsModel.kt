@@ -20,6 +20,7 @@ import android.content.ContentValues
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
+import de.bitmacht.workingtitle36.db.DBHelper
 
 /**
  * This represents a transaction

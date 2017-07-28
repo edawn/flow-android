@@ -19,6 +19,7 @@ package de.bitmacht.workingtitle36
 import android.database.Cursor
 import android.os.Parcel
 import android.os.Parcelable
+import de.bitmacht.workingtitle36.db.DBHelper
 import java.util.*
 
 /**

@@ -18,15 +18,20 @@ package de.bitmacht.workingtitle36
 
 
 import android.app.DialogFragment
-import android.app.LoaderManager
 import android.app.TimePickerDialog
-import android.content.Loader
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.TimePicker
+import de.bitmacht.workingtitle36.db.DBHelper
+import de.bitmacht.workingtitle36.db.DBManager
+import de.bitmacht.workingtitle36.db.DBTask
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.accept_dismiss_toolbar.*
 import kotlinx.android.synthetic.main.activity_transaction_edit.*
 import java.util.*
@@ -107,15 +112,15 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
 
         value_input.value = value
 
-        loaderManager.initLoader(0, Bundle().apply {
-            putString(DBLoader.ARG_COLUMN, DBLoader.COLUMN_DESCRIPTION)
-            putString(DBLoader.ARG_QUERY, description.text.toString())
-        }, suggestionsListener)
+        loadSuggestions(DBManager.COLUMN_DESCRIPTION, description)
+        loadSuggestions(DBManager.COLUMN_LOCATION, location)
+    }
 
-        loaderManager.initLoader(1, Bundle().apply {
-            putString(DBLoader.ARG_COLUMN, DBLoader.COLUMN_LOCATION)
-            putString(DBLoader.ARG_QUERY, location.text.toString())
-        }, suggestionsListener)
+    //TODO consider loading suggestions on demand (i.e. reload when user enters new/more text)
+    private fun loadSuggestions(column: String, targetView: AutoCompleteTextView): Disposable {
+        return DBManager.instance.getSuggestions(column, "").subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .doOnSuccess { targetView.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, it.suggestions.map { it.text })) }
+                .subscribe()
     }
 
     override fun onResume() {
@@ -168,24 +173,6 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
     private val edit: Edit
         get() = Edit(parentId, transactionId, transactionTime.timeInMillis,
                 description.text.toString(), location.text.toString(), value_input.value!!)
-
-    private val suggestionsListener = object<T : DBLoader.SuggestionsResult> : LoaderManager.LoaderCallbacks<T> {
-        override fun onCreateLoader(id: Int, args: Bundle): Loader<T> =
-                DBLoader.createSuggestionsLoader(this@TransactionEditActivity, args) as Loader<T>
-
-        override fun onLoadFinished(loader: Loader<T>, data: T?) {
-            data?.let {
-                when (it.column) {
-                    DBLoader.COLUMN_DESCRIPTION -> description
-                    DBLoader.COLUMN_LOCATION -> location
-                    else -> null
-                }?.setAdapter(ArrayAdapter(this@TransactionEditActivity,
-                        android.R.layout.simple_dropdown_item_1line, it.suggestions.map { it.text }))
-            }
-        }
-
-        override fun onLoaderReset(loader: Loader<T>) {}
-    }
 
     companion object {
 

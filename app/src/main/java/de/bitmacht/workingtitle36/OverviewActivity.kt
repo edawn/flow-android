@@ -36,6 +36,8 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.Button
+import de.bitmacht.workingtitle36.db.DBLoader
+import de.bitmacht.workingtitle36.db.DBTask
 import de.bitmacht.workingtitle36.view.HoleyLayout
 import kotlinx.android.synthetic.main.activity_overview.*
 import org.joda.time.DateTime
