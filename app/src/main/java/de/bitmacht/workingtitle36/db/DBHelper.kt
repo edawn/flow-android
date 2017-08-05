@@ -253,18 +253,5 @@ class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null
          */
         const val ACTIVE_REGULARS_QUERY =
                 "SELECT * FROM $REGULARS_TABLE_NAME WHERE NOT $REGULARS_KEY_IS_DISABLED"
-
-        /**
-         * Query the database for regular transactions
-         * @see DBHelper.ACTIVE_REGULARS_QUERY
-         */
-        fun queryRegulars(dbHelper: DBHelper, includeDisabled: Boolean = false): ArrayList<RegularModel> =
-                dbHelper.readableDatabase.rawQuery(if (includeDisabled) REGULARS_QUERY else ACTIVE_REGULARS_QUERY, null)
-                        .use { cursor ->
-                            with(ArrayList<RegularModel>(cursor.count)) {
-                                while (cursor.moveToNext()) add(RegularModel(cursor))
-                                this
-                            }
-                        }
     }
 }
