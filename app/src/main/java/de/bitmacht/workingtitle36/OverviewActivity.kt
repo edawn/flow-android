@@ -17,15 +17,13 @@
 package de.bitmacht.workingtitle36
 
 import android.annotation.SuppressLint
-import android.app.LoaderManager
-import android.content.*
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Parcelable
 import android.support.annotation.IntDef
 import android.support.design.widget.NavigationView
 import android.support.design.widget.Snackbar
-import android.support.v4.content.LocalBroadcastManager
 import android.support.v7.app.ActionBarDrawerToggle
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
@@ -36,9 +34,12 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.Button
-import de.bitmacht.workingtitle36.db.DBLoader
-import de.bitmacht.workingtitle36.db.DBTask
+import de.bitmacht.workingtitle36.db.DBManager
 import de.bitmacht.workingtitle36.view.HoleyLayout
+import de.bitmacht.workingtitle36.view.toggleVisibility
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.Disposables
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_overview.*
 import org.joda.time.DateTime
 import org.joda.time.Interval
@@ -54,7 +55,11 @@ class OverviewActivity : AppCompatActivity() {
 
     private lateinit var drawerToggle: ActionBarDrawerToggle
 
+    private var regularsDisposable = Disposables.disposed()
+
     private var regulars: ArrayList<RegularModel>? = null
+
+    private var transactionsDisposable = Disposables.disposed()
     /** The transactions for the currently selected month */
     private var transactions: ArrayList<TransactionsModel>? = null
     private var hasTransactionsMonth = false
@@ -77,15 +82,6 @@ class OverviewActivity : AppCompatActivity() {
 
     @SuppressLint("UseSparseArrays")
     private var periodHistory = HashMap<Long, Periods>()
-
-    private val dataModifiedReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            logd("received: $intent")
-
-            loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                    Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) }, transactionsListener)
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -115,15 +111,8 @@ class OverviewActivity : AppCompatActivity() {
 
         fun showHideListenerFactory(recyclerView: RecyclerView) =
                 View.OnClickListener { button ->
-                    val newVisibility = if (recyclerView.visibility == View.VISIBLE) View.GONE else View.VISIBLE
-                    recyclerView.visibility = newVisibility
-                    if (newVisibility == View.VISIBLE) {
-                        loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                                Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) },
-                                transactionsListener)
-                    } else {
-                        (button as Button).setText(R.string.overview_transactions_show)
-                    }
+                    recyclerView.toggleVisibility()
+                    adjustExpandButton(button as Button, recyclerView.adapter.itemCount != 0, recyclerView)
                 }
         month_transactions_button.setOnClickListener(showHideListenerFactory(transactions_month))
         day_transactions_button.setOnClickListener(showHideListenerFactory(transactions_day))
@@ -153,14 +142,12 @@ class OverviewActivity : AppCompatActivity() {
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val transaction = adapter.removeItem(viewHolder as BaseTransactionsAdapter<*>.BaseTransactionVH)
-                transaction.isRemoved = true
-                DBTask.createTransactionUpdateTask(this@OverviewActivity, transaction).execute()
+                DBManager.instance.deleteTransaction(transaction)
                 //TODO this should be shown only after a successful removal
 
                 Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG)
                         .setAction(R.string.snackbar_undo, {
-                            transaction.isRemoved = false
-                            DBTask.createTransactionUpdateTask(this@OverviewActivity, transaction).execute()
+                            DBManager.instance.deleteTransaction(transaction, true)
                         }).show()
                 transactions!!.remove(transaction)
                 updateOverview()
@@ -206,7 +193,6 @@ class OverviewActivity : AppCompatActivity() {
             periodHistory = getSerializable(STATE_PERIOD_HISTORY) as HashMap<Long, Periods>
         }
 
-        loaderManager.initLoader(LOADER_ID_REGULARS, null, regularsLoaderListener)
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
@@ -223,16 +209,37 @@ class OverviewActivity : AppCompatActivity() {
         super.onStart()
         logd("-")
 
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(dataModifiedReceiver, IntentFilter(DBTask.ACTION_DB_MODIFIED))
+        regularsDisposable.dispose()
+        regularsDisposable = DBManager.instance.getRegularsObservable().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .doOnNext {
+                    logd("received regulars result: $it")
+                    regulars = it.regulars
+                    updateOverview()
+                }.subscribe()
 
-        loaderManager.initLoader(LOADER_ID_TRANSACTIONS,
-                Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) }, transactionsListener)
+        requestTransactions(periods)
+    }
+
+    private fun requestTransactions(periods: Periods) {
+        logd("periods: $periods")
+        transactionsDisposable.dispose()
+        transactionsDisposable = DBManager.instance.getTransactionsObservable(periods)
+                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(createTransactionsProcessor(periods)).subscribe()
+    }
+
+    private fun createTransactionsProcessor(periods: Periods): (DBManager.TransactionsResult) -> Unit = {
+        logd("received transactions result: $it")
+        this.periods = periods
+        transactions = it.transactions
+        onPeriodChanged()
+        updateTransactions()
     }
 
     override fun onStop() {
         logd("-")
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(dataModifiedReceiver)
+        transactionsDisposable.dispose()
+        regularsDisposable.dispose()
         super.onStop()
     }
 
@@ -271,18 +278,9 @@ class OverviewActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
-            REQUEST_TRANSACTION_NEW, REQUEST_TRANSACTION_EDIT -> if (resultCode == RESULT_OK) {
-                loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                        Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) }, transactionsListener)
-            }
-            REQUEST_REGULARS_OVERVIEW -> if (resultCode == RESULT_OK) {
-                loaderManager.restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener)
-            }
             REQUEST_SETTINGS -> {
                 //TODO check if settings actually changed before updating
-                loaderManager.restartLoader(LOADER_ID_REGULARS, null, regularsLoaderListener)
-                loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                        Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, periods) }, transactionsListener)
+                updateOverview()
             }
         }
     }
@@ -297,8 +295,7 @@ class OverviewActivity : AppCompatActivity() {
     private fun changeMonth(@PeriodModifier periodModifier: Int) {
         var newPeriods = if (periodModifier == PERIOD_BEFORE) periods.previousLong else periods.nextLong
         periodHistory[newPeriods.longStart.millis]?.let { newPeriods = it }
-        loaderManager.restartLoader(LOADER_ID_TRANSACTIONS,
-                Bundle().apply { putParcelable(DBLoader.ARG_PERIODS, newPeriods) }, transactionsListener)
+        requestTransactions(newPeriods)
     }
 
     private fun changeDay(@PeriodModifier periodModifier: Int) {
@@ -308,6 +305,7 @@ class OverviewActivity : AppCompatActivity() {
     }
 
     private fun onPeriodChanged() {
+        logd("-")
         periodHistory.put(periods.longStart.millis, periods)
 
         val now = DateTime.now()
@@ -332,6 +330,7 @@ class OverviewActivity : AppCompatActivity() {
      * Call this when the transactions have changed
      */
     private fun updateTransactions() {
+        logd("-")
         // filter the transactions so we get only the transactions performed on the selected day
         //TODO respect timezone
         //TODO applying to a result that does not include the current day makes only little sense
@@ -348,6 +347,7 @@ class OverviewActivity : AppCompatActivity() {
     }
 
     private fun updateOverview() {
+        logd("-")
         if (regulars == null || transactions == null || spentDay == null || spentBeforeDay == null) {
             logw("not initialized yet")
             return
@@ -389,33 +389,6 @@ class OverviewActivity : AppCompatActivity() {
         }
     }
 
-    private val regularsLoaderListener = object<T : ArrayList<RegularModel>> : LoaderManager.LoaderCallbacks<T> {
-
-        override fun onCreateLoader(id: Int, args: Bundle?) =
-                DBLoader.createRegularsLoader(this@OverviewActivity) as Loader<T>
-
-        override fun onLoadFinished(loader: Loader<T>, data: T?) {
-            regulars = data
-            updateOverview()
-        }
-
-        override fun onLoaderReset(loader: Loader<T>) {}
-    }
-
-    private val transactionsListener = object<T : DBLoader.TransactionsResult> : LoaderManager.LoaderCallbacks<T> {
-        override fun onCreateLoader(id: Int, args: Bundle?) =
-                DBLoader.createTransactionsLoader(this@OverviewActivity, args!!) as Loader<T>
-
-        override fun onLoadFinished(loader: Loader<T>, data: T?) {
-            transactions = data!!.transactions
-            periods = data.periods
-            onPeriodChanged()
-            updateTransactions()
-        }
-
-        override fun onLoaderReset(loader: Loader<T>) {}
-    }
-
     companion object {
 
         private val STATE_REGULARS = "regulars"
@@ -425,9 +398,6 @@ class OverviewActivity : AppCompatActivity() {
         private val STATE_MONTH_RECYCLER_VISIBLE = "transactions_monthVisible"
         private val STATE_DAY_RECYCLER_VISIBLE = "transactions_dayVisible"
         private val STATE_PERIOD_HISTORY = "periodHistory"
-
-        private val LOADER_ID_REGULARS = 0
-        private val LOADER_ID_TRANSACTIONS = 1
 
         val REQUEST_TRANSACTION_NEW = 0
         val REQUEST_REGULARS_OVERVIEW = 1

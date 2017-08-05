@@ -20,17 +20,16 @@ import android.app.AlarmManager
 import android.app.PendingIntent
 import android.app.Service
 import android.appwidget.AppWidgetManager
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.app.TaskStackBuilder
-import android.support.v4.content.LocalBroadcastManager
 import android.support.v4.graphics.ColorUtils
 import android.widget.RemoteViews
 import de.bitmacht.workingtitle36.*
-import de.bitmacht.workingtitle36.db.DBLoader
 import de.bitmacht.workingtitle36.db.DBManager
-import de.bitmacht.workingtitle36.db.DBTask
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposables
 import io.reactivex.schedulers.Schedulers
@@ -40,7 +39,7 @@ import java.util.*
 
 class WidgetService : Service() {
     private var regularsDisposable = Disposables.disposed()
-    private var transactionsLoader: DBLoader<DBLoader.TransactionsResult>? = null
+    private var transactionsDisposable = Disposables.disposed()
 
     private var regulars: ArrayList<RegularModel>? = null
     private var requestPeriods: Periods? = null
@@ -49,23 +48,9 @@ class WidgetService : Service() {
 
     private var alarmPendingIntent: PendingIntent? = null
 
-    private val dataModifiedReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            logd("received: $intent")
-            start()
-        }
-    }
-
-    private val transactionsLoadCompleteListener = Loader.OnLoadCompleteListener<DBLoader.TransactionsResult> { _, data ->
-        transactions = data!!.transactions
-        requestPeriods = data.periods
-        updateWidget()
-    }
-
     override fun onCreate() {
         super.onCreate()
         logd("-")
-        LocalBroadcastManager.getInstance(this).registerReceiver(dataModifiedReceiver, IntentFilter(DBTask.ACTION_DB_MODIFIED))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -92,23 +77,18 @@ class WidgetService : Service() {
 
     override fun onDestroy() {
         logd("-")
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(dataModifiedReceiver)
-
         (getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(alarmPendingIntent)
 
-        transactionsLoader?.stopLoader(transactionsLoadCompleteListener)
+        transactionsDisposable.dispose()
         regularsDisposable.dispose()
 
         super.onDestroy()
     }
 
-    private inline fun <reified T> DBLoader<T>.stopLoader(listener: Loader.OnLoadCompleteListener<T>) {
-        unregisterListener(listener)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) cancelLoad()
-        stopLoading()
-    }
-
     private fun startLoaders() {
+        transactionsDisposable.dispose()
+        regularsDisposable.dispose()
+
         regulars = null
         requestPeriods = null
         transactions = null
@@ -118,14 +98,18 @@ class WidgetService : Service() {
                     regulars = result.regulars
                     updateWidget()
                 }
-        transactionsLoader = startLoader(transactionsLoader, { DBLoader.Companion.createTransactionsLoader(this, Periods()) },
-                LOADER_ID_TRANSACTIONS, transactionsLoadCompleteListener)
+
+        transactionsDisposable = DBManager.instance.getTransactionsObservable(Periods())
+                .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+                .doOnNext(createTransactionsProcessor(Periods()))
+                .subscribe()
     }
-    
-    private inline fun <reified T> startLoader(oldLoader: DBLoader<T>?, creator: () -> DBLoader<T>, id: Int,
-                                               listener: Loader.OnLoadCompleteListener<T>): DBLoader<T> {
-        oldLoader?.reset()
-        return creator().apply { registerListener(id, listener); startLoading() }
+
+    private fun createTransactionsProcessor(periods: Periods): (DBManager.TransactionsResult) -> Unit = {
+        logd("received transactions result: $it")
+        requestPeriods = periods
+        transactions = it.transactions
+        updateWidget()
     }
 
     override fun onBind(intent: Intent): IBinder? = null
@@ -188,11 +172,5 @@ class WidgetService : Service() {
 
             widgetManager.updateAppWidget(widgetId, views)
         }
-
     }
-
-    companion object {
-        val LOADER_ID_TRANSACTIONS = 1
-    }
-
 }

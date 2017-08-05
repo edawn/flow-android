@@ -28,7 +28,6 @@ import android.widget.AutoCompleteTextView
 import android.widget.TimePicker
 import de.bitmacht.workingtitle36.db.DBHelper
 import de.bitmacht.workingtitle36.db.DBManager
-import de.bitmacht.workingtitle36.db.DBTask
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -57,8 +56,9 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
         // or: save the data, finish and show a snackbar
         cancel_button.setOnClickListener({ finish() })
         accept_button.setOnClickListener({
-            logd("edit: $edit")
-            DBTask.createEditUpdateTask(this, edit).execute()
+            logd("accepted edit: $edit")
+
+            DBManager.instance.createEdit(edit)
             //TODO wait for the update to finish
             finish()
         })

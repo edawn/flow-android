@@ -52,6 +52,9 @@ class TransactionsModel private constructor(val id: Long = 0, var isRemoved: Boo
 
     constructor(src: Parcel) : this(src.readLong(), src.readInt() == 1, src.readParcelable<Edit>(Edit::class.java.classLoader))
 
+    /** Return a shallow copy */
+    fun copy(): TransactionsModel = TransactionsModel(id, isRemoved, mostRecentEdit)
+
     companion object {
 
         /**
