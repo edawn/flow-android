@@ -62,8 +62,6 @@ class OverviewActivity : AppCompatActivity() {
     private var transactionsDisposable = Disposables.disposed()
     /** The transactions for the currently selected month */
     private var transactions: ArrayList<TransactionsModel>? = null
-    private var hasTransactionsMonth = false
-    private var hasTransactionsDay = false
 
     private lateinit var adapter: TransactionsArrayAdapter
 
@@ -73,12 +71,8 @@ class OverviewActivity : AppCompatActivity() {
      */
     private var isViewingToday = true
     private var periods = Periods()
-    /**
-     * Value of the transactions between the start of the accounting period (including) and
-     * the selected day
-     */
-    private var spentBeforeDay: Value? = null
-    private var spentDay: Value? = null
+
+    private var spent: ValueUtils.SpentResult? = null
 
     @SuppressLint("UseSparseArrays")
     private var periodHistory = HashMap<Long, Periods>()
@@ -280,7 +274,10 @@ class OverviewActivity : AppCompatActivity() {
         when (requestCode) {
             REQUEST_SETTINGS -> {
                 //TODO check if settings actually changed before updating
-                updateOverview()
+                logd("settings may have changed")
+                transactions = null
+                regulars = null
+                requestTransactions(periods)
             }
         }
     }
@@ -336,19 +333,14 @@ class OverviewActivity : AppCompatActivity() {
         //TODO applying to a result that does not include the current day makes only little sense
         //TODO somehow merge this with TransactionsArrayAdapter#setSubRange()
 
-        with(ValueUtils.calculateSpent(transactions!!, MyApplication.currency.currencyCode, periods)) {
-            spentDay = currentDay
-            spentBeforeDay = beforeCurrentDay
-            hasTransactionsMonth = hasTransactions
-            hasTransactionsDay = hasTransactionsCurrentDay
-        }
+        spent = ValueUtils.calculateSpent(transactions!!, MyApplication.currency.currencyCode, periods)
         adapter.setData(transactions!!, periods.shortStart.millis, periods.shortEnd.millis)
         updateOverview()
     }
 
     private fun updateOverview() {
         logd("-")
-        if (regulars == null || transactions == null || spentDay == null || spentBeforeDay == null) {
+        if (regulars == null || transactions == null || spent == null) {
             logw("not initialized yet")
             return
         }
@@ -364,14 +356,14 @@ class OverviewActivity : AppCompatActivity() {
         month_balance_remain_value.text = remainingSum.string
         month_balance_spent_value.text = transactionsSum.withAmount(-transactionsSum.amount).string
         month_balance_available_value.text = regularsSum.string
-        adjustExpandButton(month_transactions_button, hasTransactionsMonth, transactions_month)
+        adjustExpandButton(month_transactions_button, spent!!.hasTransactions, transactions_month)
 
-        val remainingDay = ValueUtils.calculateRemaining(regularsSum, spentDay!!, spentBeforeDay!!, currencyCode, periods)
+        val remainingDay = ValueUtils.calculateRemaining(regularsSum, spent!!.currentDay, spent!!.beforeCurrentDay, currencyCode, periods)
 
         day_balance_remain_value.text = remainingDay.currentDay.string
-        day_balance_spent_value.text = spentDay!!.withAmount(-spentDay!!.amount).string
+        day_balance_spent_value.text = spent!!.currentDay.withAmount(-spent!!.currentDay.amount).string
         day_balance_available_value.text = remainingDay.perDay.string
-        adjustExpandButton(day_transactions_button, hasTransactionsDay, transactions_day)
+        adjustExpandButton(day_transactions_button, spent!!.hasTransactionsCurrentDay, transactions_day)
     }
 
     private fun adjustExpandButton(expandButton: Button, setEnabled: Boolean, expandedView: View) {

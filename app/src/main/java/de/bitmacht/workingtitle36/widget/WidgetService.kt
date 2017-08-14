@@ -23,8 +23,10 @@ import android.appwidget.AppWidgetManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.IBinder
+import android.preference.PreferenceManager
 import android.support.v4.app.TaskStackBuilder
 import android.support.v4.graphics.ColorUtils
 import android.widget.RemoteViews
@@ -48,6 +50,10 @@ class WidgetService : Service() {
 
     private var alarmPendingIntent: PendingIntent? = null
 
+    private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener({ _, key ->
+        if (key == getString(R.string.pref_currency_key)) updateWidget()
+    })
+
     override fun onCreate() {
         super.onCreate()
         logd("-")
@@ -55,11 +61,6 @@ class WidgetService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         logd("-")
-        start()
-        return Service.START_STICKY
-    }
-
-    private fun start() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val startOfNextDay = DateTime.now().plusDays(1).withTimeAtStartOfDay().millis
         alarmPendingIntent = PendingIntent.getService(this, 0, Intent(this, WidgetService::class.java), 0)
@@ -73,10 +74,17 @@ class WidgetService : Service() {
 
         val widgetIds = AppWidgetManager.getInstance(this).getAppWidgetIds(ComponentName(this, WidgetProvider::class.java))
         if (widgetIds.isNotEmpty()) startLoaders()
+
+        PreferenceManager.getDefaultSharedPreferences(this).registerOnSharedPreferenceChangeListener(prefListener)
+
+        return Service.START_STICKY
     }
 
     override fun onDestroy() {
         logd("-")
+
+        PreferenceManager.getDefaultSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(prefListener)
+
         (getSystemService(Context.ALARM_SERVICE) as AlarmManager).cancel(alarmPendingIntent)
 
         transactionsDisposable.dispose()
