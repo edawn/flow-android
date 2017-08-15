@@ -224,7 +224,9 @@ class OverviewActivity : AppCompatActivity() {
 
     private fun createTransactionsProcessor(periods: Periods): (DBManager.TransactionsResult) -> Unit = {
         logd("received transactions result: $it")
-        this.periods = periods
+        if (!periods.equalsLong(this.periods)) {
+            this.periods = periods
+        }
         transactions = it.transactions
         onPeriodChanged()
         updateTransactions()

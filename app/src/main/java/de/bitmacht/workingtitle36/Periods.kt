@@ -52,6 +52,9 @@ class Periods(val longStart: DateTime, val longPeriod: Period, val shortStart: D
         if (!longEnd.isAfter(start)) null else Periods(longStart, longPeriod, start, shortPeriod)
     }
 
+    /** Return true if this Periods long period matches the other Periods long period */
+    fun equalsLong(other: Periods): Boolean = longStart == other.longStart && longEnd == other.longEnd
+
     override fun describeContents(): Int = 0
 
     override fun writeToParcel(dest: Parcel, flags: Int) = with(dest) {
