@@ -32,14 +32,22 @@ import android.support.v4.graphics.ColorUtils
 import android.widget.RemoteViews
 import de.bitmacht.workingtitle36.*
 import de.bitmacht.workingtitle36.db.DBManager
+import de.bitmacht.workingtitle36.di.AppModule
+import de.bitmacht.workingtitle36.di.DBModule
+import de.bitmacht.workingtitle36.di.DaggerDBComponent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposables
 import io.reactivex.schedulers.Schedulers
 import org.joda.time.DateTime
 import org.joda.time.Interval
 import java.util.*
+import javax.inject.Inject
 
 class WidgetService : Service() {
+
+    @Inject
+    lateinit var dbManager: DBManager
+
     private var regularsDisposable = Disposables.disposed()
     private var transactionsDisposable = Disposables.disposed()
 
@@ -57,6 +65,7 @@ class WidgetService : Service() {
     override fun onCreate() {
         super.onCreate()
         logd("-")
+        DaggerDBComponent.builder().appModule(AppModule(this)).dBModule(DBModule()).build().inject(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -101,13 +110,13 @@ class WidgetService : Service() {
         requestPeriods = null
         transactions = null
 
-        regularsDisposable = DBManager.instance.getRegularsObservable().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        regularsDisposable = dbManager.getRegularsObservable().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .subscribe { result ->
                     regulars = result.regulars
                     updateWidget()
                 }
 
-        transactionsDisposable = DBManager.instance.getTransactionsObservable(Periods())
+        transactionsDisposable = dbManager.getTransactionsObservable(Periods())
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(createTransactionsProcessor(Periods()))
                 .subscribe()

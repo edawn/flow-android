@@ -22,8 +22,9 @@ import android.database.sqlite.SQLiteOpenHelper
 import android.os.Build
 import de.bitmacht.workingtitle36.RegularModel
 import java.util.*
+import javax.inject.Inject
 
-class DBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class DBHelper @Inject constructor(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     override fun onConfigure(db: SQLiteDatabase) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {

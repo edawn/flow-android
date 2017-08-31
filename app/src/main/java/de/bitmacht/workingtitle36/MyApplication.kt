@@ -38,8 +38,6 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        dbHelper = DBHelper(this)
-
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         initPrefs(prefs)
         prefs.registerOnSharedPreferenceChangeListener(prefListener)
@@ -76,7 +74,5 @@ class MyApplication : Application() {
 
         var currency: Currency = Currency.getInstance(Locale.getDefault())
 
-        lateinit var dbHelper: DBHelper
-            private set
     }
 }

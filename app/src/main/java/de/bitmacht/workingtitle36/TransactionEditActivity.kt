@@ -16,7 +16,6 @@
 
 package de.bitmacht.workingtitle36
 
-
 import android.app.DialogFragment
 import android.app.TimePickerDialog
 import android.os.Bundle
@@ -28,14 +27,21 @@ import android.widget.AutoCompleteTextView
 import android.widget.TimePicker
 import de.bitmacht.workingtitle36.db.DBHelper
 import de.bitmacht.workingtitle36.db.DBManager
+import de.bitmacht.workingtitle36.di.AppModule
+import de.bitmacht.workingtitle36.di.DBModule
+import de.bitmacht.workingtitle36.di.DaggerDBComponent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.accept_dismiss_toolbar.*
 import kotlinx.android.synthetic.main.activity_transaction_edit.*
 import java.util.*
+import javax.inject.Inject
 
 class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetListener, DatePickerFragment.OnDateSetListener {
+
+    @Inject
+    lateinit var dbManager: DBManager
 
     private var transactionId: Long? = null
     private var parentId: Long? = null
@@ -45,6 +51,8 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        DaggerDBComponent.builder().appModule(AppModule(this)).dBModule(DBModule()).build().inject(this)
 
         setContentView(R.layout.activity_transaction_edit)
 
@@ -58,7 +66,7 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
         accept_button.setOnClickListener({
             logd("accepted edit: $edit")
 
-            DBManager.instance.createEdit(edit)
+            dbManager.createEdit(edit)
             //TODO wait for the update to finish
             finish()
         })
@@ -118,7 +126,7 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
 
     //TODO consider loading suggestions on demand (i.e. reload when user enters new/more text)
     private fun loadSuggestions(column: String, targetView: AutoCompleteTextView): Disposable {
-        return DBManager.instance.getSuggestions(column, "").subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        return dbManager.getSuggestions(column, "").subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .doOnSuccess { targetView.setAdapter(ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, it.suggestions.map { it.text })) }
                 .subscribe()
     }
