@@ -28,13 +28,17 @@ import io.reactivex.subjects.BehaviorSubject
 import java.util.*
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
+import javax.inject.Inject
 import kotlin.collections.HashMap
 import kotlin.concurrent.withLock
 
-class DBManager private constructor() {
+class DBManager @Inject constructor(dbHelper: DBHelper) {
 
 //    val fusedSubject = BehaviorSubject.create<FusedResult>()
 //    val transactionsMap: HashMap<TransactionsParams, TransactionsResult> = HashMap()
+
+    private val readableDB = dbHelper.readableDatabase
+    private val writableDB = dbHelper.writableDatabase
 
     // use a single dedicated thread for DB (write) access
     private val dbScheduler = Schedulers.from(Executors.newSingleThreadExecutor())
@@ -56,7 +60,7 @@ class DBManager private constructor() {
     fun updateRegular(regular: RegularModel) {
         Completable.fromCallable {
             logd("updating: regular: $regular")
-            getWritableDB().insertWithOnConflict(DBHelper.REGULARS_TABLE_NAME, null,
+            writableDB.insertWithOnConflict(DBHelper.REGULARS_TABLE_NAME, null,
                     regular.toContentValues(), SQLiteDatabase.CONFLICT_REPLACE)
         }.subscribeOn(dbScheduler)
                 .doOnComplete {
@@ -68,7 +72,7 @@ class DBManager private constructor() {
     fun deleteRegular(regularId: Long) {
         Completable.fromCallable {
             logd("deleting: id: $regularId")
-            val count = getWritableDB().delete(DBHelper.REGULARS_TABLE_NAME, "${DBHelper.REGULARS_KEY_ID} = ?", arrayOf(regularId.toString()))
+            val count = writableDB.delete(DBHelper.REGULARS_TABLE_NAME, "${DBHelper.REGULARS_KEY_ID} = ?", arrayOf(regularId.toString()))
             if (count != 1) logw("$count rows deleted; expected one; regular id: $regularId")
         }.subscribeOn(dbScheduler)
                 .doOnComplete {
@@ -89,7 +93,7 @@ class DBManager private constructor() {
     /** Synchronously query regulars */
     private fun queryRegulars(includeDisabled: Boolean = false): RegularsResult {
         logd("-")
-        return RegularsResult(getDB().rawQuery(if (includeDisabled) DBHelper.REGULARS_QUERY else DBHelper.ACTIVE_REGULARS_QUERY, null)
+        return RegularsResult(readableDB.rawQuery(if (includeDisabled) DBHelper.REGULARS_QUERY else DBHelper.ACTIVE_REGULARS_QUERY, null)
                 .use { cursor ->
                     with(ArrayList<RegularModel>(cursor.count)) {
                         while (cursor.moveToNext()) add(RegularModel(cursor))
@@ -99,14 +103,14 @@ class DBManager private constructor() {
                 , includeDisabled)
     }
 
-    private class TransactionsSubjectWrapper(val params: TransactionsParams) {
+    private inner class TransactionsSubjectWrapper(val params: TransactionsParams) {
         private val lock = ReentrantLock()
         val subject = BehaviorSubject.create<TransactionsResult>()
         fun getObservable() = subject.doOnSubscribe {
             logd("-")
             lock.withLock {
                 if (!subject.hasValue()) {
-                    subject.onNext(instance.queryTransactions(params))
+                    subject.onNext(queryTransactions(params))
                 }
             }
         }
@@ -125,7 +129,7 @@ class DBManager private constructor() {
 
     /** Synchronously query transactions */
     fun queryTransactions(transactionsParams: TransactionsParams): TransactionsResult {
-        return TransactionsResult(getDB().rawQuery(DBHelper.TRANSACTIONS_EDITS_TIME_SPAN_QUERY,
+        return TransactionsResult(readableDB.rawQuery(DBHelper.TRANSACTIONS_EDITS_TIME_SPAN_QUERY,
                     arrayOf(transactionsParams.startMillis.toString(), transactionsParams.endMillis.toString())).use { cursor ->
                 ArrayList<TransactionsModel>(cursor.count).apply {
                     while (cursor.moveToNext())
@@ -137,7 +141,7 @@ class DBManager private constructor() {
     fun updateTransaction(transaction: TransactionsModel) {
         logd("-")
         Completable.fromCallable {
-            getWritableDB().insertWithOnConflict(DBHelper.TRANSACTIONS_TABLE_NAME, null,
+            writableDB.insertWithOnConflict(DBHelper.TRANSACTIONS_TABLE_NAME, null,
                     transaction.toContentValues(), SQLiteDatabase.CONFLICT_REPLACE)
         }.subscribeOn(dbScheduler).doOnComplete {
             requeryTransactions()
@@ -159,7 +163,7 @@ class DBManager private constructor() {
     fun createEdit(edit: Edit) {
         Completable.fromCallable {
             try {
-                val db = getWritableDB()
+                val db = writableDB
                 db.beginTransaction()
                 try {
 
@@ -222,7 +226,7 @@ class DBManager private constructor() {
 
     fun getSuggestions(column: String, query: String): Single<SuggestionsResult> {
         return Single.create { e: SingleEmitter<SuggestionsResult> ->
-            e.onSuccess(SuggestionsResult(getDB()
+            e.onSuccess(SuggestionsResult(readableDB
                     .rawQuery(String.format(DBHelper.SUGGESTIONS_QUERY, column), arrayOf("$query%"))
                     .use { cursor ->
                         ArrayList<Suggestion>(cursor.count).apply {
@@ -232,14 +236,6 @@ class DBManager private constructor() {
                         }
                     }, column, query))
         }
-    }
-
-    private fun getDB(): SQLiteDatabase {
-        return MyApplication.dbHelper.readableDatabase
-    }
-
-    private fun getWritableDB(): SQLiteDatabase {
-        return MyApplication.dbHelper.writableDatabase
     }
 
     data class TransactionsParams(val startMillis: Long, val endMillis: Long) {
@@ -265,8 +261,5 @@ class DBManager private constructor() {
          * A valid value for [TransactionsSuggestionsLoader.ARG_COLUMN]
          */
         const val COLUMN_LOCATION = DBHelper.EDITS_KEY_TRANSACTION_LOCATION
-
-        val instance = DBManager()
-
     }
 }

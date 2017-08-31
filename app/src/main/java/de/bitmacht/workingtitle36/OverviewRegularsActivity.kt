@@ -25,12 +25,19 @@ import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
 import de.bitmacht.workingtitle36.db.DBManager
+import de.bitmacht.workingtitle36.di.AppModule
+import de.bitmacht.workingtitle36.di.DBModule
+import de.bitmacht.workingtitle36.di.DaggerDBComponent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposables
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_regulars_overview.*
+import javax.inject.Inject
 
 class OverviewRegularsActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var dbManager: DBManager
 
     private lateinit var regularsAdapter: RegularsAdapter
 
@@ -40,6 +47,8 @@ class OverviewRegularsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        DaggerDBComponent.builder().appModule(AppModule(this)).dBModule(DBModule()).build().inject(this)
 
         setContentView(R.layout.activity_regulars_overview)
 
@@ -51,12 +60,12 @@ class OverviewRegularsActivity : AppCompatActivity() {
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val regular = regularsAdapter.removeItem(viewHolder as BaseTransactionsAdapter<*>.BaseTransactionVH)
-                DBManager.instance.deleteRegular(regular.id!!)
+                dbManager.deleteRegular(regular.id!!)
                 regularsModified = true
                 setResult(Activity.RESULT_OK)
                 Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG)
                         .setAction(R.string.snackbar_undo, {
-                            DBManager.instance.updateRegular(regular)
+                            dbManager.updateRegular(regular)
                         }).show()
             }
         }
@@ -87,7 +96,7 @@ class OverviewRegularsActivity : AppCompatActivity() {
         super.onStart()
         logd("-")
         regularsDisposable.dispose()
-        regularsDisposable = DBManager.instance.getRegularsObservable().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        regularsDisposable = dbManager.getRegularsObservable().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .doOnNext {
                     logd("setting: ${it.regulars}")
                     regularsAdapter.setData(it.regulars)

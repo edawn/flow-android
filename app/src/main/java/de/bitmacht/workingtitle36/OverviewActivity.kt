@@ -35,6 +35,9 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.Button
 import de.bitmacht.workingtitle36.db.DBManager
+import de.bitmacht.workingtitle36.di.AppModule
+import de.bitmacht.workingtitle36.di.DBModule
+import de.bitmacht.workingtitle36.di.DaggerDBComponent
 import de.bitmacht.workingtitle36.view.HoleyLayout
 import de.bitmacht.workingtitle36.view.toggleVisibility
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -44,8 +47,12 @@ import kotlinx.android.synthetic.main.activity_overview.*
 import org.joda.time.DateTime
 import org.joda.time.Interval
 import java.util.*
+import javax.inject.Inject
 
 class OverviewActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var dbManager: DBManager
 
     private var helpScreen: HoleyLayout? = null
 
@@ -81,6 +88,8 @@ class OverviewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         logd("savedInstanceState: $savedInstanceState")
+
+        DaggerDBComponent.builder().appModule(AppModule(this)).dBModule(DBModule()).build().inject(this)
 
         setContentView(R.layout.activity_overview)
 
@@ -136,12 +145,12 @@ class OverviewActivity : AppCompatActivity() {
             override fun onMove(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder): Boolean = false
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val transaction = adapter.removeItem(viewHolder as BaseTransactionsAdapter<*>.BaseTransactionVH)
-                DBManager.instance.deleteTransaction(transaction)
+                dbManager.deleteTransaction(transaction)
                 //TODO this should be shown only after a successful removal
 
                 Snackbar.make(findViewById(android.R.id.content), R.string.snackbar_transaction_removed, Snackbar.LENGTH_LONG)
                         .setAction(R.string.snackbar_undo, {
-                            DBManager.instance.deleteTransaction(transaction, true)
+                            dbManager.deleteTransaction(transaction, true)
                         }).show()
                 transactions!!.remove(transaction)
                 updateOverview()
@@ -204,7 +213,7 @@ class OverviewActivity : AppCompatActivity() {
         logd("-")
 
         regularsDisposable.dispose()
-        regularsDisposable = DBManager.instance.getRegularsObservable().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
+        regularsDisposable = dbManager.getRegularsObservable().subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .doOnNext {
                     logd("received regulars result: $it")
                     regulars = it.regulars
@@ -217,7 +226,7 @@ class OverviewActivity : AppCompatActivity() {
     private fun requestTransactions(periods: Periods) {
         logd("periods: $periods")
         transactionsDisposable.dispose()
-        transactionsDisposable = DBManager.instance.getTransactionsObservable(periods)
+        transactionsDisposable = dbManager.getTransactionsObservable(periods)
                 .subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(createTransactionsProcessor(periods)).subscribe()
     }
