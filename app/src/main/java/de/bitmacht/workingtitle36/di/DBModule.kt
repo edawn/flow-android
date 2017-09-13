@@ -21,10 +21,14 @@ import dagger.Module
 import dagger.Provides
 import de.bitmacht.workingtitle36.db.DBHelper
 import de.bitmacht.workingtitle36.db.DBManager
+import javax.inject.Singleton
 
 @Module
 class DBModule {
 
+    @Singleton
     @Provides fun provideDBManager(dbHelper: DBHelper) = DBManager(dbHelper)
+
+    @Singleton
     @Provides fun provideDBHelper(appContext: Context) = DBHelper(appContext)
 }

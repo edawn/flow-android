@@ -35,9 +35,6 @@ import android.view.View
 import android.view.animation.DecelerateInterpolator
 import android.widget.Button
 import de.bitmacht.workingtitle36.db.DBManager
-import de.bitmacht.workingtitle36.di.AppModule
-import de.bitmacht.workingtitle36.di.DBModule
-import de.bitmacht.workingtitle36.di.DaggerDBComponent
 import de.bitmacht.workingtitle36.view.HoleyLayout
 import de.bitmacht.workingtitle36.view.toggleVisibility
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -89,7 +86,7 @@ class OverviewActivity : AppCompatActivity() {
 
         logd("savedInstanceState: $savedInstanceState")
 
-        DaggerDBComponent.builder().appModule(AppModule(this)).dBModule(DBModule()).build().inject(this)
+        (application as MyApplication).getAppComponent().inject(this)
 
         setContentView(R.layout.activity_overview)
 

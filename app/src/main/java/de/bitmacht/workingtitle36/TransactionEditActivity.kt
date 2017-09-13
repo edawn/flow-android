@@ -27,9 +27,6 @@ import android.widget.AutoCompleteTextView
 import android.widget.TimePicker
 import de.bitmacht.workingtitle36.db.DBHelper
 import de.bitmacht.workingtitle36.db.DBManager
-import de.bitmacht.workingtitle36.di.AppModule
-import de.bitmacht.workingtitle36.di.DBModule
-import de.bitmacht.workingtitle36.di.DaggerDBComponent
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -52,7 +49,7 @@ class TransactionEditActivity : AppCompatActivity(), TimePickerDialog.OnTimeSetL
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        DaggerDBComponent.builder().appModule(AppModule(this)).dBModule(DBModule()).build().inject(this)
+        (application as MyApplication).getAppComponent().inject(this)
 
         setContentView(R.layout.activity_transaction_edit)
 
