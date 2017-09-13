@@ -22,9 +22,11 @@ import de.bitmacht.workingtitle36.OverviewRegularsActivity
 import de.bitmacht.workingtitle36.RegularEditActivity
 import de.bitmacht.workingtitle36.TransactionEditActivity
 import de.bitmacht.workingtitle36.widget.WidgetService
+import javax.inject.Singleton
 
-@Component(modules = arrayOf(DBModule::class, AppModule::class))
-interface DBComponent {
+@Singleton
+@Component(modules = arrayOf(AppModule::class, DBModule::class))
+interface AppComponent {
     fun inject(overviewActivity: OverviewActivity)
     fun inject(widgetService: WidgetService)
     fun inject(overviewRegularsActivity: OverviewRegularsActivity)

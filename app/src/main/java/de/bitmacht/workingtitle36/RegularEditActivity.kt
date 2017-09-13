@@ -24,9 +24,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import de.bitmacht.workingtitle36.db.DBHelper
 import de.bitmacht.workingtitle36.db.DBManager
-import de.bitmacht.workingtitle36.di.AppModule
-import de.bitmacht.workingtitle36.di.DBModule
-import de.bitmacht.workingtitle36.di.DaggerDBComponent
 import kotlinx.android.synthetic.main.accept_dismiss_toolbar.*
 import kotlinx.android.synthetic.main.activity_regular_edit.*
 import org.joda.time.DateTimeConstants
@@ -47,7 +44,7 @@ class RegularEditActivity : AppCompatActivity(), DatePickerFragment.OnDateSetLis
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        DaggerDBComponent.builder().appModule(AppModule(this)).dBModule(DBModule()).build().inject(this)
+        (application as MyApplication).getAppComponent().inject(this)
 
         setContentView(R.layout.activity_regular_edit)
 

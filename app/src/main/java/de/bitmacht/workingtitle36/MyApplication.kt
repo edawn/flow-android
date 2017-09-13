@@ -16,16 +16,18 @@
 
 package de.bitmacht.workingtitle36
 
+
 import android.app.Application
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
-import de.bitmacht.workingtitle36.db.DBHelper
-
-
-import java.util.Currency
-import java.util.Locale
+import de.bitmacht.workingtitle36.di.AppComponent
+import de.bitmacht.workingtitle36.di.AppModule
+import de.bitmacht.workingtitle36.di.DaggerAppComponent
+import java.util.*
 
 class MyApplication : Application() {
+
+    private lateinit var appComponent: AppComponent
 
     // necessary to hold a strong reference
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener({sharedPreferences, key ->
@@ -37,6 +39,8 @@ class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        appComponent = DaggerAppComponent.builder().appModule(AppModule(this)).build()
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         initPrefs(prefs)
@@ -69,6 +73,8 @@ class MyApplication : Application() {
         }
         logd("new currency: $currency")
     }
+
+    fun getAppComponent() = appComponent
 
     companion object {
 
