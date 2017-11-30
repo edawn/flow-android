@@ -19,6 +19,7 @@ package de.bitmacht.workingtitle36.widget
 import android.app.Activity
 import android.app.Dialog
 import android.appwidget.AppWidgetManager
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
@@ -42,16 +43,16 @@ class WidgetConfigureActivity : AppCompatActivity() {
     class WidgetConfigureDialogFragment : AppCompatDialogFragment() {
 
         override fun onCreateDialog(savedInstanceState: Bundle?): Dialog =
-                AlertDialog.Builder(activity).setTitle(getString(R.string.widget_config_title, getString(R.string.app_name)))
+                AlertDialog.Builder(activity as Context).setTitle(getString(R.string.widget_config_title, getString(R.string.app_name)))
                         .setView(LayoutInflater.from(activity).inflate(R.layout.dialog_widget_configure, null) as LinearLayout)
                         .setPositiveButton(android.R.string.ok, { _, _ ->
-                            val alpha = with(dialog.findViewById(R.id.transparency_seekbar) as SeekBar) { progress.toFloat() / max }
-                            Utils.setfPref(context, R.string.pref_widget_transparency_key, alpha)
+                            val alpha = with(dialog.findViewById<SeekBar>(R.id.transparency_seekbar)) { progress.toFloat() / max }
+                            Utils.setfPref(context as Context, R.string.pref_widget_transparency_key, alpha)
 
-                            context.startService(Intent(context, WidgetService::class.java))
+                            context?.startService(Intent(context, WidgetService::class.java))
 
-                            activity.intent.extras?.let { extras ->
-                                activity.setResult(Activity.RESULT_OK, Intent().apply {
+                            activity?.intent?.extras?.let { extras ->
+                                activity?.setResult(Activity.RESULT_OK, Intent().apply {
                                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
                                             extras.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID))
                                 })

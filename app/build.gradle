@@ -19,13 +19,13 @@ apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    compileSdkVersion 27
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
         applicationId "de.bitmacht.workingtitle36"
         minSdkVersion 14
-        targetSdkVersion 25
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -42,7 +42,7 @@ android {
 }
 
 ext {
-    support_version = "25.3.1"
+    support_version = "27.0.2"
     joda_version = "2.9.6"
     rxjava_version = "2.1.1"
     rxandroid_version = "2.0.1"

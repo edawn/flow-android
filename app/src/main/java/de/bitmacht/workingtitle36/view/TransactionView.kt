@@ -40,7 +40,7 @@ class TransactionView : BaseTransactionView {
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        timeView = findViewById(R.id.time) as TimeView
+        timeView = findViewById(R.id.time)
     }
 
     /**

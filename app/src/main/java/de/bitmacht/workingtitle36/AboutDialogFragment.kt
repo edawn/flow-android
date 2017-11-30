@@ -17,6 +17,7 @@
 package de.bitmacht.workingtitle36
 
 import android.app.Dialog
+import android.content.Context
 import android.os.Bundle
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatDialogFragment
@@ -31,8 +32,8 @@ class AboutDialogFragment : AppCompatDialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val contentView = LayoutInflater.from(activity).inflate(R.layout.dialog_about, null) as LinearLayout
-        val messageView = contentView.findViewById(R.id.message) as TextView
-        val licensesView = contentView.findViewById(R.id.licenses) as WebView
+        val messageView = contentView.findViewById<TextView>(R.id.message)
+        val licensesView = contentView.findViewById<WebView>(R.id.licenses)
 
         val version = BuildConfig.VERSION_CODE.toString() + "/" + BuildConfig.VERSION_NAME
         val appName = getString(R.string.app_name)
@@ -45,7 +46,7 @@ class AboutDialogFragment : AppCompatDialogFragment() {
 
         licensesView.loadUrl("file:///android_asset/licenses.html")
 
-        val builder = AlertDialog.Builder(activity)
+        val builder = AlertDialog.Builder(activity as Context)
         builder.setTitle(getString(R.string.about_title, appName)).setView(contentView).setPositiveButton(android.R.string.ok, null)
         return builder.create()
     }

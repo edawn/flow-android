@@ -24,6 +24,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.helper.ItemTouchHelper
+import android.view.View
 import de.bitmacht.workingtitle36.db.DBManager
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposables
@@ -73,7 +74,7 @@ class OverviewRegularsActivity : AppCompatActivity() {
             }
         }
 
-        findViewById(R.id.fab).setOnClickListener { v -> startActivityForResult(Intent(v.context, RegularEditActivity::class.java), REQUEST_REGULAR_EDIT) }
+        findViewById<View>(R.id.fab).setOnClickListener { v -> startActivityForResult(Intent(v.context, RegularEditActivity::class.java), REQUEST_REGULAR_EDIT) }
 
         savedInstanceState?.apply {
             if (getBoolean(REGULARS_MODIFIED_KEY)) {

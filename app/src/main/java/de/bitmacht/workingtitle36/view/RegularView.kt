@@ -38,7 +38,7 @@ class RegularView : BaseTransactionView {
 
     override fun onFinishInflate() {
         super.onFinishInflate()
-        periodView = findViewById(R.id.period) as TextView
+        periodView = findViewById(R.id.period)
     }
 
     fun setData(regularModel: RegularModel) {

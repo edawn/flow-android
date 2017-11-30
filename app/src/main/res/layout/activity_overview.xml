@@ -344,7 +344,7 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@color/helpForeground"
             android:textSize="20sp"
-            app:font="IHateComicSans.ttf" />
+            app:customFont="IHateComicSans.ttf" />
 
     </de.bitmacht.workingtitle36.view.HoleyLayout>
 

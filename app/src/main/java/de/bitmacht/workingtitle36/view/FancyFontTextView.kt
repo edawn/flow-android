@@ -36,7 +36,7 @@ class FancyFontTextView : AppCompatTextView {
 
     private fun init(context: Context, attrs: AttributeSet) {
         val a = context.obtainStyledAttributes(attrs, R.styleable.FancyFontTextView)
-        a.getString(R.styleable.FancyFontTextView_font)?.let {
+        a.getString(R.styleable.FancyFontTextView_customFont)?.let {
             FontCache.getTypeface(it, context)
         }?.let {
             typeface = it

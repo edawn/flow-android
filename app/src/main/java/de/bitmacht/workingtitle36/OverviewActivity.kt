@@ -86,7 +86,7 @@ class OverviewActivity : AppCompatActivity() {
 
         if (Utils.getbPref(this, R.string.pref_first_time_key, true)) {
             help_screen.apply { helpScreen = this; visibility = View.VISIBLE }
-            findViewById(R.id.hole_fab).apply {
+            findViewById<View>(R.id.hole_fab).apply {
                 scaleX = 10f
                 scaleY = 10f
                 animate().scaleX(1f).scaleY(1f).interpolator = DecelerateInterpolator()
