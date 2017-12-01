@@ -33,9 +33,6 @@
     <declare-styleable name="HoleyLayout_Layout">
         <attr name="layout_punch" format="boolean" />
     </declare-styleable>
-    <declare-styleable name="FancyFontTextView">
-        <attr name="customFont" format="string" />
-    </declare-styleable>
     <declare-styleable name="ValueInput">
         <attr name="negativeZero" format="boolean" />
     </declare-styleable>

@@ -332,7 +332,7 @@
             android:tint="@color/helpForeground" />
 
 
-        <de.bitmacht.workingtitle36.view.FancyFontTextView
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/arrow_fab"
@@ -344,7 +344,7 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@color/helpForeground"
             android:textSize="20sp"
-            app:customFont="IHateComicSans.ttf" />
+            android:fontFamily="@font/onboarding_font" />
 
     </de.bitmacht.workingtitle36.view.HoleyLayout>
 
